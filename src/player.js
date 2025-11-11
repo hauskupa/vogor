@@ -1,23 +1,25 @@
 // src/player.js
+
 export function setupPlayer() {
   console.log("player: init");
 
-  const wrapper = document.querySelector("[data-player]");
-  if (!wrapper) {
+  // keyrum bara ef data-player finnst einhversstaðar
+  const hasPlayer = document.querySelector("[data-player]");
+  if (!hasPlayer) {
     console.warn("player: no [data-player] found");
     return;
   }
 
-  const audio = wrapper.querySelector("audio") || document.getElementById("audio");
+  const audio = document.getElementById("audio");
   if (!audio) {
-    console.warn("player: no <audio> element found");
+    console.warn("player: no #audio element found");
     return;
   }
 
-const lrcUrl =
-  wrapper.dataset.lrc ||
-  "https://cdn.jsdelivr.net/gh/hauskupa/vogor@main/dist/sodkaffi.lrc";
-
+  // LRC slóð – local í dist
+  const lrcUrl =
+    document.body.dataset.lrc ||
+    "https://cdn.jsdelivr.net/gh/hauskupa/vogor@main/dist/sodkaffi.lrc";
 
   audio.autoplay = false;
   audio.preload = "none";
@@ -44,23 +46,26 @@ const lrcUrl =
   fetch(lrcUrl)
     .then((res) => res.text())
     .then((txt) => setupControls(parseLRC(txt)))
-    .catch(() => setupControls([]));
+    .catch((err) => {
+      console.error("player: failed to load LRC", err);
+      setupControls([]);
+    });
 
   function setupControls(parsedLyrics) {
-    const el = (id) => wrapper.querySelector(`#${id}`) || document.getElementById(id);
+    const $ = (id) => document.getElementById(id);
 
-    const playBtn = el("playBtn");
-    const pauseBtn = el("pauseBtn");
-    const stopBtn = el("stopBtn");
-    const nextTrackBtn = el("nextTrackBtn");
-    const prevTrackBtn = el("prevTrackBtn");
-    const volDownBtn = el("volDownBtn");
-    const volUpBtn = el("volUpBtn");
-    const playIcon = el("playIcon");
-    const pauseIcon = el("pauseIcon");
-    const timeDisplay = el("timeDisplay");
-    const trackTitle = el("trackTitle");
-    const lyricsDisplay = el("lyricsDisplay");
+    const playBtn = $("playBtn");
+    const pauseBtn = $("pauseBtn");
+    const stopBtn = $("stopBtn");
+    const nextTrackBtn = $("nextTrackBtn");
+    const prevTrackBtn = $("prevTrackBtn");
+    const volDownBtn = $("volDownBtn");
+    const volUpBtn = $("volUpBtn");
+    const playIcon = $("playIcon");
+    const pauseIcon = $("pauseIcon");
+    const timeDisplay = $("timeDisplay");
+    const trackTitle = $("trackTitle");
+    const lyricsDisplay = $("lyricsDisplay");
 
     const step = 0.1;
 
@@ -82,22 +87,37 @@ const lrcUrl =
       const s = Math.floor(sec % 60);
       return m + ":" + (s < 10 ? "0" : "") + s;
     }
+
     function getCurrentTrack(now) {
-      for (let i = tracks.length - 1; i >= 0; i--) if (now >= tracks[i].start) return tracks[i];
+      for (let i = tracks.length - 1; i >= 0; i--) {
+        if (now >= tracks[i].start) return tracks[i];
+      }
       return tracks[0];
     }
 
     let lastLyric = "";
     let fadeOut;
 
-    function updateLyrics(now) {
-      if (!lyricsDisplay) return;
+    function updateTime() {
+      const now = audio.currentTime;
+
+      if (timeDisplay && audio.duration) {
+        timeDisplay.textContent = `${formatTime(now)} / ${formatTime(
+          audio.duration
+        )}`;
+      }
+
       const ct = getCurrentTrack(now);
+      if (trackTitle) trackTitle.textContent = ct.title;
+
+      if (!lyricsDisplay || !parsedLyrics.length) return;
+
       let line = "";
       for (let { time, text } of parsedLyrics) {
         if (time >= ct.end) break;
         if (time >= ct.start && time <= now) line = text;
       }
+
       if (line !== lastLyric) {
         lastLyric = line;
         clearTimeout(fadeOut);
@@ -105,17 +125,11 @@ const lrcUrl =
         setTimeout(() => {
           lyricsDisplay.textContent = line;
           lyricsDisplay.style.opacity = 1;
-          fadeOut = setTimeout(() => (lyricsDisplay.style.opacity = 0), 5000);
+          fadeOut = setTimeout(() => {
+            lyricsDisplay.style.opacity = 0;
+          }, 5000);
         }, 300);
       }
-    }
-
-    function updateTime() {
-      const now = audio.currentTime;
-      if (timeDisplay && audio.duration)
-        timeDisplay.textContent = `${formatTime(now)} / ${formatTime(audio.duration)}`;
-      if (trackTitle) trackTitle.textContent = getCurrentTrack(now).title;
-      updateLyrics(now);
     }
 
     function showPlayState() {
@@ -124,6 +138,7 @@ const lrcUrl =
       playBtn?.setAttribute("aria-hidden", "false");
       pauseBtn?.setAttribute("aria-hidden", "true");
     }
+
     function showPauseState() {
       playIcon?.setAttribute("aria-hidden", "true");
       pauseIcon?.setAttribute("aria-hidden", "false");
@@ -145,31 +160,44 @@ const lrcUrl =
       showPlayState();
       updateTime();
     };
-    const next = () => {
+
+    const nextTrack = () => {
       const now = audio.currentTime;
-      const n = tracks.find((t) => t.start > now);
-      if (n) audio.currentTime = n.start;
+      const next = tracks.find((t) => t.start > now);
+      if (next) audio.currentTime = next.start;
       if (audio.paused) playAudio();
     };
-    const prev = () => {
+
+    const prevTrack = () => {
       const now = audio.currentTime;
       let idx = tracks.findIndex((t) => now < t.start) - 1;
       if (idx < 0) idx = tracks.length - 1;
-      const p =
-        now - tracks[idx].start > 3 || idx === 0 ? tracks[idx] : tracks[idx - 1] || tracks[0];
-      audio.currentTime = p.start;
+      const prev =
+        now - tracks[idx].start > 3 || idx === 0
+          ? tracks[idx]
+          : tracks[idx - 1] || tracks[0];
+      audio.currentTime = prev.start;
       if (audio.paused) playAudio();
     };
 
-    volUpBtn?.addEventListener("click", () => (audio.volume = Math.min(1, audio.volume + step)));
-    volDownBtn?.addEventListener("click", () => (audio.volume = Math.max(0, audio.volume - step)));
+    // volume
+    volUpBtn?.addEventListener(
+      "click",
+      () => (audio.volume = Math.min(1, audio.volume + step))
+    );
+    volDownBtn?.addEventListener(
+      "click",
+      () => (audio.volume = Math.max(0, audio.volume - step))
+    );
 
+    // buttons
     playBtn?.addEventListener("click", playAudio);
     pauseBtn?.addEventListener("click", pauseAudio);
     stopBtn?.addEventListener("click", stopAudio);
-    nextTrackBtn?.addEventListener("click", next);
-    prevTrackBtn?.addEventListener("click", prev);
+    nextTrackBtn?.addEventListener("click", nextTrack);
+    prevTrackBtn?.addEventListener("click", prevTrack);
 
+    // audio events
     audio.addEventListener("loadedmetadata", updateTime);
     audio.addEventListener("timeupdate", updateTime);
     audio.addEventListener("ended", stopAudio);

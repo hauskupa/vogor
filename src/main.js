@@ -1,5 +1,6 @@
 import { setupMixer } from "./mixer.js";
 import { setupAwake } from "./awake.js";
+import { setupPlayer } from "./player.js";
 
 document.addEventListener("DOMContentLoaded", () => {
   // Mixer
@@ -12,5 +13,11 @@ document.addEventListener("DOMContentLoaded", () => {
   if (document.querySelector("[data-awake]")) {
     console.log("Found awake element, initializing...");
     setupAwake();
+  }
+
+  // Global player (Soðkaffi o.fl.)
+  if (document.querySelector("[data-player]")) {
+    console.log("Found [data-player], initializing player...");
+    setupPlayer();
   }
 });
