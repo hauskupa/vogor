@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["../src/main.js"],
+  "sourcesContent": ["console.log(\"test-2025-09-24 from src/main.js\");\r\n\r\n\r\ndocument.addEventListener(\"DOMContentLoaded\", () => {\r\n \r\n});"],
+  "mappings": ";MAAA,QAAQ,IAAI,kCAAkC,EAG9C,SAAS,iBAAiB,mBAAoB,IAAM,CAEpD,CAAC",
+  "names": []
+}
