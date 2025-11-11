@@ -5,7 +5,7 @@
   "scripts": {
     "build": "node build.js",
     "dev": "npx esbuild src/main.js --bundle --format=iife --target=es2019 --sourcemap --outfile=dist/main.dev.js --watch",
-    "deploy": "npm run build && git add src dist && git diff --cached --quiet || git commit -m \"Auto deploy $(date +'%Y-%m-%d %H:%M:%S')\" && git push origin main && bash ./purge.sh",
+    "deploy": "npm run build && git add -A && git diff --cached --quiet || git commit -m \"Auto deploy\" && git push origin main && bash ./purge.sh",
     "build:purge": "npm run build && bash ./purge.sh",
     "purge": "bash ./purge.sh",
     "build:icons": "svg-sprite-generate -d ./icons -o ./dist/sprite.svg"
@@ -14,6 +14,7 @@
     "esbuild": "^0.25.9"
   },
   "dependencies": {
+    "howler": "^2.2.4",
     "lottie-web": "^5.13.0"
   }
 }
