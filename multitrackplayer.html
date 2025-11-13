@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Multitrack Test</title>
+</head>
+<body><div data-multitrack-player>
+  <!-- Global controls (optional) -->
+   <div class="mt-btn" data-mt-play>Play</div>
+  <div class="mt-btn" data-mt-pause>Pause</div>
+  <div class="mt-btn" data-mt-stop>Stop</div>
+
+  <div class="mt-tracks">
+   <div class="mt-track" data-mt-trigger data-mt-audio="https://dl.dropbox.com/scl/fi/69bv4y9vorjzfvc16xz3b/Drums.mp3?rlkey=acs2r0yx3e4sfbikjq6u4uqfd&st=liyenful&dl=0">Drums</div>
+  <div class="mt-track" data-mt-trigger  data-mt-audio="https://dl.dropbox.com/scl/fi/1qv2dvsf8dxpxerarqx56/Bass.mp3?rlkey=2p5xc4bynkqrdnf4ilhfqdc6k&st=wj0mip9b&dl=0">Bass</div>
+  <div class="mt-track" data-mt-trigger data-mt-audio="https://dl.dropbox.com/scl/fi/kt0t5buszjymk74l9nnyg/Guitar1.mp3?rlkey=bkbcz8ehnzo71k2mady42efus&st=5ymnwp91&dl=0">Guitar</div>
+  <div class="mt-track" data-mt-trigger data-mt-audio="https://dl.dropbox.com/scl/fi/7gwvpjse5naq5t74mh6a0/Lalli1.mp3?rlkey=z3n2v78ohx4g33j19do2nqrd8&st=ajpz31fz&dl=0">Guitar 2</div>
+  </div>
+
+</div>
+  <!-- Local JS (engin bundling) -->
+  <script type="module" src="src/multitrackplayer.js"></script>
+</body>
+</html>
