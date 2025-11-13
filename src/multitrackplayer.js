@@ -89,5 +89,3 @@ export function setupMultitrackPlayer() {
 
   console.log("multitrack: ready");
 }
-
-document.addEventListener("DOMContentLoaded", setupMultitrackPlayer);
