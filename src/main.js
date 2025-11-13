@@ -3,7 +3,10 @@ import { setupAwake } from "./awake.js";
 import { setupPlayer } from "./player.js";
 import { setupMultitrackPlayer } from "./multitrackplayer.js";
 
+console.log("main.js loaded");   // 👈 BÆTA ÞESSU INN
+
 document.addEventListener("DOMContentLoaded", () => {
+  console.log("main: DOMContentLoaded");   // og þessu, nice að hafa
   // Mixer
   if (document.querySelector("[data-mixer]")) {
     console.log("Found mixer element, initializing...");
