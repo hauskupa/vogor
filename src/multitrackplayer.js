@@ -1,4 +1,21 @@
 // src/multitrackplayer.js
+function fadeVolume(audio, target, duration = 300) {
+  const steps = 30;
+  const stepTime = duration / steps;
+  const start = audio.volume;
+  const delta = target - start;
+  let i = 0;
+
+  const timer = setInterval(() => {
+    i++;
+    audio.volume = start + (delta * (i / steps));
+    if (i >= steps) {
+      audio.volume = target;
+      clearInterval(timer);
+    }
+  }, stepTime);
+}
+
 export function setupMultitrackPlayer(root = document) {
   console.log("multitrack: init");
 
@@ -90,14 +107,20 @@ export function setupMultitrackPlayer(root = document) {
     }
   }
 
-  function toggleTrack(track) {
-    ensureStarted();
-    if (!isPlaying) playAll();
+function toggleTrack(track) {
+  ensureStarted();
+  if (!isPlaying) playAll();
 
-    const isOn = track.audio.volume > 0;
-    track.audio.volume = isOn ? 0 : 1;
-    track.el.classList.toggle("is-active", !isOn);
+  const isOn = track.audio.volume > 0.01;
+
+  if (isOn) {
+    fadeVolume(track.audio, 0, 300); // fade out
+  } else {
+    fadeVolume(track.audio, 1, 300); // fade in
   }
+
+  track.el.classList.toggle("is-active", !isOn);
+}
 
   // default behaviour: click á .mt-track togglar viðkomandi stem
   tracks.forEach((track) => {
