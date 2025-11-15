@@ -71,8 +71,10 @@ export function setupMultitrackPlayer(root = document) {
     return null;
   }
 
-  let isStarted = false;
+   let isStarted = false;
   let isPlaying = false;
+  let currentSongId = null; // Agust / Siggi / whatever
+
 
   function playAll() {
     tracks.forEach(({ audio }) => {
@@ -90,7 +92,7 @@ export function setupMultitrackPlayer(root = document) {
     isPlaying = false;
   }
 
-  function stopAll() {
+   function stopAll() {
     tracks.forEach(({ audio, el }) => {
       audio.pause();
       audio.currentTime = 0;
@@ -98,7 +100,9 @@ export function setupMultitrackPlayer(root = document) {
       el.classList.remove("is-active");
     });
     isPlaying = false;
+    currentSongId = null;
   }
+
 
   function ensureStarted() {
     if (!isStarted) {
@@ -107,20 +111,38 @@ export function setupMultitrackPlayer(root = document) {
     }
   }
 
-function toggleTrack(track) {
-  ensureStarted();
-  if (!isPlaying) playAll();
+  function toggleTrack(track) {
+    ensureStarted();
+    if (!isPlaying) playAll();
 
-  const isOn = track.audio.volume > 0.01;
+    // 🔒 EITT LAG Í EINU
+    // ef við erum að fara í annað lag en það sem er active:
+    if (track.songId && currentSongId && track.songId !== currentSongId) {
+      // slökkvum á öllum stems úr hinu lagi
+      tracks.forEach((t) => {
+        if (t.songId !== track.songId) {
+          fadeVolume(t.audio, 0, 300);
+          t.el.classList.remove("is-active");
+        }
+      });
+    }
 
-  if (isOn) {
-    fadeVolume(track.audio, 0, 300); // fade out
-  } else {
-    fadeVolume(track.audio, 1, 300); // fade in
+    // setjum núverandi lag
+    if (track.songId) {
+      currentSongId = track.songId;
+    }
+
+    const isOn = track.audio.volume > 0.01;
+
+    if (isOn) {
+      fadeVolume(track.audio, 0, 300);   // fade out
+    } else {
+      fadeVolume(track.audio, 1, 300);   // fade in
+    }
+
+    track.el.classList.toggle("is-active", !isOn);
   }
 
-  track.el.classList.toggle("is-active", !isOn);
-}
 
   // default behaviour: click á .mt-track togglar viðkomandi stem
   tracks.forEach((track) => {
