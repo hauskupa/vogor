@@ -1,9 +1,14 @@
 // src/asleep.js
+// -------------------------------------------------------------
+// Asleep artwork logic: positions + default drone + status UI
+// + old-school mini waveform
+// -------------------------------------------------------------
+
 import { FLY_SLOTS, SONG_LAYOUT } from "./asleepPositions.js";
 
-// ----------------------------
+// -------------------------------------------------------------
 // Fade helper
-// ----------------------------
+// -------------------------------------------------------------
 function fadeVolume(audio, target, duration = 500) {
   const steps = 30;
   const stepTime = duration / steps;
@@ -21,52 +26,166 @@ function fadeVolume(audio, target, duration = 500) {
   }, stepTime);
 }
 
-// ----------------------------
-// Stem nafn úr data / file
-// ----------------------------
+// -------------------------------------------------------------
+// Stem-nafn úr data-attribute eða skráarheiti
+// -------------------------------------------------------------
 function getStemName(track) {
-  // 1) Webflow data-mt-stem ef til
   const fromAttr = track.el.dataset.mtStem;
   if (fromAttr) return fromAttr;
 
-  // 2) Reikna úr slóð
-  const url = track.el.dataset.mtAudio || track.audio?.src || "";
+  const url =
+    track.el.dataset.mtAudio ||
+    track.audio?.src ||
+    "";
+
   if (!url) return "Stem";
 
-  let filename = url.split("/").pop() || "";
-  let base = filename.replace(/\.[^/.]+$/, ""); // taka .mp3 o.fl. af
+  let filename = url.split("/").pop();
+  let base = filename.replace(/\.[^/.]+$/, "");
 
-  // "Mars18_DRUMS" -> "DRUMS" o.s.frv.
+  // fjarlægja prefixes eins og Mars18_, Palli_, etc.
   base = base.replace(/^(Mars|Palli|Agust|Siggi)[0-9\-_]*/i, "");
   base = base.replace(/[_-]+/g, " ").trim();
-
-  if (!base) base = "Stem";
 
   return base.charAt(0).toUpperCase() + base.slice(1);
 }
 
-// ----------------------------
+// -------------------------------------------------------------
+// 🎛 WAVEFORM HELPER (global state fyrir einn canvas)
+// -------------------------------------------------------------
+let audioCtx = null;
+let analyser = null;
+let waveformData = null;
+let waveCanvas = null;
+let waveCtx = null;
+let waveSource = null;
+let waveRunning = false;
+
+function initWaveCanvas(canvas) {
+  if (!canvas) return;
+  waveCanvas = canvas;
+  waveCtx = canvas.getContext("2d");
+}
+
+function getAudioElementFromTrack(track) {
+  // reyna nokkur property-nöfn til að vera safe
+  return (
+    track.audio ||
+    track.audioEl ||
+    track.media ||
+    track._audio ||
+    null
+  );
+}
+
+function startWaveformForTrack(track) {
+  if (!waveCanvas || !waveCtx) return;
+
+  const audioEl = getAudioElementFromTrack(track);
+  if (!audioEl) {
+    console.warn("asleep: no audio element for waveform");
+    return;
+  }
+
+  if (!audioCtx) {
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC) return;
+    audioCtx = new AC();
+  }
+
+  if (audioCtx.state === "suspended") {
+    audioCtx.resume();
+  }
+
+  if (!analyser) {
+    analyser = audioCtx.createAnalyser();
+    analyser.fftSize = 512;
+    waveformData = new Uint8Array(analyser.fftSize);
+  }
+
+  // disconnect previous source ef til
+  if (waveSource) {
+    try { waveSource.disconnect(); } catch (e) {}
+  }
+
+  // ekki leyfilegt að kalla createMediaElementSource tvisvar á sama element
+  if (audioEl._waveSource) {
+    waveSource = audioEl._waveSource;
+  } else {
+    try {
+      waveSource = audioCtx.createMediaElementSource(audioEl);
+      audioEl._waveSource = waveSource;
+    } catch (e) {
+      console.warn("asleep: cannot create media element source", e);
+      return;
+    }
+  }
+
+  waveSource.connect(analyser);
+  analyser.connect(audioCtx.destination);
+
+  if (!waveRunning) {
+    waveRunning = true;
+    requestAnimationFrame(renderWaveform);
+  }
+}
+
+function stopWaveform() {
+  waveRunning = false;
+  if (waveCtx && waveCanvas) {
+    waveCtx.clearRect(0, 0, waveCanvas.width, waveCanvas.height);
+  }
+}
+
+function renderWaveform() {
+  if (!waveRunning || !analyser || !waveCtx || !waveCanvas) return;
+
+  analyser.getByteTimeDomainData(waveformData);
+
+  const { width, height } = waveCanvas;
+  waveCtx.clearRect(0, 0, width, height);
+  waveCtx.lineWidth = 2;
+  waveCtx.strokeStyle = "rgba(255,255,255,0.9)";
+
+  waveCtx.beginPath();
+  const slice = width / waveformData.length;
+  let x = 0;
+
+  for (let i = 0; i < waveformData.length; i++) {
+    const v = waveformData[i] / 128.0 - 1.0;
+    const y = height / 2 + v * (height * 0.4);
+
+    if (i === 0) waveCtx.moveTo(x, y);
+    else waveCtx.lineTo(x, y);
+
+    x += slice;
+  }
+
+  waveCtx.stroke();
+  requestAnimationFrame(renderWaveform);
+}
+
+// -------------------------------------------------------------
 // MAIN
-// ----------------------------
+// -------------------------------------------------------------
 export function setupAsleepArtwork(multitrack) {
   if (!multitrack) return;
 
   const { container, tracks, ensureStarted } = multitrack;
 
   const uiSong = container.querySelector("[data-mt-activesong]");
-  const uiStem = container.querySelector("[data-mt-activestem]");
-  const waveWrapper = container.querySelector(".asleep-wave-wrapper");
+  const uiStemList = container.querySelector("[data-mt-activestems]");
+  const waveCanvasEl = container.querySelector("[data-waveform-canvas]");
+  initWaveCanvas(waveCanvasEl);
 
-  // -----------------------------------------
-  // Reiknum stem-nöfn einu sinni
-  // -----------------------------------------
+  // Reikna stem-nöfn einu sinni
   tracks.forEach((track) => {
     track.stemName = getStemName(track);
   });
 
-  // -----------------------------------------
-  // Position á triggerum
-  // -----------------------------------------
+  // --------------------------
+  // POSITION FLIES
+  // --------------------------
   function applyFlyPositions() {
     const perSong = new Map();
 
@@ -81,7 +200,6 @@ export function setupAsleepArtwork(multitrack) {
       if (!layout) return;
 
       const start = layout.slotStart;
-      const count = layout.count;
 
       for (let i = 0; i < els.length; i++) {
         const slot = FLY_SLOTS[start + i];
@@ -100,9 +218,9 @@ export function setupAsleepArtwork(multitrack) {
 
   applyFlyPositions();
 
-  // -----------------------------------------
-  // Default piano drone
-  // -----------------------------------------
+  // --------------------------
+  // DEFAULT DRONE
+  // --------------------------
   const defaultEl = container.querySelector("[data-mt-default]");
   const defaultUrl = defaultEl?.dataset.mtDefault || "";
   let defaultAudio = null;
@@ -119,9 +237,7 @@ export function setupAsleepArtwork(multitrack) {
         defaultActive = true;
         console.log("asleep: default mix playing");
       })
-      .catch((err) => {
-        console.warn("asleep: autoplay default failed", err);
-      });
+      .catch(() => {});
   }
 
   function dropDefault() {
@@ -137,20 +253,38 @@ export function setupAsleepArtwork(multitrack) {
     console.log("asleep: default mix stopped");
   }
 
-  // -----------------------------------------
-  // Status UI helpers
-  // -----------------------------------------
+  // --------------------------
+  // STATUS UI HELPERS
+  // --------------------------
   function setActiveSong(songId) {
     if (uiSong) uiSong.textContent = songId || "–";
   }
 
-  function setActiveStem(stem) {
-    if (uiStem) uiStem.textContent = stem || "–";
+  let currentSongId = null;
+  const activeStems = new Set();
+
+  function renderStemList() {
+    if (!uiStemList) return;
+
+    uiStemList.innerHTML = "";
+
+    if (activeStems.size === 0) {
+      const li = document.createElement("li");
+      li.textContent = "–";
+      uiStemList.appendChild(li);
+      return;
+    }
+
+    activeStems.forEach((name) => {
+      const li = document.createElement("li");
+      li.textContent = name;
+      uiStemList.appendChild(li);
+    });
   }
 
-  // -----------------------------------------
-  // Highlight allt lag á hover
-  // -----------------------------------------
+  // --------------------------
+  // HOVER HIGHLIGHT
+  // --------------------------
   function highlightSong(songId) {
     tracks.forEach((t) => {
       if (t.songId === songId) t.el.classList.add("song-hover");
@@ -162,9 +296,9 @@ export function setupAsleepArtwork(multitrack) {
     tracks.forEach((t) => t.el.classList.remove("song-hover"));
   }
 
-  // -----------------------------------------
-  // Fyrsta interaction → drepa drone + kveikja á waveform
-  // -----------------------------------------
+  // --------------------------
+  // DROP DRONE ON FIRST CLICK
+  // --------------------------
   let hasUserInteractedWithStems = false;
 
   function handleFirstStemInteraction() {
@@ -173,42 +307,51 @@ export function setupAsleepArtwork(multitrack) {
 
     dropDefault();
     ensureStarted();
-
-    if (waveWrapper) {
-      waveWrapper.classList.add("is-playing");
-    }
   }
 
-  // -----------------------------------------
-  // Bindings per track
-  // -----------------------------------------
+  // --------------------------
+  // BIND INTERACTIONS
+  // --------------------------
   tracks.forEach((track) => {
     const el = track.el;
 
-    // Fyrsti click → drepa drone + start waveform
-    el.addEventListener("click", handleFirstStemInteraction);
+    el.addEventListener("click", (evt) => {
+      handleFirstStemInteraction();
 
-    // Update status text
-    el.addEventListener("click", () => {
-      setActiveSong(track.songId);
-      setActiveStem(track.stemName);
+      const songId = track.songId || "–";
+      const stemLabel = track.stemName || "Stem";
+
+      // ef user hoppar í annað lag -> clear lista
+      if (currentSongId !== songId) {
+        currentSongId = songId;
+        activeStems.clear();
+      }
+
+      // er stem virkt eftir click? (multitrack setur .is-active)
+      const isOn = el.classList.contains("is-active");
+      if (isOn) activeStems.add(stemLabel);
+      else activeStems.delete(stemLabel);
+
+      setActiveSong(songId);
+      renderStemList();
+
+      // mini oscilloscope fyrir fyrsta stem lagsins
+      const firstStem = tracks.find((t) => t.songId === songId);
+      if (firstStem) startWaveformForTrack(firstStem);
     });
 
-    // Hover highlight fyrir allt lag
     el.addEventListener("mouseenter", () => highlightSong(track.songId));
     el.addEventListener("mouseleave", clearSongHighlight);
   });
 
-  // -----------------------------------------
-  // Stop takki: drepa drone + stoppa fake waveform
-  // -----------------------------------------
+  // --------------------------
+  // STOP BUTTON
+  // --------------------------
   const stopBtn = container.querySelector("[data-mt-stop]");
   stopBtn?.addEventListener("click", () => {
     dropDefault();
-    if (waveWrapper) {
-      waveWrapper.classList.remove("is-playing");
-    }
+    stopWaveform();
   });
 
-  console.log("asleep: artwork ready (slots + status + fake waveform)");
+  console.log("asleep: ready (slots + drone + status + waveform)");
 }
