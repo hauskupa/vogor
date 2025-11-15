@@ -111,37 +111,40 @@ export function setupMultitrackPlayer(root = document) {
     }
   }
 
-  function toggleTrack(track) {
-    ensureStarted();
-    if (!isPlaying) playAll();
+function toggleTrack(track) {
+  // Ef við erum að fara í annað lag en það sem er í gangi:
+  if (track.songId && currentSongId && track.songId !== currentSongId) {
+    // 1) Stoppum allt og núllstillum
+    tracks.forEach((t) => {
+      t.audio.pause();
+      t.audio.currentTime = 0;   // byrjun
+      t.audio.volume = 0;
+      t.el.classList.remove("is-active");
+    });
 
-    // 🔒 EITT LAG Í EINU
-    // ef við erum að fara í annað lag en það sem er active:
-    if (track.songId && currentSongId && track.songId !== currentSongId) {
-      // slökkvum á öllum stems úr hinu lagi
-      tracks.forEach((t) => {
-        if (t.songId !== track.songId) {
-          fadeVolume(t.audio, 0, 300);
-          t.el.classList.remove("is-active");
-        }
-      });
-    }
-
-    // setjum núverandi lag
-    if (track.songId) {
-      currentSongId = track.songId;
-    }
-
-    const isOn = track.audio.volume > 0.01;
-
-    if (isOn) {
-      fadeVolume(track.audio, 0, 300);   // fade out
-    } else {
-      fadeVolume(track.audio, 1, 300);   // fade in
-    }
-
-    track.el.classList.toggle("is-active", !isOn);
+    isPlaying = false;
+    isStarted = false;
   }
+
+  // Uppfæra currentSongId
+  if (track.songId) {
+    currentSongId = track.songId;
+  }
+
+  // Tryggjum að vélin sé farin í gang (spilar allar rásir muted)
+  ensureStarted();
+  if (!isPlaying) playAll();
+
+  const isOn = track.audio.volume > 0.01;
+
+  if (isOn) {
+    fadeVolume(track.audio, 0, 300);   // fade out
+  } else {
+    fadeVolume(track.audio, 1, 300);   // fade in
+  }
+
+  track.el.classList.toggle("is-active", !isOn);
+}
 
 
   // default behaviour: click á .mt-track togglar viðkomandi stem

@@ -1,6 +1,5 @@
 // src/asleep.js
 
-// smá helper hér líka (sama og í multitrackplayer.js)
 function fadeVolume(audio, target, duration = 500) {
   const steps = 30;
   const stepTime = duration / steps;
@@ -18,10 +17,37 @@ function fadeVolume(audio, target, duration = 500) {
   }, stepTime);
 }
 
+
 export function setupAsleepArtwork(multitrack) {
   if (!multitrack) return;
 
   const { container, tracks, ensureStarted } = multitrack;
+
+  // --- Place flies from JSON config ---
+  function applyFlyPositions() {
+    const perSong = new Map();
+
+    tracks.forEach((t) => {
+      if (!t.songId) return;
+      if (!perSong.has(t.songId)) perSong.set(t.songId, []);
+      perSong.get(t.songId).push(t.el);
+    });
+
+    perSong.forEach((els, songId) => {
+      const cfg = FLY_POSITIONS[songId];
+      if (!cfg) return;
+
+      els.forEach((el, idx) => {
+        const pos = cfg[idx];
+        if (!pos) return;
+        el.style.position = "absolute";
+        el.style.left = pos.x * 100 + "%";
+        el.style.top = pos.y * 100 + "%";
+      });
+    });
+  }
+
+  applyFlyPositions();
 
   // --- DEFAULT MIX ---
 
@@ -59,7 +85,7 @@ export function setupAsleepArtwork(multitrack) {
     console.log("asleep: default mix stopped");
   }
 
-  // --- DROPA DEFAULTI VIÐ FYRSTU INTERACTION ---
+  // --- DROP DEFAULT ON FIRST STEM INTERACTION ---
 
   let hasUserInteractedWithStems = false;
 
@@ -67,22 +93,20 @@ export function setupAsleepArtwork(multitrack) {
     if (hasUserInteractedWithStems) return;
     hasUserInteractedWithStems = true;
 
-    dropDefault();          // stoppa default stereo
-    ensureStarted();        // byrja multitrack stems muted & in sync
+    dropDefault();
+    ensureStarted();
   }
 
-  // hookum okkur á alla stems – bara fyrsta clickið skiptir máli
   tracks.forEach((track) => {
     track.el.addEventListener("click", handleFirstStemInteraction, {
       once: true,
     });
   });
 
-  // drepa default líka ef user ýtir á stop
   const stopBtn = container.querySelector("[data-mt-stop]");
   stopBtn?.addEventListener("click", () => {
     dropDefault();
   });
 
-  console.log("asleep: default mix + interaction hook ready");
+  console.log("asleep: default mix + fly positions ready");
 }
