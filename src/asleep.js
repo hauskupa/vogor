@@ -1,4 +1,5 @@
 // src/asleep.js
+import { FLY_SLOTS, SONG_LAYOUT } from "./asleepPositions.js";
 
 function fadeVolume(audio, target, duration = 500) {
   const steps = 30;
@@ -17,16 +18,21 @@ function fadeVolume(audio, target, duration = 500) {
   }, stepTime);
 }
 
-
 export function setupAsleepArtwork(multitrack) {
   if (!multitrack) return;
 
   const { container, tracks, ensureStarted } = multitrack;
 
-  // --- Place flies from JSON config ---
+  // --- PLACE FLIES FROM FLY_SLOTS + SONG_LAYOUT ---
   function applyFlyPositions() {
+    if (!FLY_SLOTS || !FLY_SLOTS.length) {
+      console.warn("asleep: no FLY_SLOTS defined");
+      return;
+    }
+
     const perSong = new Map();
 
+    // group-um stems eftir laginu sem þau tilheyra (songId)
     tracks.forEach((t) => {
       if (!t.songId) return;
       if (!perSong.has(t.songId)) perSong.set(t.songId, []);
@@ -34,12 +40,23 @@ export function setupAsleepArtwork(multitrack) {
     });
 
     perSong.forEach((els, songId) => {
-      const cfg = FLY_POSITIONS[songId];
-      if (!cfg) return;
+      const layout = SONG_LAYOUT?.[songId];
+
+      let slotIndexes;
+
+      // ef við erum með explicit layout fyrir þetta lag og það dugir fyrir fjölda stems
+      if (layout && layout.length >= els.length) {
+        slotIndexes = layout.slice(0, els.length);
+      } else {
+        // fallback: notum bara fyrstu N slots
+        slotIndexes = Array.from({ length: els.length }, (_, i) => i);
+      }
 
       els.forEach((el, idx) => {
-        const pos = cfg[idx];
+        const slotIndex = slotIndexes[idx];
+        const pos = FLY_SLOTS[slotIndex];
         if (!pos) return;
+
         el.style.position = "absolute";
         el.style.left = pos.x * 100 + "%";
         el.style.top = pos.y * 100 + "%";
@@ -47,32 +64,7 @@ export function setupAsleepArtwork(multitrack) {
     });
   }
 
-   function applyFlyPositions() {
-    const perSong = new Map();
-
-    // Lesum alltaf positions FRESH úr window
-    const flyPositions = window.FLY_POSITIONS || {};
-
-    tracks.forEach((t) => {
-      if (!t.songId) return;
-      if (!perSong.has(t.songId)) perSong.set(t.songId, []);
-      perSong.get(t.songId).push(t.el);
-    });
-
-    perSong.forEach((els, songId) => {
-      const cfg = flyPositions[songId];
-      if (!cfg) return;
-
-      els.forEach((el, idx) => {
-        const pos = cfg[idx];
-        if (!pos) return;
-        el.style.position = "absolute";
-        el.style.left = pos.x * 100 + "%";
-        el.style.top = pos.y * 100 + "%";
-      });
-    });
-  }
-
+  applyFlyPositions();
 
   // --- DEFAULT MIX ---
 
