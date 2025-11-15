@@ -1,9 +1,9 @@
-// asleep.js — FINAL VERSION
+// src/asleep.js
 import { FLY_SLOTS, SONG_LAYOUT } from "./asleepPositions.js";
 
-// ----------------------------------------------
+// ----------------------------
 // Fade helper
-// ----------------------------------------------
+// ----------------------------
 function fadeVolume(audio, target, duration = 500) {
   const steps = 30;
   const stepTime = duration / steps;
@@ -21,28 +21,33 @@ function fadeVolume(audio, target, duration = 500) {
   }, stepTime);
 }
 
-// ----------------------------------------------
-// Extract stem name
-// ----------------------------------------------
+// ----------------------------
+// Stem nafn úr data / file
+// ----------------------------
 function getStemName(track) {
+  // 1) Webflow data-mt-stem ef til
   const fromAttr = track.el.dataset.mtStem;
   if (fromAttr) return fromAttr;
 
-  const url = track.el.dataset.mtAudio || "";
+  // 2) Reikna úr slóð
+  const url = track.el.dataset.mtAudio || track.audio?.src || "";
   if (!url) return "Stem";
 
-  let filename = url.split("/").pop();
-  let base = filename.replace(/\.[^/.]+$/, "");
+  let filename = url.split("/").pop() || "";
+  let base = filename.replace(/\.[^/.]+$/, ""); // taka .mp3 o.fl. af
 
+  // "Mars18_DRUMS" -> "DRUMS" o.s.frv.
   base = base.replace(/^(Mars|Palli|Agust|Siggi)[0-9\-_]*/i, "");
   base = base.replace(/[_-]+/g, " ").trim();
+
+  if (!base) base = "Stem";
 
   return base.charAt(0).toUpperCase() + base.slice(1);
 }
 
-// -----------------------------------------------------------
+// ----------------------------
 // MAIN
-// -----------------------------------------------------------
+// ----------------------------
 export function setupAsleepArtwork(multitrack) {
   if (!multitrack) return;
 
@@ -50,19 +55,22 @@ export function setupAsleepArtwork(multitrack) {
 
   const uiSong = container.querySelector("[data-mt-activesong]");
   const uiStem = container.querySelector("[data-mt-activestem]");
+  const waveWrapper = container.querySelector(".asleep-wave-wrapper");
 
-  // Make sure every track knows its stem name
-  tracks.forEach(track => {
+  // -----------------------------------------
+  // Reiknum stem-nöfn einu sinni
+  // -----------------------------------------
+  tracks.forEach((track) => {
     track.stemName = getStemName(track);
   });
 
-  // -------------------------------------------------------
-  // Place triggers onto fly slots
-  // -------------------------------------------------------
+  // -----------------------------------------
+  // Position á triggerum
+  // -----------------------------------------
   function applyFlyPositions() {
     const perSong = new Map();
 
-    tracks.forEach(t => {
+    tracks.forEach((t) => {
       if (!t.songId) return;
       if (!perSong.has(t.songId)) perSong.set(t.songId, []);
       perSong.get(t.songId).push(t.el);
@@ -73,24 +81,28 @@ export function setupAsleepArtwork(multitrack) {
       if (!layout) return;
 
       const start = layout.slotStart;
+      const count = layout.count;
 
-      els.forEach((el, idx) => {
-        const slot = FLY_SLOTS[start + idx];
-        if (!slot) return;
+      for (let i = 0; i < els.length; i++) {
+        const slot = FLY_SLOTS[start + i];
+        if (!slot) continue;
 
+        const el = els[i];
         el.removeAttribute("style");
+
         el.style.position = "absolute";
-        el.style.left = (slot.x * 100) + "%";
-        el.style.top = (slot.y * 100) + "%";
-      });
+        el.style.left = slot.x * 100 + "%";
+        el.style.top = slot.y * 100 + "%";
+        el.style.pointerEvents = "auto";
+      }
     });
   }
 
   applyFlyPositions();
 
-  // -------------------------------------------------------
-  // Default drone
-  // -------------------------------------------------------
+  // -----------------------------------------
+  // Default piano drone
+  // -----------------------------------------
   const defaultEl = container.querySelector("[data-mt-default]");
   const defaultUrl = defaultEl?.dataset.mtDefault || "";
   let defaultAudio = null;
@@ -101,22 +113,33 @@ export function setupAsleepArtwork(multitrack) {
     defaultAudio.loop = true;
     defaultAudio.volume = 1;
 
-    defaultAudio.play().then(() => defaultActive = true).catch(() => {});
+    defaultAudio
+      .play()
+      .then(() => {
+        defaultActive = true;
+        console.log("asleep: default mix playing");
+      })
+      .catch((err) => {
+        console.warn("asleep: autoplay default failed", err);
+      });
   }
 
   function dropDefault() {
-    if (!defaultActive) return;
+    if (!defaultActive || !defaultAudio) return;
+
     fadeVolume(defaultAudio, 0, 500);
     setTimeout(() => {
       defaultAudio.pause();
       defaultAudio.currentTime = 0;
     }, 550);
+
     defaultActive = false;
+    console.log("asleep: default mix stopped");
   }
 
-  // -------------------------------------------------------
-  // UI helpers
-  // -------------------------------------------------------
+  // -----------------------------------------
+  // Status UI helpers
+  // -----------------------------------------
   function setActiveSong(songId) {
     if (uiSong) uiSong.textContent = songId || "–";
   }
@@ -125,143 +148,67 @@ export function setupAsleepArtwork(multitrack) {
     if (uiStem) uiStem.textContent = stem || "–";
   }
 
-  // -------------------------------------------------------
-  // Hover highlight behaviour
-  // -------------------------------------------------------
+  // -----------------------------------------
+  // Highlight allt lag á hover
+  // -----------------------------------------
   function highlightSong(songId) {
-    tracks.forEach(t => {
+    tracks.forEach((t) => {
       if (t.songId === songId) t.el.classList.add("song-hover");
       else t.el.classList.remove("song-hover");
     });
   }
 
   function clearSongHighlight() {
-    tracks.forEach(t => t.el.classList.remove("song-hover"));
+    tracks.forEach((t) => t.el.classList.remove("song-hover"));
   }
 
-  // Drop drone on first interaction
+  // -----------------------------------------
+  // Fyrsta interaction → drepa drone + kveikja á waveform
+  // -----------------------------------------
   let hasUserInteractedWithStems = false;
+
   function handleFirstStemInteraction() {
     if (hasUserInteractedWithStems) return;
     hasUserInteractedWithStems = true;
 
     dropDefault();
     ensureStarted();
-  }
-  // -------------------------------------------------------
-  // 🔉 MINI WAVEFORM – gamaldags oscilloscope
-  // -------------------------------------------------------
-  const waveCanvas = container.querySelector("[data-waveform-canvas]");
-  const waveCtx = waveCanvas?.getContext("2d");
 
-  let audioCtx = null;
-  let analyser = null;
-  let dataArray = null;
-  let waveRunning = false;
-  let currentSource = null;
-
-  function startWaveform(audioEl) {
-    if (!waveCanvas || !waveCtx || !audioEl) {
-      console.warn("asleep: no canvas or audioEl for waveform");
-      return;
-    }
-
-    // resume audio context (Chrome policy)
-    if (!audioCtx) {
-      audioCtx = new AudioContext();
-    }
-    if (audioCtx.state === "suspended") {
-      audioCtx.resume();
-    }
-
-    // cleanup previous source
-    try {
-      if (currentSource) currentSource.disconnect();
-    } catch (e) {
-      // meh
-    }
-
-    analyser = audioCtx.createAnalyser();
-    analyser.fftSize = 1024;
-    dataArray = new Uint8Array(analyser.fftSize);
-
-    // IMPORTANT: createMediaElementSource má bara kalla einu sinni
-    // þannig að við geymum source á audioEl sjálfum ef hann er ekki til.
-    if (!audioEl._asleepSource) {
-      audioEl._asleepSource = audioCtx.createMediaElementSource(audioEl);
-    }
-
-    currentSource = audioEl._asleepSource;
-    currentSource.connect(analyser);
-    analyser.connect(audioCtx.destination);
-
-    waveRunning = true;
-    renderWave();
-    console.log("asleep: waveform started");
-  }
-
-  function stopWaveform() {
-    waveRunning = false;
-    if (waveCtx && waveCanvas) {
-      waveCtx.clearRect(0, 0, waveCanvas.width, waveCanvas.height);
+    if (waveWrapper) {
+      waveWrapper.classList.add("is-playing");
     }
   }
 
-  function renderWave() {
-    if (!waveRunning || !analyser || !waveCtx || !waveCanvas) return;
-
-    analyser.getByteTimeDomainData(dataArray);
-
-    waveCtx.clearRect(0, 0, waveCanvas.width, waveCanvas.height);
-    waveCtx.lineWidth = 2;
-    waveCtx.strokeStyle = "rgba(255,255,255,0.9)";
-
-    waveCtx.beginPath();
-
-    const slice = waveCanvas.width / dataArray.length;
-    let x = 0;
-
-    for (let i = 0; i < dataArray.length; i++) {
-      const v = dataArray[i] / 128.0 - 1.0;
-      const y = v * 20 + waveCanvas.height / 2;
-
-      if (i === 0) waveCtx.moveTo(x, y);
-      else waveCtx.lineTo(x, y);
-
-      x += slice;
-    }
-
-    waveCtx.stroke();
-    requestAnimationFrame(renderWave);
-  }
-
-  // -------------------------------------------------------
-  // Bind per-track events
-  // -------------------------------------------------------
-  tracks.forEach(track => {
+  // -----------------------------------------
+  // Bindings per track
+  // -----------------------------------------
+  tracks.forEach((track) => {
     const el = track.el;
 
+    // Fyrsti click → drepa drone + start waveform
     el.addEventListener("click", handleFirstStemInteraction);
 
+    // Update status text
     el.addEventListener("click", () => {
       setActiveSong(track.songId);
       setActiveStem(track.stemName);
-
-      // waveform notar FYRSTA stem í laginu
-      const firstStem = tracks.find(t => t.songId === track.songId);
-      if (firstStem?.audio) {
-        startWaveform(firstStem.audio);
-      }
     });
 
+    // Hover highlight fyrir allt lag
     el.addEventListener("mouseenter", () => highlightSong(track.songId));
     el.addEventListener("mouseleave", clearSongHighlight);
   });
 
+  // -----------------------------------------
+  // Stop takki: drepa drone + stoppa fake waveform
+  // -----------------------------------------
   const stopBtn = container.querySelector("[data-mt-stop]");
   stopBtn?.addEventListener("click", () => {
     dropDefault();
-    stopWaveform();
+    if (waveWrapper) {
+      waveWrapper.classList.remove("is-playing");
+    }
   });
 
+  console.log("asleep: artwork ready (slots + status + fake waveform)");
 }
