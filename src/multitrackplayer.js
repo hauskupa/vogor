@@ -1,64 +1,86 @@
-export function setupMultitrackPlayer() {
+// src/multitrackplayer.js
+export function setupMultitrackPlayer(root = document) {
   console.log("multitrack: init");
 
-  const root = document.querySelector("[data-multitrack-player]");
-  if (!root) return;
+  const container = root.querySelector("[data-multitrack-player]");
+  if (!container) {
+    console.warn("multitrack: no [data-multitrack-player] found");
+    return null;
+  }
 
-  // All tracks (CMS items)
-  const triggers = Array.from(root.querySelectorAll("[data-mt-trigger]"));
+  // Við notum EINA control-settið (fyrsta sem finnst)
+  const playBtn = container.querySelector("[data-mt-play]");
+  const pauseBtn = container.querySelector("[data-mt-pause]");
+  const stopBtn = container.querySelector("[data-mt-stop]");
 
-  const stems = [];   // audio elements
-  const pairs = [];   // { trigger, audio }
+  // Allir clickable stem-divar
+  const triggerEls = Array.from(
+    container.querySelectorAll("[data-mt-trigger]")
+  );
 
-  // Build audio elements dynamically
-  triggers.forEach((trigger) => {
-    const url = trigger.dataset.mtAudio;
-    if (!url) return;
+  const tracks = []; // { el, audio, songId }
+
+  triggerEls.forEach((el, index) => {
+    const url = (el.dataset.mtAudio || "").trim();
+    if (!url) {
+      // tómt slot, engin rás – merkjum sem disabled og sleppum
+      el.classList.add("is-disabled");
+      return;
+    }
+
+    // Finna hvaða lag (song) þetta tilheyrir
+    const trackWrapper = el.closest("[data-mt-track]");
+    const songId = trackWrapper?.dataset.mtTrack || null;
 
     const audio = new Audio(url);
     audio.preload = "auto";
     audio.volume = 0;
 
-    stems.push(audio);
-    pairs.push({ trigger, audio });
+    tracks.push({
+      id: `t-${index}`,
+      songId, // "Agust" / "Siggi" o.s.frv.
+      el,
+      audio,
+    });
   });
 
-  if (!stems.length) {
-    console.warn("multitrack: no stems found");
-    return;
-  }
+  console.log(
+    "multitrack: triggers =", triggerEls.length,
+    "usable tracks =", tracks.length
+  );
 
-  const playBtn = root.querySelector("[data-mt-play]");
-  const pauseBtn = root.querySelector("[data-mt-pause]");
-  const stopBtn = root.querySelector("[data-mt-stop]");
+  if (!tracks.length) {
+    console.warn("multitrack: no usable tracks found (check data-mt-audio)");
+    return null;
+  }
 
   let isStarted = false;
   let isPlaying = false;
 
   function playAll() {
-    stems.forEach((audio) => {
+    tracks.forEach(({ audio }) => {
       if (audio.paused) {
-        audio.play().catch((err) => console.warn("play failed:", err));
+        audio.play().catch((err) =>
+          console.warn("multitrack: play failed", err)
+        );
       }
     });
     isPlaying = true;
   }
 
   function pauseAll() {
-    stems.forEach((audio) => audio.pause());
+    tracks.forEach(({ audio }) => audio.pause());
     isPlaying = false;
   }
 
   function stopAll() {
-    stems.forEach((audio) => {
+    tracks.forEach(({ audio, el }) => {
       audio.pause();
       audio.currentTime = 0;
       audio.volume = 0;
+      el.classList.remove("is-active");
     });
     isPlaying = false;
-
-    // reset UI
-    pairs.forEach(({ trigger }) => trigger.classList.remove("is-active"));
   }
 
   function ensureStarted() {
@@ -68,24 +90,44 @@ export function setupMultitrackPlayer() {
     }
   }
 
-  function toggleStem(audio, triggerEl) {
+  function toggleTrack(track) {
     ensureStarted();
-
     if (!isPlaying) playAll();
 
-    const isOn = audio.volume > 0;
-    audio.volume = isOn ? 0 : 1;
-    triggerEl.classList.toggle("is-active", !isOn);
+    const isOn = track.audio.volume > 0;
+    track.audio.volume = isOn ? 0 : 1;
+    track.el.classList.toggle("is-active", !isOn);
   }
 
-  // Connect triggers
-  pairs.forEach(({ trigger, audio }) => {
-    trigger.addEventListener("click", () => toggleStem(audio, trigger));
+  // default behaviour: click á .mt-track togglar viðkomandi stem
+  tracks.forEach((track) => {
+    track.el.addEventListener("click", () => toggleTrack(track));
   });
 
-  playBtn?.addEventListener("click", () => { ensureStarted(); playAll(); });
-  pauseBtn?.addEventListener("click", pauseAll);
-  stopBtn?.addEventListener("click", stopAll);
+  // global controls
+  playBtn?.addEventListener("click", () => {
+    ensureStarted();
+    playAll();
+  });
+
+  pauseBtn?.addEventListener("click", () => {
+    pauseAll();
+  });
+
+  stopBtn?.addEventListener("click", () => {
+    stopAll();
+  });
 
   console.log("multitrack: ready");
+
+  // 🔹 Þetta API notum við seinna í sér "asleep.js"
+  return {
+    container,
+    tracks,          // { el, audio, songId }
+    playAll,
+    pauseAll,
+    stopAll,
+    toggleTrack,
+    ensureStarted,
+  };
 }

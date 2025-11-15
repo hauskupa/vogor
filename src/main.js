@@ -1,12 +1,10 @@
+// src/main.js
 import { setupMixer } from "./mixer.js";
 import { setupAwake } from "./awake.js";
 import { setupPlayer } from "./player.js";
 import { setupMultitrackPlayer } from "./multitrackplayer.js";
 
-console.log("main.js loaded");   // 👈 BÆTA ÞESSU INN
-
 document.addEventListener("DOMContentLoaded", () => {
-  console.log("main: DOMContentLoaded");   // og þessu, nice að hafa
   // Mixer
   if (document.querySelector("[data-mixer]")) {
     console.log("Found mixer element, initializing...");
@@ -25,9 +23,11 @@ document.addEventListener("DOMContentLoaded", () => {
     setupPlayer();
   }
 
-  // 🔊 Multitrack player
+  // Multitrack player
   if (document.querySelector("[data-multitrack-player]")) {
     console.log("Found [data-multitrack-player], initializing multitrack...");
-    setupMultitrackPlayer();
+    const mt = setupMultitrackPlayer(document);
+    // geymum mt ef við viljum nota seinna í aslepp.js
+    window.__vogorMultitrack = mt;
   }
 });
