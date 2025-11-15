@@ -2,6 +2,7 @@
 
 // Allar flugurnar – normalized 0–1 (byggt á 1920x1080)
 export const FLY_SLOTS = [
+{ x: 0.279, y: 0.198 },
 { x: 0.369, y: 0.17 },  // 709x184
 { x: 0.42, y: 0.172 },  // 806x186
 { x: 0.466, y: 0.073 },  // 894x79
