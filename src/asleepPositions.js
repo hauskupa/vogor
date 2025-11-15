@@ -62,19 +62,19 @@ export const FLY_SLOTS = [
 
 export const SONG_LAYOUT = {
   Mars: {
-    slotStart: 0,
+    slotStart: 4,
     count: 11
   },
   Palli: {
-    slotStart: 11,
+    slotStart: 20,
     count: 8
   },
   Agust: {
-    slotStart: 19,
+    slotStart: 30,
     count: 7
   },
   Siggi: {
-    slotStart: 26,
+    slotStart: 41,
     count: 7
   }
 };
