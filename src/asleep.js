@@ -23,40 +23,50 @@ export function setupAsleepArtwork(multitrack) {
 
   const { container, tracks, ensureStarted } = multitrack;
 
-  // --- PLACE FLIES FROM FLY_SLOTS + SONG_LAYOUT ---
- function applyFlyPositions() {
-  const flyPositions = window.FLY_POSITIONS || {};
-  const perSong = new Map();
+  // -----------------------------------------------------------
+  // 🔥 PLACE ALL TRIGGERS USING FLY_SLOTS + SONG_LAYOUT
+  // -----------------------------------------------------------
+  function applyFlyPositions() {
+    const perSong = new Map();
 
-  tracks.forEach(t => {
-    if (!t.songId) return;
-    if (!perSong.has(t.songId)) perSong.set(t.songId, []);
-    perSong.get(t.songId).push(t.el);
-  });
-
-  perSong.forEach((els, songId) => {
-    const cfg = flyPositions[songId];
-    if (!cfg) return;
-
-    els.forEach((el, idx) => {
-      const pos = cfg[idx];
-      if (!pos) return;
-
-      // 🔥 Þetta stoppar ALLA gamla inline styles
-      el.removeAttribute("style");
-
-      el.style.position = "absolute";
-      el.style.left = (pos.x * 100) + "%";
-      el.style.top  = (pos.y * 100) + "%";
+    // Group tracks by songId (Mars, Palli, Agust, Siggi)
+    tracks.forEach(t => {
+      if (!t.songId) return;
+      if (!perSong.has(t.songId)) perSong.set(t.songId, []);
+      perSong.get(t.songId).push(t.el);
     });
-  });
-}
 
+    // Apply slot ranges
+    perSong.forEach((els, songId) => {
+      const layout = SONG_LAYOUT[songId];
+      if (!layout) return;
+
+      const start = layout.slotStart;
+      const count = layout.count;
+
+      for (let i = 0; i < els.length; i++) {
+        const slot = FLY_SLOTS[start + i];
+        if (!slot) continue;
+
+        const el = els[i];
+
+        // Remove ALL old inline styles so Webflow junk vanishes
+        el.removeAttribute("style");
+
+        // Apply new absolute placement
+        el.style.position = "absolute";
+        el.style.left = (slot.x * 100) + "%";
+        el.style.top  = (slot.y * 100) + "%";
+        el.style.pointerEvents = "auto"; // just to be 100% safe
+      }
+    });
+  }
 
   applyFlyPositions();
 
-  // --- DEFAULT MIX ---
-
+  // -----------------------------------------------------------
+  // 🔊 DEFAULT MIX (piano drone)
+  // -----------------------------------------------------------
   const defaultEl = container.querySelector("[data-mt-default]");
   const defaultUrl = defaultEl?.dataset.mtDefault || "";
   let defaultAudio = null;
@@ -82,6 +92,7 @@ export function setupAsleepArtwork(multitrack) {
     if (!defaultActive || !defaultAudio) return;
 
     fadeVolume(defaultAudio, 0, 500);
+
     setTimeout(() => {
       defaultAudio.pause();
       defaultAudio.currentTime = 0;
@@ -91,8 +102,9 @@ export function setupAsleepArtwork(multitrack) {
     console.log("asleep: default mix stopped");
   }
 
-  // --- DROP DEFAULT ON FIRST STEM INTERACTION ---
-
+  // -----------------------------------------------------------
+  // 🎛 FIRST STEM INTERACTION DROPS DEFAULT MIX
+  // -----------------------------------------------------------
   let hasUserInteractedWithStems = false;
 
   function handleFirstStemInteraction() {
@@ -110,9 +122,7 @@ export function setupAsleepArtwork(multitrack) {
   });
 
   const stopBtn = container.querySelector("[data-mt-stop]");
-  stopBtn?.addEventListener("click", () => {
-    dropDefault();
-  });
+  stopBtn?.addEventListener("click", () => dropDefault());
 
   console.log("asleep: default mix + fly positions ready");
 }
