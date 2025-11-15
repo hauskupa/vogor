@@ -56,18 +56,18 @@ export const FLY_SLOTS = [
 export const SONG_LAYOUT = {
   Mars: [
     // efsta svæðið / top-middle
-    0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, // 11 slots
+    1, 2, 3, 4, 5, 6, 7, 8, 9, 11, 10, // 11 slots
   ],
   Palli: [
     // aðeins neðar
-    16, 17, 18, 19, 20, 21, 22, 23, // 8 slots
+    12, 13, 14, 15, 16, 17, 18, 19, // 8 slots
   ],
   Agust: [
     // miðja / upper-mid
-    24, 25, 26, 27, 28, 29, 30, // 7 slots
+    20, 21, 22, 23, 24, 25, 26, // 7 slots
   ],
   Siggi: [
     // neðar / lower-mid
-    40, 41, 42, 43, 44, 45, 46, // 7 slots
+    27, 28, 29, 30, 31, 32, 33, // 7 slots
   ],
 };
