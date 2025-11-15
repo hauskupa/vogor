@@ -24,45 +24,34 @@ export function setupAsleepArtwork(multitrack) {
   const { container, tracks, ensureStarted } = multitrack;
 
   // --- PLACE FLIES FROM FLY_SLOTS + SONG_LAYOUT ---
-  function applyFlyPositions() {
-    if (!FLY_SLOTS || !FLY_SLOTS.length) {
-      console.warn("asleep: no FLY_SLOTS defined");
-      return;
-    }
+ function applyFlyPositions() {
+  const flyPositions = window.FLY_POSITIONS || {};
+  const perSong = new Map();
 
-    const perSong = new Map();
+  tracks.forEach(t => {
+    if (!t.songId) return;
+    if (!perSong.has(t.songId)) perSong.set(t.songId, []);
+    perSong.get(t.songId).push(t.el);
+  });
 
-    // group-um stems eftir laginu sem þau tilheyra (songId)
-    tracks.forEach((t) => {
-      if (!t.songId) return;
-      if (!perSong.has(t.songId)) perSong.set(t.songId, []);
-      perSong.get(t.songId).push(t.el);
+  perSong.forEach((els, songId) => {
+    const cfg = flyPositions[songId];
+    if (!cfg) return;
+
+    els.forEach((el, idx) => {
+      const pos = cfg[idx];
+      if (!pos) return;
+
+      // 🔥 Þetta stoppar ALLA gamla inline styles
+      el.removeAttribute("style");
+
+      el.style.position = "absolute";
+      el.style.left = (pos.x * 100) + "%";
+      el.style.top  = (pos.y * 100) + "%";
     });
+  });
+}
 
-    perSong.forEach((els, songId) => {
-      const layout = SONG_LAYOUT?.[songId];
-
-      let slotIndexes;
-
-      // ef við erum með explicit layout fyrir þetta lag og það dugir fyrir fjölda stems
-      if (layout && layout.length >= els.length) {
-        slotIndexes = layout.slice(0, els.length);
-      } else {
-        // fallback: notum bara fyrstu N slots
-        slotIndexes = Array.from({ length: els.length }, (_, i) => i);
-      }
-
-      els.forEach((el, idx) => {
-        const slotIndex = slotIndexes[idx];
-        const pos = FLY_SLOTS[slotIndex];
-        if (!pos) return;
-
-        el.style.position = "absolute";
-        el.style.left = pos.x * 100 + "%";
-        el.style.top = pos.y * 100 + "%";
-      });
-    });
-  }
 
   applyFlyPositions();
 
