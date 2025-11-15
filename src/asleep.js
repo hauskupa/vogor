@@ -1,4 +1,3 @@
-// src/asleep.js
 import { FLY_SLOTS, SONG_LAYOUT } from "./asleepPositions.js";
 
 function fadeVolume(audio, target, duration = 500) {
@@ -18,25 +17,28 @@ function fadeVolume(audio, target, duration = 500) {
   }, stepTime);
 }
 
+
 export function setupAsleepArtwork(multitrack) {
   if (!multitrack) return;
 
   const { container, tracks, ensureStarted } = multitrack;
 
+  const uiSong = container.querySelector("[data-mt-activesong]");
+  const uiStem = container.querySelector("[data-mt-activestem]");
+
+
   // -----------------------------------------------------------
-  // 🔥 PLACE ALL TRIGGERS USING FLY_SLOTS + SONG_LAYOUT
+  // 🎨 PLACE TRIGGERS USING SLOT MAP
   // -----------------------------------------------------------
   function applyFlyPositions() {
     const perSong = new Map();
 
-    // Group tracks by songId (Mars, Palli, Agust, Siggi)
     tracks.forEach(t => {
       if (!t.songId) return;
       if (!perSong.has(t.songId)) perSong.set(t.songId, []);
       perSong.get(t.songId).push(t.el);
     });
 
-    // Apply slot ranges
     perSong.forEach((els, songId) => {
       const layout = SONG_LAYOUT[songId];
       if (!layout) return;
@@ -49,24 +51,23 @@ export function setupAsleepArtwork(multitrack) {
         if (!slot) continue;
 
         const el = els[i];
-
-        // Remove ALL old inline styles so Webflow junk vanishes
         el.removeAttribute("style");
 
-        // Apply new absolute placement
         el.style.position = "absolute";
         el.style.left = (slot.x * 100) + "%";
         el.style.top  = (slot.y * 100) + "%";
-        el.style.pointerEvents = "auto"; // just to be 100% safe
+        el.style.pointerEvents = "auto";
       }
     });
   }
 
   applyFlyPositions();
 
+
   // -----------------------------------------------------------
-  // 🔊 DEFAULT MIX (piano drone)
+  // 🌫 DEFAULT DRONE MIX
   // -----------------------------------------------------------
+
   const defaultEl = container.querySelector("[data-mt-default]");
   const defaultUrl = defaultEl?.dataset.mtDefault || "";
   let defaultAudio = null;
@@ -77,34 +78,41 @@ export function setupAsleepArtwork(multitrack) {
     defaultAudio.loop = true;
     defaultAudio.volume = 1;
 
-    defaultAudio
-      .play()
-      .then(() => {
-        defaultActive = true;
-        console.log("asleep: default mix playing");
-      })
-      .catch((err) => {
-        console.warn("asleep: autoplay default failed", err);
-      });
+    defaultAudio.play().then(() => {
+      defaultActive = true;
+    }).catch(() => {});
   }
 
   function dropDefault() {
     if (!defaultActive || !defaultAudio) return;
 
     fadeVolume(defaultAudio, 0, 500);
-
     setTimeout(() => {
       defaultAudio.pause();
       defaultAudio.currentTime = 0;
     }, 550);
 
     defaultActive = false;
-    console.log("asleep: default mix stopped");
   }
 
+
   // -----------------------------------------------------------
-  // 🎛 FIRST STEM INTERACTION DROPS DEFAULT MIX
+  // 🎛 STATUS UI HELPERS
   // -----------------------------------------------------------
+
+  function setActiveSong(songId) {
+    if (uiSong) uiSong.textContent = songId || "–";
+  }
+
+  function setActiveStem(stemName) {
+    if (uiStem) uiStem.textContent = stemName || "–";
+  }
+
+
+  // -----------------------------------------------------------
+  // ✨ INTERACTION BEHAVIOR
+  // -----------------------------------------------------------
+
   let hasUserInteractedWithStems = false;
 
   function handleFirstStemInteraction() {
@@ -115,14 +123,49 @@ export function setupAsleepArtwork(multitrack) {
     ensureStarted();
   }
 
-  tracks.forEach((track) => {
-    track.el.addEventListener("click", handleFirstStemInteraction, {
-      once: true,
+
+  // 🟩 Highlight everything belonging to a song
+  function highlightSong(songId) {
+    tracks.forEach(t => {
+      if (t.songId === songId) {
+        t.el.classList.add("song-hover");
+      } else {
+        t.el.classList.remove("song-hover");
+      }
     });
+  }
+
+  function clearSongHighlight() {
+    tracks.forEach(t => t.el.classList.remove("song-hover"));
+  }
+
+  // -----------------------------------------------------------
+  // 🔔 TRACK CLICK + HOVER BINDINGS
+  // -----------------------------------------------------------
+  tracks.forEach((track) => {
+    const el = track.el;
+
+    // 🔊 first click kills drone
+    el.addEventListener("click", handleFirstStemInteraction);
+
+    // 🎧 click → show active status
+    el.addEventListener("click", () => {
+      setActiveSong(track.songId);
+      setActiveStem(track.stemName || el.textContent);
+    });
+
+    // ✨ hover → highlight whole song
+    el.addEventListener("mouseenter", () => {
+      highlightSong(track.songId);
+    });
+
+    el.addEventListener("mouseleave", clearSongHighlight);
   });
 
+
+  // -----------------------------------------------------------
+  // 🟥 STOP BUTTON KILLS DEFAULT MIX
+  // -----------------------------------------------------------
   const stopBtn = container.querySelector("[data-mt-stop]");
   stopBtn?.addEventListener("click", () => dropDefault());
-
-  console.log("asleep: default mix + fly positions ready");
 }
