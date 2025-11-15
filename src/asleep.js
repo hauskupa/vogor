@@ -1,7 +1,7 @@
 // src/asleep.js
 // -------------------------------------------------------------
 // Asleep artwork logic: positions + default drone + status UI
-// + old-school mini waveform
+// + old-school mini waveform + preload + resync
 // -------------------------------------------------------------
 
 import { FLY_SLOTS, SONG_LAYOUT } from "./asleepPositions.js";
@@ -183,6 +183,49 @@ export function setupAsleepArtwork(multitrack) {
     track.stemName = getStemName(track);
   });
 
+  // -----------------------------------------------------------
+  // 🔁 PRELOAD ALL AUDIO ELEMENTS
+  // -----------------------------------------------------------
+  function preloadAllAudio() {
+    tracks.forEach((t) => {
+      const audio = getAudioElementFromTrack(t);
+      if (!audio) return;
+
+      audio.preload = "auto";
+      if (audio.readyState < 3) {
+        audio.load();
+      }
+    });
+  }
+
+  // -----------------------------------------------------------
+  // ⏱ RESYNC STEMS Í EINU LAGI
+  // -----------------------------------------------------------
+  function resyncSong(songId) {
+    const songTracks = tracks.filter(
+      (t) => t.songId === songId && getAudioElementFromTrack(t)
+    );
+    if (!songTracks.length) return;
+
+    const masterAudio = getAudioElementFromTrack(songTracks[0]);
+    if (!masterAudio) return;
+
+    const masterTime = masterAudio.currentTime;
+
+    songTracks.forEach((t) => {
+      const a = getAudioElementFromTrack(t);
+      if (!a || a === masterAudio) return;
+
+      if (Math.abs(a.currentTime - masterTime) > 0.04) {
+        try {
+          a.currentTime = masterTime;
+        } catch (err) {
+          // sum devices geta verið pirruð á seek — bara hunsa
+        }
+      }
+    });
+  }
+
   // --------------------------
   // POSITION FLIES
   // --------------------------
@@ -217,6 +260,7 @@ export function setupAsleepArtwork(multitrack) {
   }
 
   applyFlyPositions();
+  preloadAllAudio(); // 🔁 pre-load strax eftir að við höfum mappað allt
 
   // --------------------------
   // DEFAULT DRONE
@@ -315,7 +359,7 @@ export function setupAsleepArtwork(multitrack) {
   tracks.forEach((track) => {
     const el = track.el;
 
-    el.addEventListener("click", (evt) => {
+    el.addEventListener("click", () => {
       handleFirstStemInteraction();
 
       const songId = track.songId || "–";
@@ -338,6 +382,9 @@ export function setupAsleepArtwork(multitrack) {
       // mini oscilloscope fyrir fyrsta stem lagsins
       const firstStem = tracks.find((t) => t.songId === songId);
       if (firstStem) startWaveformForTrack(firstStem);
+
+      // halda öllum stems í sync við master
+      resyncSong(songId);
     });
 
     el.addEventListener("mouseenter", () => highlightSong(track.songId));
@@ -353,5 +400,5 @@ export function setupAsleepArtwork(multitrack) {
     stopWaveform();
   });
 
-  console.log("asleep: ready (slots + drone + status + waveform)");
+  console.log("asleep: ready (slots + drone + status + waveform + preload + resync)");
 }
