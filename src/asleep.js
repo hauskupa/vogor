@@ -47,7 +47,32 @@ export function setupAsleepArtwork(multitrack) {
     });
   }
 
-  applyFlyPositions();
+   function applyFlyPositions() {
+    const perSong = new Map();
+
+    // Lesum alltaf positions FRESH úr window
+    const flyPositions = window.FLY_POSITIONS || {};
+
+    tracks.forEach((t) => {
+      if (!t.songId) return;
+      if (!perSong.has(t.songId)) perSong.set(t.songId, []);
+      perSong.get(t.songId).push(t.el);
+    });
+
+    perSong.forEach((els, songId) => {
+      const cfg = flyPositions[songId];
+      if (!cfg) return;
+
+      els.forEach((el, idx) => {
+        const pos = cfg[idx];
+        if (!pos) return;
+        el.style.position = "absolute";
+        el.style.left = pos.x * 100 + "%";
+        el.style.top = pos.y * 100 + "%";
+      });
+    });
+  }
+
 
   // --- DEFAULT MIX ---
 
