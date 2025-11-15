@@ -186,6 +186,7 @@ export function setupAsleepArtwork(multitrack) {
   const uiStemList = container.querySelector("[data-mt-activestems]");
   const waveCanvasEl = container.querySelector("[data-waveform-canvas]");
   initWaveCanvas(waveCanvasEl);
+  const uiStatus = container.querySelector(".asleep-status"); // 👈 BÆTA VIÐ
 
   // Reikna stem-nöfn einu sinni
   tracks.forEach((track) => {
@@ -360,6 +361,10 @@ export function setupAsleepArtwork(multitrack) {
 
     dropDefault();
     ensureStarted();
+    // sýna status-boxið við fyrstu interaction 👇
+    if (uiStatus) {
+      uiStatus.classList.add("is-visible");
+    }
   }
 
   // --------------------------
