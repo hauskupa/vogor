@@ -148,44 +148,67 @@ export function setupAsleepArtwork(multitrack) {
     dropDefault();
     ensureStarted();
   }
-
   // -------------------------------------------------------
-  // 🔉 MINI WAVEFORM (kept *inside* setup)
+  // 🔉 MINI WAVEFORM – gamaldags oscilloscope
   // -------------------------------------------------------
   const waveCanvas = container.querySelector("[data-waveform-canvas]");
   const waveCtx = waveCanvas?.getContext("2d");
+
   let audioCtx = null;
   let analyser = null;
   let dataArray = null;
   let waveRunning = false;
+  let currentSource = null;
 
   function startWaveform(audioEl) {
-    if (!waveCanvas || !waveCtx || !audioEl) return;
+    if (!waveCanvas || !waveCtx || !audioEl) {
+      console.warn("asleep: no canvas or audioEl for waveform");
+      return;
+    }
 
-    if (!audioCtx) audioCtx = new AudioContext();
+    // resume audio context (Chrome policy)
+    if (!audioCtx) {
+      audioCtx = new AudioContext();
+    }
+    if (audioCtx.state === "suspended") {
+      audioCtx.resume();
+    }
+
+    // cleanup previous source
+    try {
+      if (currentSource) currentSource.disconnect();
+    } catch (e) {
+      // meh
+    }
 
     analyser = audioCtx.createAnalyser();
     analyser.fftSize = 1024;
-
     dataArray = new Uint8Array(analyser.fftSize);
 
-    const src = audioCtx.createMediaElementSource(audioEl);
-    src.connect(analyser);
+    // IMPORTANT: createMediaElementSource má bara kalla einu sinni
+    // þannig að við geymum source á audioEl sjálfum ef hann er ekki til.
+    if (!audioEl._asleepSource) {
+      audioEl._asleepSource = audioCtx.createMediaElementSource(audioEl);
+    }
+
+    currentSource = audioEl._asleepSource;
+    currentSource.connect(analyser);
     analyser.connect(audioCtx.destination);
 
     waveRunning = true;
     renderWave();
+    console.log("asleep: waveform started");
   }
 
   function stopWaveform() {
     waveRunning = false;
-    if (waveCtx) {
+    if (waveCtx && waveCanvas) {
       waveCtx.clearRect(0, 0, waveCanvas.width, waveCanvas.height);
     }
   }
 
   function renderWave() {
-    if (!waveRunning || !analyser) return;
+    if (!waveRunning || !analyser || !waveCtx || !waveCanvas) return;
 
     analyser.getByteTimeDomainData(dataArray);
 
@@ -224,18 +247,21 @@ export function setupAsleepArtwork(multitrack) {
       setActiveSong(track.songId);
       setActiveStem(track.stemName);
 
+      // waveform notar FYRSTA stem í laginu
       const firstStem = tracks.find(t => t.songId === track.songId);
-      if (firstStem?.audio) startWaveform(firstStem.audio);
+      if (firstStem?.audio) {
+        startWaveform(firstStem.audio);
+      }
     });
 
     el.addEventListener("mouseenter", () => highlightSong(track.songId));
     el.addEventListener("mouseleave", clearSongHighlight);
   });
 
-  // Stop button kills drone + waveform
   const stopBtn = container.querySelector("[data-mt-stop]");
   stopBtn?.addEventListener("click", () => {
     dropDefault();
     stopWaveform();
   });
+
 }
