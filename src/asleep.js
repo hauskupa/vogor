@@ -87,6 +87,14 @@ function startWaveformForTrack(track) {
     return;
   }
 
+  // ✅ Sleppum waveform ef hljóðið er ekki á sama origin (t.d. Dropbox)
+  const src = audioEl.currentSrc || audioEl.src || "";
+  const sameOrigin = src.startsWith(window.location.origin);
+  if (!sameOrigin) {
+    // hljóð spilar samt, við bara teiknum ekki waveform til að forðast CORS-warnings
+    return;
+  }
+
   if (!audioCtx) {
     const AC = window.AudioContext || window.webkitAudioContext;
     if (!AC) return;
@@ -129,6 +137,7 @@ function startWaveformForTrack(track) {
     requestAnimationFrame(renderWaveform);
   }
 }
+
 
 function stopWaveform() {
   waveRunning = false;
