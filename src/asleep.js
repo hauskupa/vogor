@@ -214,12 +214,26 @@ export function setupAsleepArtwork(multitrack) {
     defaultAudio.loop = true;
     defaultAudio.volume = 1;
 
-    defaultAudio
-      .play()
-      .then(() => {
+    // Try to play right away. If the browser blocks autoplay, wait for
+    // the first user gesture (pointerdown) and attempt to play then.
+    const tryPlayDefault = async () => {
+      try {
+        await defaultAudio.play();
         defaultActive = true;
-      })
-      .catch(() => {});
+      } catch (e) {
+        // Autoplay blocked by browser policy — start on first user gesture
+        const onFirstGesture = () => {
+          defaultAudio.play().then(() => {
+            defaultActive = true;
+          }).catch(() => {});
+        };
+
+        // Use a once listener so it cleans itself up automatically
+        window.addEventListener("pointerdown", onFirstGesture, { once: true, passive: true });
+      }
+    };
+
+    tryPlayDefault();
   }
 
   function dropDefault() {
