@@ -52,8 +52,16 @@ export function setupAsleepArtwork(multitrack) {
 
   const uiSong = container.querySelector("[data-mt-activesong]");
   const uiStemList = container.querySelector("[data-mt-activestems]");
-  const uiStatus = container.querySelector(".asleep-status");
-
+  const uiStatus = container.querySelector("[data-mt-status]");
+ // 🔹 Mappa songId -> track-image element (template)
+  const trackImgMap = {};
+  container.querySelectorAll("[data-mt-trackimg]").forEach((el) => {
+    const id = el.dataset.mtTrackimg;
+    if (!id) return;
+    trackImgMap[id] = el;
+    // við notum þetta bara sem template, þannig við felum original
+    el.style.display = "none";
+  });
   // Nafn fyrir hverja rás
   tracks.forEach((t) => {
     t.stemName = getStemName(t);
@@ -184,8 +192,26 @@ export function setupAsleepArtwork(multitrack) {
   // -----------------------------------------------------------
   // Status UI
   // -----------------------------------------------------------
-  function setActiveSong(songId) {
-    if (uiSong) uiSong.textContent = songId || "–";
+   function setActiveSong(songId) {
+    if (!uiSong) return;
+
+    // hreinsa gamla content (texta/mynd)
+    uiSong.innerHTML = "";
+
+    const id = songId || "";
+    const templateImg = trackImgMap[id];
+
+    if (templateImg) {
+      // klónum myndina svo við tökum hana ekki úr CMS listanum
+      const img = templateImg.cloneNode(true);
+      img.removeAttribute("data-mt-trackimg"); // bara til að forðast rugl
+      img.style.display = "block";
+      img.loading = "lazy";
+      uiSong.appendChild(img);
+    } else {
+      // fallback: texti
+      uiSong.textContent = id || "–";
+    }
   }
 
   let currentSongId = null;
