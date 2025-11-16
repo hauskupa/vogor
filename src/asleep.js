@@ -53,21 +53,25 @@ export function setupAsleepArtwork(multitrack) {
   const uiSong = container.querySelector("[data-mt-activesong]");
   const uiStemList = container.querySelector("[data-mt-activestems]");
   const uiStatus = container.querySelector("[data-mt-status]");
- // 🔹 Mappa songId -> track-image element (template)
-const trackImgMap = {};
-const trackColorMap = {};
 
-container.querySelectorAll("[data-mt-trackimg]").forEach((el) => {
-  const id = el.dataset.mtTrackimg;
-  const color = el.dataset.mtColor;
+  // 🔹 Mappa songId -> track-image element (template)
+  const trackImgMap = {};
+  container.querySelectorAll("[data-mt-trackimg]").forEach((el) => {
+    const id = el.dataset.mtTrackimg;
+    if (!id) return;
+    trackImgMap[id] = el;
+    el.style.display = "none"; // notum bara sem template
+  });
 
-  if (!id) return;
-
-  trackImgMap[id] = el;
-  if (color) trackColorMap[id] = color;
-
-  el.style.display = "none"; // hide template
-});
+  // 🔹 Litir per lag – lesnir úr parent [data-mt-track][data-mt-color]
+  const songColorMap = {};
+  container.querySelectorAll("[data-mt-track]").forEach((wrap) => {
+    const id = wrap.dataset.mtTrack;
+    const color = wrap.dataset.mtColor;
+    if (id && color) {
+      songColorMap[id] = color;
+    }
+  });
 
   // Nafn fyrir hverja rás
   tracks.forEach((t) => {
@@ -83,13 +87,15 @@ container.querySelectorAll("[data-mt-trackimg]").forEach((el) => {
       if (!audio) return;
       audio.preload = "auto";
       if (audio.readyState < 3) {
-        try { audio.load(); } catch (e) {}
+        try {
+          audio.load();
+        } catch (e) {}
       }
     });
   }
 
   // -----------------------------------------------------------
-  // Resync
+  // Resync (haldið inni fyrir mögulega framtíðarnotkun)
   // -----------------------------------------------------------
   function resyncSong(songId) {
     const songTracks = tracks.filter((t) => t.songId === songId);
@@ -107,24 +113,25 @@ container.querySelectorAll("[data-mt-trackimg]").forEach((el) => {
       if (t === masterTrack) return;
       const a = t.audio;
       if (Math.abs(a.currentTime - t0) > TOL) {
-        try { a.currentTime = t0; } catch (e) {}
+        try {
+          a.currentTime = t0;
+        } catch (e) {}
       }
     });
   }
 
-let resyncTimer = null;
+  let resyncTimer = null;
 
-function startResyncLoop(_songId) {
-  // tímabundið disable-að til að forðast hiccups
-}
-
-function stopResyncLoop() {
-  if (resyncTimer) {
-    clearInterval(resyncTimer);
-    resyncTimer = null;
+  function startResyncLoop(_songId) {
+    // tímabundið disable-að til að forðast hiccups
   }
-}
 
+  function stopResyncLoop() {
+    if (resyncTimer) {
+      clearInterval(resyncTimer);
+      resyncTimer = null;
+    }
+  }
 
   // -----------------------------------------------------------
   // Fly positions
@@ -175,8 +182,11 @@ function stopResyncLoop() {
     defaultAudio.loop = true;
     defaultAudio.volume = 1;
 
-    defaultAudio.play()
-      .then(() => { defaultActive = true; })
+    defaultAudio
+      .play()
+      .then(() => {
+        defaultActive = true;
+      })
       .catch(() => {});
   }
 
@@ -195,7 +205,7 @@ function stopResyncLoop() {
   // -----------------------------------------------------------
   // Status UI
   // -----------------------------------------------------------
-   function setActiveSong(songId) {
+  function setActiveSong(songId) {
     if (!uiSong) return;
 
     // hreinsa gamla content (texta/mynd)
@@ -207,7 +217,7 @@ function stopResyncLoop() {
     if (templateImg) {
       // klónum myndina svo við tökum hana ekki úr CMS listanum
       const img = templateImg.cloneNode(true);
-      img.removeAttribute("data-mt-trackimg"); // bara til að forðast rugl
+      img.removeAttribute("data-mt-trackimg");
       img.style.display = "block";
       img.loading = "lazy";
       uiSong.appendChild(img);
@@ -215,9 +225,10 @@ function stopResyncLoop() {
       // fallback: texti
       uiSong.textContent = id || "–";
     }
-  const color = trackColorMap[songId] || "#ffffff";
-  container.style.setProperty("--asleep-glow", color);
 
+    // uppfæra glow-litin fyrir þetta lag
+    const color = songColorMap[id] || "#cdb5b0";
+    container.style.setProperty("--asleep-glow", color);
   }
 
   let currentSongId = null;
@@ -315,12 +326,10 @@ function stopResyncLoop() {
       );
 
       if (anyActiveInSong) {
-        startResyncLoop(songId);
+        startResyncLoop(songId); // no-op eins og er
       } else {
         stopResyncLoop();
       }
-
-      
     });
 
     el.addEventListener("mouseenter", () => highlightSong(track.songId));
@@ -339,5 +348,7 @@ function stopResyncLoop() {
     setActiveSong("–");
   });
 
-  console.log("asleep: ready (no waveform, slots + drone + status + preload + resync)");
+  console.log(
+    "asleep: ready (no waveform, slots + drone + status + preload + soft glow)"
+  );
 }
