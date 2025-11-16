@@ -116,19 +116,19 @@ export const FLY_SLOTS_MOBILE = [
 ];
 export const SONG_LAYOUT = {
   Mars: {
-    slotStart: 4,
+    slotStart: 15,
     count: 11
   },
   Palli: {
-    slotStart: 20,
+    slotStart: 41,
     count: 8
   },
   Agust: {
-    slotStart: 30,
+    slotStart: 31,
     count: 7
   },
   Siggi: {
-    slotStart: 41,
+    slotStart: 0,
     count: 7
   }
 };
