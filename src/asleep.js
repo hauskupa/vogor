@@ -105,23 +105,19 @@ export function setupAsleepArtwork(multitrack) {
     });
   }
 
-  let resyncTimer = null;
+let resyncTimer = null;
 
-  function startResyncLoop(songId) {
-    if (resyncTimer) clearInterval(resyncTimer);
-    resyncTimer = setInterval(() => {
-      if (currentSongId !== songId) return;
-      if (activeStems.size === 0) return;
-      resyncSong(songId);
-    }, 1000);
-  }
+function startResyncLoop(_songId) {
+  // tímabundið disable-að til að forðast hiccups
+}
 
-  function stopResyncLoop() {
-    if (resyncTimer) {
-      clearInterval(resyncTimer);
-      resyncTimer = null;
-    }
+function stopResyncLoop() {
+  if (resyncTimer) {
+    clearInterval(resyncTimer);
+    resyncTimer = null;
   }
+}
+
 
   // -----------------------------------------------------------
   // Fly positions
@@ -314,7 +310,7 @@ export function setupAsleepArtwork(multitrack) {
         stopResyncLoop();
       }
 
-      resyncSong(songId);
+      
     });
 
     el.addEventListener("mouseenter", () => highlightSong(track.songId));
