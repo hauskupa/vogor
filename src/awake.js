@@ -1,107 +1,214 @@
 // src/awake.js
 import { Howl } from "howler";
 
+/**
+ * Initialize awake voiceover tracks and bind controls.
+ * Safe to call before or after DOMContentLoaded.
+ * Returns the created `howls` map for testing or external control.
+ */
 export function setupAwake() {
-  console.log("Awake setup init");
+  const VOL_STEP = 0.1;
 
-  // Þarft bara að passa að IDs í Webflow passi við þessi nöfn
-  const tracksConfig = {
-    awake: "https://dl.dropbox.com/s/ajrpw05bpy6k04a/awakevoiceover.mp3?dl=0",
-    afterthefall:
-      "https://dl.dropbox.com/s/jtgblwgqdceko0o/AfterTheFallvoiceMix.mp3?dl=0",
-    theitem:
-      "https://dl.dropbox.com/s/3q6zt8luk06z947/TheItemVoiceover.mp3?dl=0",
-    security:
-      "https://dl.dropbox.com/s/0nu90bt8mlcb9c9/NinjaVoiceover.mp3?dl=0",
-    held: "https://dl.dropbox.com/s/2j5d0q78r37wu03/HeldVoiceMix.mp3?dl=0",
-    xray: "https://dl.dropbox.com/s/mz6nrkeyufoq3lv/xrayvoiceover.mp3?dl=0",
-    threepins:
-      "https://dl.dropbox.com/s/teb2ezmwdhw6nwe/threepinsvoiceover.mp3?dl=0",
-    vortex:
-      "https://dl.dropbox.com/s/gjpxggldxcukt8r/vortexvoiceover.mp3?dl=0",
-    contractor:
-      "https://dl.dropbox.com/s/ub6pn27ftr6x77l/thecontractorvoiceover.mp3?dl=0",
-    cousin:
-      "https://dl.dropbox.com/s/l7qrt3l79rd8uax/cousinvoiceover.mp3?dl=0",
-    tjornarp:
-      "https://dl.dropbox.com/s/v2w956c82t8caqh/tjornarpvoiceover.mp3?dl=0",
-  };
+  // Build tracksConfig from slide `data-awake-audio` attributes only.
+  // If you want fallback/default URLs, store them in the HTML or a
+  // separate config file; by default we will derive tracks from markup.
+  let tracksConfig = {};
 
   const howls = {};
 
-  // Búum til Howl fyrir hvert lag
-  for (const [key, url] of Object.entries(tracksConfig)) {
-    howls[key] = new Howl({
-      src: [url],
-      volume: 0.5,
-    });
+  function createHowls() {
+    // Merge any `data-awake-audio` attributes found in `.slide` elements.
+    // Slides in the markup may include `data-awake-audio="<url>"` which
+    // should define or override the URL for that slide's audio.
+    try {
+      const slides = Array.from(document.querySelectorAll('.slide[data-slide]'));
+      slides.forEach((s) => {
+        const name = s.dataset && s.dataset.slide;
+        const url = s.dataset && s.dataset.awakeAudio;
+        if (name && url) tracksConfig[name] = url;
+      });
+    } catch (e) {
+      // document might be unavailable in some environments — ignore.
+    }
+
+    for (const [key, url] of Object.entries(tracksConfig)) {
+      try {
+        howls[key] = new Howl({
+          src: [url],
+          volume: 0.5,
+        });
+      } catch (err) {
+        // If Howl isn't available (e.g. during unit tests), provide a safe stub
+        // so bindings won't throw.
+        howls[key] = {
+          _volume: 0.5,
+          play() {},
+          pause() {},
+          stop() {},
+          volume(v) {
+            if (typeof v === "number") this._volume = Math.max(0, Math.min(1, v));
+            return this._volume;
+          },
+        };
+        // eslint-disable-next-line no-console
+        console.warn(`Howl creation failed for ${key}:`, err && err.message);
+      }
+    }
   }
 
   function clampVolume(v) {
-    if (v < 0) return 0;
-    if (v > 1) return 1;
-    return v;
+    return Math.max(0, Math.min(1, v));
   }
 
-  function bindTrackControls(name) {
+  // Bind controls by data-attributes inside each `.slide[data-slide]` element.
+  function bindControlsForSlide(slideEl) {
+    const name = slideEl && slideEl.dataset && slideEl.dataset.slide;
+    if (!name) return;
     const howl = howls[name];
     if (!howl) return;
 
-    const playBtn = document.getElementById(`${name}-play`);
-    const pauseBtn = document.getElementById(`${name}-pause`);
-    const stopBtn = document.getElementById(`${name}-stop`);
-    const volUpBtn = document.getElementById(`${name}-volup`);
-    const volDownBtn = document.getElementById(`${name}-voldown`);
+    const playBtn = slideEl.querySelector("[data-awake-play]");
+    const pauseBtn = slideEl.querySelector("[data-awake-pause]");
+    const stopBtn = slideEl.querySelector("[data-awake-stop]");
+    const volUpBtn = slideEl.querySelector("[data-awake-vol-up]");
+    const volDownBtn = slideEl.querySelector("[data-awake-vol-down]");
 
-    if (playBtn) {
+    const stopAllOnPlay = true; // change to false if you want overlapping audio
+
+    if (playBtn)
       playBtn.addEventListener("click", () => {
+        if (stopAllOnPlay) Object.values(howls).forEach((h) => { try { h.stop(); } catch (e) {} });
         howl.play();
       });
-    }
+    if (pauseBtn) pauseBtn.addEventListener("click", () => howl.pause());
+    if (stopBtn) stopBtn.addEventListener("click", () => howl.stop());
 
-    if (pauseBtn) {
-      pauseBtn.addEventListener("click", () => {
-        howl.pause();
-      });
-    }
-
-    if (stopBtn) {
-      stopBtn.addEventListener("click", () => {
-        howl.stop();
-      });
-    }
-
-    if (volUpBtn) {
+    if (volUpBtn)
       volUpBtn.addEventListener("click", () => {
-        const v = clampVolume(howl.volume() + 0.1);
-        howl.volume(v);
+        const current = typeof howl.volume === "function" ? howl.volume() : howl._volume || 0.5;
+        const v = clampVolume(current + VOL_STEP);
+        if (typeof howl.volume === "function") howl.volume(v);
       });
-    }
 
-    if (volDownBtn) {
+    if (volDownBtn)
       volDownBtn.addEventListener("click", () => {
-        const v = clampVolume(howl.volume() - 0.1);
-        howl.volume(v);
+        const current = typeof howl.volume === "function" ? howl.volume() : howl._volume || 0.5;
+        const v = clampVolume(current - VOL_STEP);
+        if (typeof howl.volume === "function") howl.volume(v);
+      });
+  }
+
+  // Slide navigation: use slides with `data-slide` and next/prev buttons with
+  // `data-next-slide` / `data-prev-slide` inside each slide.
+  function setupSlideNavigation() {
+    const slides = Array.from(document.querySelectorAll('.slide[data-slide]'));
+    if (!slides.length) return;
+
+    const body = document.body;
+    let currentIndex = Math.max(0, slides.findIndex((s) => s.classList.contains('active')));
+    if (currentIndex === -1) currentIndex = 0;
+
+    function updateAria(index) {
+      slides.forEach((s, i) => {
+        const isActive = i === index;
+        s.classList.toggle('active', isActive);
+        s.setAttribute('aria-hidden', String(!isActive));
+      });
+      const name = slides[index].dataset.slide;
+      if (name) body.dataset.awakeCurrent = name;
+    }
+
+    function goTo(index, { autoPlay = false } = {}) {
+      const i = Math.max(0, Math.min(slides.length - 1, index));
+      const slide = slides[i];
+      if (!slide) return;
+
+      // Always stop/reset other audio when a new slide becomes active.
+      Object.values(howls).forEach((h) => {
+        try {
+          if (typeof h.stop === 'function') h.stop();
+          // Reset playback position if supported
+          if (typeof h.seek === 'function') h.seek(0);
+        } catch (e) {
+          // ignore
+        }
+      });
+
+      updateAria(i);
+      // Smooth scroll the slide into view
+      try {
+        slide.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
+      } catch (e) {
+        // fall back
+        slide.scrollIntoView();
+      }
+
+      // Optionally auto-play the slide's audio URL if requested. This
+      // is off by default; user can enable by passing { autoPlay: true }.
+      if (autoPlay) {
+        const name = slide.dataset && slide.dataset.slide;
+        if (name && howls[name] && typeof howls[name].play === 'function') {
+          try { howls[name].play(); } catch (e) {}
+        }
+      }
+
+      currentIndex = i;
+    }
+
+    // wire next/prev inside each slide
+    slides.forEach((slide, idx) => {
+      bindControlsForSlide(slide);
+
+      const nextBtn = slide.querySelector('[data-next-slide]') || slide.querySelector('.next');
+      const prevBtn = slide.querySelector('[data-prev-slide]') || slide.querySelector('.prev');
+
+      if (nextBtn) nextBtn.addEventListener('click', () => goTo(idx + 1));
+      if (prevBtn) prevBtn.addEventListener('click', () => goTo(idx - 1));
+    });
+
+    // global next/prev (useful for controls outside slides)
+    document.querySelectorAll('[data-next]').forEach((el) => el.addEventListener('click', () => goTo(currentIndex + 1)));
+    document.querySelectorAll('[data-prev]').forEach((el) => el.addEventListener('click', () => goTo(currentIndex - 1)));
+
+    // keyboard navigation
+    window.addEventListener('keydown', (ev) => {
+      if (ev.key === 'ArrowRight') goTo(currentIndex + 1);
+      if (ev.key === 'ArrowLeft') goTo(currentIndex - 1);
+    });
+
+    // initialize first active slide
+    goTo(currentIndex);
+  }
+
+  function bindAll() {
+    // Bind controls and slides together
+    setupSlideNavigation();
+
+    // Global stop – elements that should stop all audio (same selectors as before)
+    const globalStopSelectors = [".awakemenuhidden"];
+    const globalStopElements = document.querySelectorAll(globalStopSelectors.join(", "));
+
+    if (globalStopElements.length) {
+      globalStopElements.forEach((el) => {
+        el.addEventListener("click", () => {
+          Object.values(howls).forEach((h) => { try { h.stop(); } catch (e) {} });
+        });
       });
     }
   }
 
-  // Binda alla trackana
-  Object.keys(tracksConfig).forEach(bindTrackControls);
-
-  // Global stop – alveg eins og í gamla kóðanum
-  const globalStopSelectors = [".next", ".prev", ".awakemenuhidden"];
-  const globalStopElements = document.querySelectorAll(
-    globalStopSelectors.join(", ")
-  );
-
-  if (globalStopElements.length) {
-    globalStopElements.forEach((el) => {
-      el.addEventListener("click", () => {
-        Object.values(howls).forEach((h) => h.stop());
-      });
-    });
+  function init() {
+    createHowls();
+    bindAll();
+    // eslint-disable-next-line no-console
+    console.log("Awake setup ready");
   }
 
-  console.log("Awake setup ready");
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", init);
+  } else {
+    init();
+  }
+
+  return howls;
 }
