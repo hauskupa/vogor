@@ -1,0 +1,41 @@
+/* Slide media/content enter/exit animations
+	 - data-slide-media: left-side media (slides in from left)
+	 - data-slide-content: right-side content (slides in from right)
+*/
+
+[data-slide-media], [data-slide-content] {
+	transition: transform 480ms cubic-bezier(.22,.9,.32,1), opacity 360ms ease;
+	will-change: transform, opacity;
+}
+
+/* non-active slides start slightly off-screen */
+.slide:not(.active) [data-slide-media] {
+	transform: translateX(-20%);
+	opacity: 0;
+}
+.slide:not(.active) [data-slide-content] {
+	transform: translateX(20%);
+	opacity: 0;
+}
+
+/* active slides are centered */
+.slide.active [data-slide-media],
+.slide.active [data-slide-content] {
+	transform: translateX(0);
+	opacity: 1;
+}
+
+/* exit classes applied to the outgoing slide */
+.slide.exit-left [data-slide-media] { transform: translateX(-40%); opacity: 0; }
+.slide.exit-left [data-slide-content] { transform: translateX(40%); opacity: 0; }
+.slide.exit-right [data-slide-media] { transform: translateX(-40%); opacity: 0; }
+.slide.exit-right [data-slide-content] { transform: translateX(40%); opacity: 0; }
+
+/* small accessibility helpers */
+.slide[aria-hidden="true"] { pointer-events: none; }
+
+
+/* Visual feedback when a slide's audio is playing/paused */
+.slide.playing { box-shadow: 0 12px 40px rgba(0,0,0,0.28); }
+.slide.paused { opacity: 0.98; }
+
