@@ -60,11 +60,13 @@ let waveCanvas = null;
 let waveCtx = null;
 let waveSource = null;
 let waveRunning = false;
+let waveWrapper = null; // 🎚 CSS boxið fyrir .is-playing
 
 function initWaveCanvas(canvas) {
   if (!canvas) return;
   waveCanvas = canvas;
   waveCtx = canvas.getContext("2d");
+  waveWrapper = canvas.closest(".asleep-wave-wrapper") || null;
 }
 
 function getAudioElementFromTrack(track) {
@@ -78,6 +80,16 @@ function getAudioElementFromTrack(track) {
   );
 }
 
+// helper til að setja "is-playing" á wrapper + stoppa canvas wave
+function setWavePlaying(isOn) {
+  if (waveWrapper) {
+    waveWrapper.classList.toggle("is-playing", !!isOn);
+  }
+  if (!isOn) {
+    stopWaveform();
+  }
+}
+
 function startWaveformForTrack(track) {
   if (!waveCanvas || !waveCtx) return;
 
@@ -87,11 +99,28 @@ function startWaveformForTrack(track) {
     return;
   }
 
-  // ✅ Sleppum waveform ef hljóðið er ekki á sama origin (t.d. Dropbox)
+  // ✅ TRY-SAFE origin-check (forðumst "zeroes due to CORS restrictions")
   const src = audioEl.currentSrc || audioEl.src || "";
-  const sameOrigin = src.startsWith(window.location.origin);
+  let sameOrigin = true;
+
+  if (src) {
+    try {
+      if (/^https?:/i.test(src)) {
+        const u = new URL(src, window.location.href);
+        sameOrigin = (u.origin === window.location.origin);
+      } else {
+        // relative paths = sama origin
+        sameOrigin = true;
+      }
+    } catch (e) {
+      sameOrigin = false;
+    }
+  }
+
   if (!sameOrigin) {
-    // hljóð spilar samt, við bara teiknum ekki waveform til að forðast CORS-warnings
+    // hljóðið spilar samt, við bara sleppum waveform til að forðast CORS-warnings
+    console.warn("asleep: waveform disabled (cross-origin audio)", src);
+    setWavePlaying(false);
     return;
   }
 
@@ -108,6 +137,7 @@ function startWaveformForTrack(track) {
   if (!analyser) {
     analyser = audioCtx.createAnalyser();
     analyser.fftSize = 512;
+    analyser.smoothingTimeConstant = 0.85;
     waveformData = new Uint8Array(analyser.fftSize);
   }
 
@@ -125,19 +155,25 @@ function startWaveformForTrack(track) {
       audioEl._waveSource = waveSource;
     } catch (e) {
       console.warn("asleep: cannot create media element source", e);
+      setWavePlaying(false);
       return;
     }
   }
 
-  waveSource.connect(analyser);
-  analyser.connect(audioCtx.destination);
+  // tengjum bara í analyser (ekki aftur í destination til að forðast "double audio")
+  try {
+    waveSource.connect(analyser);
+  } catch (e) {
+    console.warn("asleep: connect to analyser failed", e);
+    setWavePlaying(false);
+    return;
+  }
 
   if (!waveRunning) {
     waveRunning = true;
     requestAnimationFrame(renderWaveform);
   }
 }
-
 
 function stopWaveform() {
   waveRunning = false;
@@ -149,7 +185,14 @@ function stopWaveform() {
 function renderWaveform() {
   if (!waveRunning || !analyser || !waveCtx || !waveCanvas) return;
 
-  analyser.getByteTimeDomainData(waveformData);
+  // TRY-SAFE guard: ef við fáum SecurityError/CORS þá slökkvum á waveform
+  try {
+    analyser.getByteTimeDomainData(waveformData);
+  } catch (e) {
+    console.warn("asleep: analyser getByteTimeDomainData failed", e);
+    setWavePlaying(false);
+    return;
+  }
 
   const { width, height } = waveCanvas;
   waveCtx.clearRect(0, 0, width, height);
@@ -185,8 +228,8 @@ export function setupAsleepArtwork(multitrack) {
   const uiSong = container.querySelector("[data-mt-activesong]");
   const uiStemList = container.querySelector("[data-mt-activestems]");
   const waveCanvasEl = container.querySelector("[data-waveform-canvas]");
+  const uiStatus = container.querySelector(".asleep-status");
   initWaveCanvas(waveCanvasEl);
-  const uiStatus = container.querySelector(".asleep-status"); // 👈 BÆTA VIÐ
 
   // Reikna stem-nöfn einu sinni
   tracks.forEach((track) => {
@@ -203,7 +246,11 @@ export function setupAsleepArtwork(multitrack) {
 
       audio.preload = "auto";
       if (audio.readyState < 3) {
-        audio.load();
+        try {
+          audio.load();
+        } catch (e) {
+          // sum devices nenna ekki load() handvirkt – bara hunsa
+        }
       }
     });
   }
@@ -336,6 +383,23 @@ export function setupAsleepArtwork(multitrack) {
     });
   }
 
+  // auto-hide status box
+  let statusHideTimer = null;
+
+  function showStatusBox() {
+    if (!uiStatus) return;
+    uiStatus.classList.add("is-visible");
+
+    if (statusHideTimer) clearTimeout(statusHideTimer);
+
+    // fela eftir smá tíma EF ekkert stem er virkt
+    statusHideTimer = setTimeout(() => {
+      if (activeStems.size === 0) {
+        uiStatus.classList.remove("is-visible");
+      }
+    }, 5000);
+  }
+
   // --------------------------
   // HOVER HIGHLIGHT
   // --------------------------
@@ -361,10 +425,7 @@ export function setupAsleepArtwork(multitrack) {
 
     dropDefault();
     ensureStarted();
-    // sýna status-boxið við fyrstu interaction 👇
-    if (uiStatus) {
-      uiStatus.classList.add("is-visible");
-    }
+    showStatusBox();
   }
 
   // --------------------------
@@ -392,10 +453,23 @@ export function setupAsleepArtwork(multitrack) {
 
       setActiveSong(songId);
       renderStemList();
+      showStatusBox();
+
+      // checkum hvort eitthvað stem í laginu sé virkt
+      const anyActiveInSong = tracks.some(
+        (t) => t.songId === songId && t.el.classList.contains("is-active")
+      );
 
       // mini oscilloscope fyrir fyrsta stem lagsins
       const firstStem = tracks.find((t) => t.songId === songId);
-      if (firstStem) startWaveformForTrack(firstStem);
+
+      if (firstStem && anyActiveInSong) {
+        startWaveformForTrack(firstStem);
+        setWavePlaying(true);
+      } else {
+        // ekkert stem virkt => slökkvum á waveform + CSS animation
+        setWavePlaying(false);
+      }
 
       // halda öllum stems í sync við master
       resyncSong(songId);
@@ -411,8 +485,13 @@ export function setupAsleepArtwork(multitrack) {
   const stopBtn = container.querySelector("[data-mt-stop]");
   stopBtn?.addEventListener("click", () => {
     dropDefault();
-    stopWaveform();
+    setWavePlaying(false);
+    activeStems.clear();
+    renderStemList();
+    setActiveSong("–");
   });
 
-  console.log("asleep: ready (slots + drone + status + waveform + preload + resync)");
+  console.log(
+    "asleep: ready (slots + drone + status + waveform + preload + resync)"
+  );
 }
