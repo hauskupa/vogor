@@ -1,5 +1,6 @@
 // src/asleep.js (NO WAVEFORM VERSION)
-import { FLY_SLOTS, SONG_LAYOUT } from "./asleepPositions.js";
+import { FLY_SLOTS_DESKTOP, FLY_SLOTS_MOBILE, SONG_LAYOUT } from "./asleepPositions.js";
+
 
 // -------------------------------------------------------------
 // Fade helper
@@ -132,6 +133,12 @@ export function setupAsleepArtwork(multitrack) {
       resyncTimer = null;
     }
   }
+  // Veljum slots miðað við layout
+  const isMobileLayout = window.matchMedia("(max-width: 991px)").matches;
+  const activeSlots =
+    isMobileLayout && FLY_SLOTS_MOBILE && FLY_SLOTS_MOBILE.length
+      ? FLY_SLOTS_MOBILE
+      : FLY_SLOTS_DESKTOP;
 
   // -----------------------------------------------------------
   // Fly positions
@@ -152,7 +159,7 @@ export function setupAsleepArtwork(multitrack) {
       const start = layout.slotStart;
 
       for (let i = 0; i < els.length; i++) {
-        const slot = FLY_SLOTS[start + i];
+        const slot = activeSlots[start + i];
         if (!slot) continue;
 
         const el = els[i];
