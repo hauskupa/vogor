@@ -1,5 +1,9 @@
 // src/asleep.js (NO WAVEFORM VERSION)
-import { FLY_SLOTS_DESKTOP, FLY_SLOTS_MOBILE, SONG_LAYOUT } from "./asleepPositions.js";
+import {
+  FLY_SLOTS_DESKTOP,
+  FLY_SLOTS_MOBILE,
+  SONG_LAYOUT as STATIC_LAYOUT,
+} from "./asleepPositions.js";
 
 
 // -------------------------------------------------------------
@@ -66,11 +70,32 @@ export function setupAsleepArtwork(multitrack) {
 
   // 🔹 Litir per lag – lesnir úr parent [data-mt-track][data-mt-color]
   const songColorMap = {};
+  const songLayout = { ...STATIC_LAYOUT }; // copy af default-values
+
   container.querySelectorAll("[data-mt-track]").forEach((wrap) => {
     const id = wrap.dataset.mtTrack;
+    if (!id) return;
+
+    // 🎨 litur per lag
     const color = wrap.dataset.mtColor;
-    if (id && color) {
+    if (color) {
       songColorMap[id] = color;
+    }
+
+    // 📍 layout per lag (slotStart / count) úr Webflow
+    const slotStartAttr = wrap.dataset.mtSlotstart;
+    const countAttr = wrap.dataset.mtCount;
+
+    if (slotStartAttr != null || countAttr != null) {
+      const prev = songLayout[id] || {};
+      const slotStart =
+        slotStartAttr != null
+          ? parseInt(slotStartAttr, 10)
+          : prev.slotStart ?? 0;
+      const count =
+        countAttr != null ? parseInt(countAttr, 10) : prev.count ?? 0;
+
+      songLayout[id] = { slotStart, count };
     }
   });
 
@@ -153,7 +178,7 @@ export function setupAsleepArtwork(multitrack) {
     });
 
     perSong.forEach((els, songId) => {
-      const layout = SONG_LAYOUT[songId];
+       const layout = songLayout[songId]; // 👈 í stað SONG_LAYOUT
       if (!layout) return;
 
       const start = layout.slotStart;
