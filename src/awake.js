@@ -176,6 +176,31 @@ export function setupAwake() {
       if (ev.key === 'ArrowLeft') goTo(currentIndex - 1);
     });
 
+    // Bind menu items (elements with `data-awake-song`) to slides.
+    // These are located inside the awakemenu (markup: items with data-awake-song).
+    try {
+      const menuItems = Array.from(document.querySelectorAll('[data-awake-song]'));
+      if (menuItems.length) {
+        menuItems.forEach((mi) => {
+          const target = mi.dataset && mi.dataset.awakeSong;
+          const idx = slides.findIndex((s) => s.dataset && s.dataset.slide === target);
+          if (idx >= 0) {
+            mi.addEventListener('click', (ev) => {
+              ev.preventDefault();
+              goTo(idx);
+              // Try to close the menu if there's a trigger element
+              const trigger = document.querySelector('.awakemenutrigger');
+              if (trigger) {
+                try { trigger.click(); } catch (e) { /* ignore */ }
+              }
+            });
+          }
+        });
+      }
+    } catch (e) {
+      // ignore if document not available
+    }
+
     // initialize first active slide
     goTo(currentIndex);
   }
