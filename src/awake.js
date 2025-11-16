@@ -21,7 +21,9 @@ export function setupAwake() {
     // Slides in the markup may include `data-awake-audio="<url>"` which
     // should define or override the URL for that slide's audio.
     try {
-      const slides = Array.from(document.querySelectorAll('.slide[data-slide]'));
+      // include any element that has `data-slide` (splash may sit outside
+      // the `.slide` collection in Webflow markup)
+      const slides = Array.from(document.querySelectorAll('[data-slide]'));
       slides.forEach((s) => {
         const name = s.dataset && s.dataset.slide;
         const url = s.dataset && s.dataset.awakeAudio;
@@ -126,7 +128,9 @@ export function setupAwake() {
   // Slide navigation: use slides with `data-slide` and next/prev buttons with
   // `data-next-slide` / `data-prev-slide` inside each slide.
   function setupSlideNavigation() {
-    const slides = Array.from(document.querySelectorAll('.slide[data-slide]'));
+    // include any element that has `data-slide` so a `splash` element
+    // placed outside the slides collection is recognized as the first slide
+    const slides = Array.from(document.querySelectorAll('[data-slide]'));
     if (!slides.length) return;
 
     const body = document.body;
