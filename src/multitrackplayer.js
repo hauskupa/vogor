@@ -76,16 +76,23 @@ export function setupMultitrackPlayer(root = document) {
   let currentSongId = null; // Agust / Siggi / whatever
 
 
-  function playAll() {
-    tracks.forEach(({ audio }) => {
-      if (audio.paused) {
-        audio.play().catch((err) =>
-          console.warn("multitrack: play failed", err)
-        );
-      }
-    });
-    isPlaying = true;
-  }
+ function playAll() {
+  tracks.forEach((track) => {
+    const { audio, songId, el } = track;
+    if (audio.paused) {
+      audio.play().catch((err) => {
+        console.warn("multitrack: play failed", {
+          error: err && err.name,
+          message: err && err.message,
+          src: audio.src,
+          songId,
+          stem: el?.dataset?.mtStem || null,
+        });
+      });
+    }
+  });
+}
+
 
   function pauseAll() {
     tracks.forEach(({ audio }) => audio.pause());
