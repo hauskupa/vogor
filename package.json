@@ -5,7 +5,8 @@
   "scripts": {
     "build": "node build.js",
     "dev": "npx esbuild src/main.js --bundle --format=iife --target=es2019 --sourcemap --outfile=dist/main.dev.js --watch",
-    "deploy": "npm run build && git add -A && git diff --cached --quiet || git commit -m \"Auto deploy\" && git push origin main && bash ./purge.sh",
+    "release": "node release.js patch",
+    "deploy": "npm run build && git add -A && git diff --cached --quiet || git commit -m \"Auto deploy\" && git push origin main && bash ./purge.sh && npm run release",
     "build:purge": "npm run build && bash ./purge.sh",
     "purge": "bash ./purge.sh",
     "build:icons": "svg-sprite-generate -d ./icons -o ./dist/sprite.svg"
