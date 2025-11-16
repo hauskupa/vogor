@@ -37,6 +37,31 @@ export function setupAwake() {
           src: [url],
           volume: 0.5,
         });
+        // Attach small UI-sync handlers if Howl supports events
+        try {
+          const slideEl = document.querySelector(`.slide[data-slide="${key}"]`);
+          if (slideEl && typeof howls[key].on === 'function') {
+            const onPlay = () => {
+              slideEl.classList.add('playing');
+              slideEl.classList.remove('paused');
+            };
+            const onPause = () => {
+              slideEl.classList.remove('playing');
+              slideEl.classList.add('paused');
+            };
+            const onStopOrEnd = () => {
+              slideEl.classList.remove('playing');
+              slideEl.classList.remove('paused');
+            };
+
+            howls[key].on('play', onPlay);
+            howls[key].on('pause', onPause);
+            howls[key].on('stop', onStopOrEnd);
+            howls[key].on('end', onStopOrEnd);
+          }
+        } catch (e) {
+          // ignore event-binding errors
+        }
       } catch (err) {
         // If Howl isn't available (e.g. during unit tests), provide a safe stub
         // so bindings won't throw.
@@ -118,41 +143,67 @@ export function setupAwake() {
       if (name) body.dataset.awakeCurrent = name;
     }
 
+    const ANIM_DURATION = 480; // ms, should match CSS transition
+
     function goTo(index, { autoPlay = false } = {}) {
       const i = Math.max(0, Math.min(slides.length - 1, index));
-      const slide = slides[i];
-      if (!slide) return;
+      if (i === currentIndex) return;
+      const oldIdx = currentIndex;
+      const oldSlide = slides[oldIdx];
+      const newSlide = slides[i];
+      if (!newSlide) return;
 
       // Always stop/reset other audio when a new slide becomes active.
       Object.values(howls).forEach((h) => {
         try {
           if (typeof h.stop === 'function') h.stop();
-          // Reset playback position if supported
           if (typeof h.seek === 'function') h.seek(0);
         } catch (e) {
           // ignore
         }
       });
 
-      updateAria(i);
-      // Smooth scroll the slide into view
+      const forward = i > oldIdx;
+      const exitClass = forward ? 'exit-left' : 'exit-right';
+
+      // Mark new slide active so it animates in from CSS (it was non-active before)
+      newSlide.classList.add('active');
+      newSlide.setAttribute('aria-hidden', 'false');
+
+      // Add exit class to old slide so it animates out
+      if (oldSlide) {
+        oldSlide.classList.add(exitClass);
+      }
+
+      // Smooth scroll the new slide into view
       try {
-        slide.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
+        newSlide.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
       } catch (e) {
-        // fall back
-        slide.scrollIntoView();
+        newSlide.scrollIntoView();
       }
 
-      // Optionally auto-play the slide's audio URL if requested. This
-      // is off by default; user can enable by passing { autoPlay: true }.
-      if (autoPlay) {
-        const name = slide.dataset && slide.dataset.slide;
-        if (name && howls[name] && typeof howls[name].play === 'function') {
-          try { howls[name].play(); } catch (e) {}
+      // After animation completes, clean up classes and update aria/current index
+      setTimeout(() => {
+        if (oldSlide) {
+          oldSlide.classList.remove('active');
+          oldSlide.classList.remove(exitClass);
+          oldSlide.setAttribute('aria-hidden', 'true');
         }
-      }
+        // ensure newSlide is active and aria updated
+        newSlide.classList.add('active');
+        newSlide.setAttribute('aria-hidden', 'false');
+        currentIndex = i;
+        const name = newSlide.dataset && newSlide.dataset.slide;
+        if (name) body.dataset.awakeCurrent = name;
 
-      currentIndex = i;
+        // Optionally auto-play
+        if (autoPlay) {
+          const name = newSlide.dataset && newSlide.dataset.slide;
+          if (name && howls[name] && typeof howls[name].play === 'function') {
+            try { howls[name].play(); } catch (e) {}
+          }
+        }
+      }, ANIM_DURATION + 20);
     }
 
     // wire next/prev inside each slide
@@ -225,6 +276,10 @@ export function setupAwake() {
   function init() {
     createHowls();
     bindAll();
+    // expose destroy on window for quick debugging (optional)
+    try {
+      window.__awake_howls = howls;
+    } catch (e) {}
     // eslint-disable-next-line no-console
     console.log("Awake setup ready");
   }
