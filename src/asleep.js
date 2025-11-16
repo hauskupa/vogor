@@ -54,14 +54,21 @@ export function setupAsleepArtwork(multitrack) {
   const uiStemList = container.querySelector("[data-mt-activestems]");
   const uiStatus = container.querySelector("[data-mt-status]");
  // 🔹 Mappa songId -> track-image element (template)
-  const trackImgMap = {};
-  container.querySelectorAll("[data-mt-trackimg]").forEach((el) => {
-    const id = el.dataset.mtTrackimg;
-    if (!id) return;
-    trackImgMap[id] = el;
-    // við notum þetta bara sem template, þannig við felum original
-    el.style.display = "none";
-  });
+const trackImgMap = {};
+const trackColorMap = {};
+
+container.querySelectorAll("[data-mt-trackimg]").forEach((el) => {
+  const id = el.dataset.mtTrackimg;
+  const color = el.dataset.mtColor;
+
+  if (!id) return;
+
+  trackImgMap[id] = el;
+  if (color) trackColorMap[id] = color;
+
+  el.style.display = "none"; // hide template
+});
+
   // Nafn fyrir hverja rás
   tracks.forEach((t) => {
     t.stemName = getStemName(t);
@@ -208,6 +215,9 @@ function stopResyncLoop() {
       // fallback: texti
       uiSong.textContent = id || "–";
     }
+  const color = trackColorMap[songId] || "#ffffff";
+  container.style.setProperty("--asleep-glow", color);
+
   }
 
   let currentSongId = null;
