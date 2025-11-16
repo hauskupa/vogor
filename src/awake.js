@@ -130,8 +130,11 @@ export function setupAwake() {
     if (!slides.length) return;
 
     const body = document.body;
-    let currentIndex = Math.max(0, slides.findIndex((s) => s.classList.contains('active')));
-    if (currentIndex === -1) currentIndex = 0;
+    // Prefer an explicit "splash" slide if present, otherwise keep any
+    // element that already has `.active`, otherwise fall back to index 0.
+    const splashIndex = slides.findIndex((s) => s.dataset && s.dataset.slide === 'splash');
+    const activeIndex = slides.findIndex((s) => s.classList && s.classList.contains('active'));
+    let currentIndex = splashIndex >= 0 ? splashIndex : (activeIndex >= 0 ? activeIndex : 0);
 
     function updateAria(index) {
       slides.forEach((s, i) => {
@@ -252,8 +255,8 @@ export function setupAwake() {
       // ignore if document not available
     }
 
-    // initialize first active slide
-    goTo(currentIndex);
+    // initialize first active slide (set active/aria without running nav animation)
+    updateAria(currentIndex);
   }
 
   function bindAll() {
