@@ -276,10 +276,6 @@ export function setupAsleepArtwork(multitrack) {
     });
   }
 
-  applyFlyPositions();
-  preloadAllAudio();
-  // show preloader for all tracks (or pass only the current song id)
-  showPreloaderUntilReady(null, 5000);
 
   // -----------------------------------------------------------
   // Default drone
