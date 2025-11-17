@@ -525,11 +525,12 @@ export function setupAsleepArtwork(multitrack) {
   );
 
   async function showPreloaderUntilReady(songIdList = null, timeout = 5000) {
-    const el = document.getElementById('asleep-preloader');
+    // prefer a preloader inside the artwork container, fallback to document
+    const el = container.querySelector('[data-asleep-preloader]') || document.querySelector('[data-asleep-preloader]');
     if (!el) return;
-    el.style.display = 'flex';
+    el.setAttribute('aria-hidden', 'false');
 
-    // Wait for either all _readyPromise for tracks to resolve or timeout
+    // pick readiness promises (we added t._readyPromise previously)
     const promises = tracks
       .filter(t => !songIdList || songIdList.includes(t.songId))
       .map(t => t._readyPromise || Promise.resolve());
@@ -539,8 +540,8 @@ export function setupAsleepArtwork(multitrack) {
       new Promise(resolve => setTimeout(resolve, timeout))
     ]);
 
-    // small delay for UX polish
+    // short delay for UX polish
     await new Promise(res => setTimeout(res, 200));
-    el.style.display = 'none';
+    el.setAttribute('aria-hidden', 'true');
   }
 }
