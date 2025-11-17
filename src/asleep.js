@@ -527,6 +527,10 @@ export function setupAsleepArtwork(multitrack) {
     // -----------------------------------------------------------
   // Preloader helper
   // -----------------------------------------------------------
+    console.log(
+    "asleep: ready (no waveform, slots + drone + status + preload + soft glow)"
+  );
+
   async function showPreloaderUntilReady(songIdList = null, timeout = 5000) {
     const el =
       container.querySelector("[data-asleep-preloader]") ||
@@ -535,6 +539,7 @@ export function setupAsleepArtwork(multitrack) {
     console.log("asleep: preloader element =", el);
     if (!el) return;
 
+    console.log("asleep: show preloader");
     el.setAttribute("aria-hidden", "false");
 
     const promises = tracks
@@ -546,13 +551,22 @@ export function setupAsleepArtwork(multitrack) {
       new Promise((resolve) => setTimeout(resolve, timeout)),
     ]);
 
-    await new Promise((res) => setTimeout(res, 200));
+    await new Promise((res) => setTimeout(res, 800)); // smá auka delay
+    console.log("asleep: hide preloader");
     el.setAttribute("aria-hidden", "true");
   }
 
-  // ... svo seinna:
+  // -----------------------------------------------------------
+  // Ræsum allt
+  // -----------------------------------------------------------
   applyFlyPositions();
   preloadAllAudio();
-  showPreloaderUntilReady(null, 5000);
 
+  // smá delay svo DOM/Paint nái að klárast áður en við sýnum overlay
+  setTimeout(() => {
+    showPreloaderUntilReady(null, 5000);
+  }, 50);
 }
+
+
+
