@@ -524,24 +524,35 @@ export function setupAsleepArtwork(multitrack) {
     "asleep: ready (no waveform, slots + drone + status + preload + soft glow)"
   );
 
+    // -----------------------------------------------------------
+  // Preloader helper
+  // -----------------------------------------------------------
   async function showPreloaderUntilReady(songIdList = null, timeout = 5000) {
-    // prefer a preloader inside the artwork container, fallback to document
-    const el = container.querySelector('[data-asleep-preloader]') || document.querySelector('[data-asleep-preloader]');
-    if (!el) return;
-    el.setAttribute('aria-hidden', 'false');
+    const el =
+      container.querySelector("[data-asleep-preloader]") ||
+      document.querySelector("[data-asleep-preloader]");
 
-    // pick readiness promises (we added t._readyPromise previously)
+    console.log("asleep: preloader element =", el);
+    if (!el) return;
+
+    el.setAttribute("aria-hidden", "false");
+
     const promises = tracks
-      .filter(t => !songIdList || songIdList.includes(t.songId))
-      .map(t => t._readyPromise || Promise.resolve());
+      .filter((t) => !songIdList || songIdList.includes(t.songId))
+      .map((t) => t._readyPromise || Promise.resolve());
 
     await Promise.race([
       Promise.all(promises),
-      new Promise(resolve => setTimeout(resolve, timeout))
+      new Promise((resolve) => setTimeout(resolve, timeout)),
     ]);
 
-    // short delay for UX polish
-    await new Promise(res => setTimeout(res, 200));
-    el.setAttribute('aria-hidden', 'true');
+    await new Promise((res) => setTimeout(res, 200));
+    el.setAttribute("aria-hidden", "true");
   }
+
+  // ... svo seinna:
+  applyFlyPositions();
+  preloadAllAudio();
+  showPreloaderUntilReady(null, 5000);
+
 }
