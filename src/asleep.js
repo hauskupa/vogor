@@ -278,6 +278,8 @@ export function setupAsleepArtwork(multitrack) {
 
   applyFlyPositions();
   preloadAllAudio();
+  // show preloader for all tracks (or pass only the current song id)
+  showPreloaderUntilReady(null, 5000);
 
   // -----------------------------------------------------------
   // Default drone
@@ -521,4 +523,24 @@ export function setupAsleepArtwork(multitrack) {
   console.log(
     "asleep: ready (no waveform, slots + drone + status + preload + soft glow)"
   );
+
+  async function showPreloaderUntilReady(songIdList = null, timeout = 5000) {
+    const el = document.getElementById('asleep-preloader');
+    if (!el) return;
+    el.style.display = 'flex';
+
+    // Wait for either all _readyPromise for tracks to resolve or timeout
+    const promises = tracks
+      .filter(t => !songIdList || songIdList.includes(t.songId))
+      .map(t => t._readyPromise || Promise.resolve());
+
+    await Promise.race([
+      Promise.all(promises),
+      new Promise(resolve => setTimeout(resolve, timeout))
+    ]);
+
+    // small delay for UX polish
+    await new Promise(res => setTimeout(res, 200));
+    el.style.display = 'none';
+  }
 }
