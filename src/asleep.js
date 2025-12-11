@@ -114,20 +114,40 @@ export function setupAsleepArtwork(multitrack) {
 
       if (!t._readyPromise) {
         t._readyPromise = new Promise((res) => {
-          t._readyResolve = res;
-        });
-        const onReady = () => {
-          try { t._readyResolve(); } catch (e) {}
-          audio.removeEventListener("canplaythrough", onReady);
-          audio.removeEventListener("loadedmetadata", onReady);
-        };
-        audio.addEventListener("canplaythrough", onReady, { passive: true });
-        audio.addEventListener("loadedmetadata", onReady, { passive: true });
+          let settled = false;
 
-        // safety fallback: resolve eftir 5s
-        setTimeout(() => {
-          try { t._readyResolve(); } catch (e) {}
-        }, 5000);
+          const cleanup = () => {
+            audio.removeEventListener("canplaythrough", onReady);
+            audio.removeEventListener("loadedmetadata", onReady);
+            audio.removeEventListener("error", onError);
+          };
+
+          const done = (result) => {
+            if (settled) return;
+            settled = true;
+            cleanup();
+            try { res(result); } catch (e) {}
+          };
+
+          const onReady = () => done({ ok: true });
+          const onError = (e) => {
+            console.warn("asleep: preload error", audio.src || t.el?.dataset?.mtAudio || "", e);
+            done({ ok: false, error: true });
+          };
+
+          // Already buffered (e.g., cache) – resolve immediately.
+          if (audio.readyState >= 3) {
+            done({ ok: true, cached: true });
+            return;
+          }
+
+          audio.addEventListener("canplaythrough", onReady, { passive: true });
+          audio.addEventListener("loadedmetadata", onReady, { passive: true });
+          audio.addEventListener("error", onError, { passive: true });
+
+          // safety fallback: resolve eftir 3.5s svo UI hangar ekki
+          setTimeout(() => done({ ok: false, timeout: true }), 3500);
+        });
       }
 
       if (audio.readyState < 3) {
@@ -138,7 +158,7 @@ export function setupAsleepArtwork(multitrack) {
     });
   }
 
-  async function showPreloaderUntilReady(songIdList = null, timeout = 5000) {
+  async function showPreloaderUntilReady(songIdList = null, timeout = 3500, minShow = 900) {
     const el =
       container.querySelector("[data-asleep-preloader]") ||
       document.querySelector("[data-asleep-preloader]");
@@ -151,7 +171,7 @@ export function setupAsleepArtwork(multitrack) {
 
     const promises = tracks
       .filter((t) => !songIdList || songIdList.includes(t.songId))
-      .map((t) => t._readyPromise || Promise.resolve());
+      .map((t) => t._readyPromise || Promise.resolve({ ok: true }));
 
     await Promise.race([
       Promise.all(promises),
@@ -159,7 +179,6 @@ export function setupAsleepArtwork(multitrack) {
     ]);
 
     const elapsed = performance.now() - started;
-    const minShow = 800;
     if (elapsed < minShow) {
       await new Promise((res) => setTimeout(res, minShow - elapsed));
     }
@@ -394,6 +413,6 @@ export function setupAsleepArtwork(multitrack) {
   preloadAllAudio();
 
   setTimeout(() => {
-    showPreloaderUntilReady(null, 5000);
+    showPreloaderUntilReady();
   }, 50);
 }
