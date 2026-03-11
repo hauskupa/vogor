@@ -1,6 +1,7 @@
 import { setupMixer } from "./mixer.js";
 import { setupAwake } from "./awake.js";
 import { setupPlayer } from "./player.js";
+import { setupAlbumMixer } from "./albumMixer.js";
 import { setupMultitrackPlayer } from "./multitrackplayer.js";
 import { setupAsleepArtwork } from "./asleep.js";
 
@@ -21,6 +22,11 @@ document.addEventListener("DOMContentLoaded", () => {
   if (document.querySelector("[data-player]")) {
     console.log("Found [data-player], initializing player...");
     setupPlayer();
+  }
+
+  // Album mixer
+  if (document.querySelector("[data-album-mixer]")) {
+    setupAlbumMixer();
   }
 
   // Multitrack + Asleep artwork

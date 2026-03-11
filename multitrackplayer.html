@@ -2,23 +2,619 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Multitrack Test</title>
-</head>
-<body><div data-multitrack-player>
-  <!-- Global controls (optional) -->
-   <div class="mt-btn" data-mt-play>Play</div>
-  <div class="mt-btn" data-mt-pause>Pause</div>
-  <div class="mt-btn" data-mt-stop>Stop</div>
+  <title>Album Mixer Test</title>
+  <link rel="icon" href="data:,">
+  <style>
+    :root {
+      --deck: #b7ab8f;
+      --deck-dark: #8f856f;
+      --panel: #9f957f;
+      --ink: #261f15;
+      --slot: #2a2928;
+      --slot-glow: #9fd17a;
+      --line: rgba(32, 24, 15, 0.25);
+      --button: #d7ccb4;
+    }
 
-  <div class="mt-tracks">
-   <div class="mt-track" data-mt-trigger data-mt-audio="https://dl.dropbox.com/scl/fi/69bv4y9vorjzfvc16xz3b/Drums.mp3?rlkey=acs2r0yx3e4sfbikjq6u4uqfd&st=liyenful&dl=0">Drums</div>
-  <div class="mt-track" data-mt-trigger  data-mt-audio="https://dl.dropbox.com/scl/fi/1qv2dvsf8dxpxerarqx56/Bass.mp3?rlkey=2p5xc4bynkqrdnf4ilhfqdc6k&st=wj0mip9b&dl=0">Bass</div>
-  <div class="mt-track" data-mt-trigger data-mt-audio="https://dl.dropbox.com/scl/fi/kt0t5buszjymk74l9nnyg/Guitar1.mp3?rlkey=bkbcz8ehnzo71k2mady42efus&st=5ymnwp91&dl=0">Guitar</div>
-  <div class="mt-track" data-mt-trigger data-mt-audio="https://dl.dropbox.com/scl/fi/7gwvpjse5naq5t74mh6a0/Lalli1.mp3?rlkey=z3n2v78ohx4g33j19do2nqrd8&st=ajpz31fz&dl=0">Guitar 2</div>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at top, #eee4cb, #d4c8ad 42%, #b2a58d 100%);
+      color: var(--ink);
+      font-family: "Courier New", monospace;
+      padding: 24px;
+    }
+
+    button,
+    input,
+    output {
+      font: inherit;
+    }
+
+    [data-album-mixer] {
+      width: min(1080px, 100%);
+      margin: 0 auto;
+      background:
+        linear-gradient(180deg, #bcb197, var(--deck) 18%, var(--deck-dark));
+      border: 1px solid rgba(31, 21, 11, 0.45);
+      border-radius: 14px;
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.35),
+        0 18px 40px rgba(49, 33, 18, 0.2);
+      padding: 18px;
+    }
+
+    .tm4-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+
+    .tm4-title {
+      margin: 0;
+      font-size: clamp(1.6rem, 4vw, 2.5rem);
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .tm4-badge {
+      border: 2px solid rgba(57, 42, 22, 0.45);
+      background: #c9bd9f;
+      padding: 10px 14px;
+      font-size: 1.4rem;
+      font-weight: 700;
+      min-width: 82px;
+      text-align: center;
+    }
+
+    .tm4-layout {
+      display: grid;
+      grid-template-columns: minmax(340px, 1.15fr) minmax(260px, 0.95fr);
+      gap: 18px;
+    }
+
+    .tm4-left,
+    .tm4-right,
+    .tm4-display,
+    .tm4-transport {
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.08);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.15);
+    }
+
+    .tm4-left {
+      display: grid;
+      grid-template-rows: auto auto;
+      gap: 16px;
+      padding: 14px;
+    }
+
+    .tm4-track-bank {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr)) minmax(72px, 0.62fr);
+      gap: 10px;
+      min-height: 420px;
+      align-items: stretch;
+    }
+
+    [data-mixer-track-controls] {
+      display: contents;
+    }
+
+    .tm4-strip {
+      background: linear-gradient(180deg, #cac0a7, #a59a82 65%, #988c75);
+      border: 1px solid var(--line);
+      padding: 10px 8px 12px;
+      display: grid;
+      grid-template-rows: auto auto 1fr auto;
+      gap: 10px;
+      min-height: 360px;
+    }
+
+    .tm4-master-strip {
+      background: linear-gradient(180deg, #b7ac93, #958a73 65%, #867b64);
+      border: 1px solid var(--line);
+      padding: 10px 6px 12px;
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      gap: 10px;
+      min-height: 360px;
+      justify-items: center;
+    }
+
+    .tm4-master-wrap {
+      align-self: end;
+      grid-template-rows: auto 1fr auto;
+      min-height: 270px;
+      display: grid;
+      gap: 6px;
+      justify-items: center;
+      font-size: 0.76rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .tm4-master-fader {
+      writing-mode: vertical-lr;
+      direction: rtl;
+      width: 28px;
+      height: 220px;
+    }
+
+    .tm4-strip-title {
+      text-align: center;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      font-size: 0.9rem;
+      min-height: 1.2em;
+    }
+
+    .tm4-strip-scale {
+      min-height: 10px;
+    }
+
+    .tm4-strip-controls {
+      display: grid;
+      gap: 8px;
+    }
+
+    .tm4-knob,
+    .tm4-fader-wrap {
+      display: grid;
+      gap: 4px;
+      justify-items: center;
+      font-size: 0.76rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .tm4-knob input {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      cursor: pointer;
+    }
+
+    .tm4-dial {
+      position: relative;
+      width: 54px;
+      height: 54px;
+      border-radius: 50%;
+      border: 2px solid rgba(41, 29, 15, 0.4);
+      background:
+        radial-gradient(circle at 35% 30%, #ded5bf, #9f947d 62%, #7f745f 100%);
+      box-shadow:
+        inset 0 1px 2px rgba(255,255,255,0.35),
+        inset 0 -3px 5px rgba(0,0,0,0.18);
+    }
+
+    .tm4-dial::after {
+      content: "";
+      position: absolute;
+      left: 50%;
+      top: 7px;
+      width: 3px;
+      height: 18px;
+      background: #22190f;
+      border-radius: 999px;
+      transform-origin: 50% 20px;
+      transform:
+        translateX(-50%)
+        rotate(calc(-135deg + (var(--turn, 0.5) * 270deg)));
+    }
+
+    .tm4-fader-wrap {
+      align-self: end;
+      grid-template-rows: auto 1fr auto;
+      min-height: 180px;
+    }
+
+    .tm4-readout {
+      font-size: 0.68rem;
+      letter-spacing: 0.04em;
+      opacity: 0.8;
+    }
+
+    .tm4-meter-rail {
+      position: relative;
+      justify-self: center;
+      width: 14px;
+      height: 96px;
+      border: 1px solid rgba(33, 25, 16, 0.4);
+      background:
+        linear-gradient(180deg, rgba(11, 15, 10, 0.9), rgba(32, 38, 28, 0.95));
+      overflow: hidden;
+    }
+
+    .tm4-meter-fill {
+      --level: 0;
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: calc(var(--level) * 100%);
+      background:
+        linear-gradient(180deg, #e75d39 0%, #e7ba39 28%, #8dd957 62%, #4dcf74 100%);
+      box-shadow: 0 0 10px rgba(141, 217, 87, 0.2);
+      transition: height 60ms linear;
+    }
+
+    .tm4-fader {
+      writing-mode: vertical-lr;
+      direction: rtl;
+      width: 26px;
+      height: 150px;
+    }
+
+    .tm4-display {
+      padding: 18px;
+      display: grid;
+      gap: 14px;
+      background:
+        linear-gradient(180deg, rgba(0, 0, 0, 0.08), rgba(255,255,255,0.05)),
+        var(--panel);
+    }
+
+    .tm4-screen {
+      background: linear-gradient(180deg, #b9af96, #9d927a);
+      color: #1b1b17;
+      border: 2px solid #7f745d;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.22);
+      padding: 10px;
+      min-height: 300px;
+      display: grid;
+      align-content: start;
+      gap: 0;
+      text-align: center;
+    }
+
+    .tm4-screen-label {
+      font-size: 0.74rem;
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      opacity: 0.7;
+    }
+
+    [data-mixer-current-song] {
+      font-size: clamp(1.1rem, 3vw, 1.7rem);
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    [data-mixer-time] {
+      display: block;
+      font-size: 0.95rem;
+    }
+
+    .tm4-cassette {
+      width: 100%;
+      max-width: 100%;
+      margin: 0 auto;
+      filter: drop-shadow(0 8px 12px rgba(0, 0, 0, 0.15));
+      position: relative;
+    }
+
+    .tm4-cassette svg {
+      display: block;
+      width: 100%;
+      height: auto;
+    }
+
+    .tm4-cassette-reel {
+      transform-box: fill-box;
+      transform-origin: center;
+      animation: tm4-reel-spin linear infinite;
+      animation-duration: calc(2.4s / var(--pitch-rate, 1));
+      animation-play-state: paused;
+    }
+
+    [data-album-mixer].is-playing .tm4-cassette-reel {
+      animation-play-state: running;
+    }
+
+    .tm4-cassette-reel.is-right {
+      animation-direction: reverse;
+    }
+
+    .tm4-cassette-mass {
+      transform-box: fill-box;
+      transform-origin: center;
+    }
+
+    .tm4-cassette-mass.is-left {
+      transform: scale(var(--left-reel-scale, 1));
+    }
+
+    .tm4-cassette-mass.is-right {
+      transform: scale(var(--right-reel-scale, 0.72));
+    }
+
+    .tm4-cassette-window {
+      fill: rgba(20, 20, 18, 0.92);
+      stroke: rgba(109, 99, 77, 0.95);
+      stroke-width: 6;
+    }
+
+    .tm4-cassette-shell {
+      fill: #2f2c29;
+    }
+
+    .tm4-cassette-label {
+      fill: #dbd0b7;
+    }
+
+    .tm4-cassette-stripe {
+      fill: #b94739;
+    }
+
+    .tm4-cassette-bottom {
+      fill: #1c1b1a;
+    }
+
+    .tm4-cassette-screw {
+      fill: #171615;
+      stroke: rgba(222, 213, 191, 0.28);
+      stroke-width: 2;
+    }
+
+    .tm4-cassette-overlay {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      padding: 16% 12% 18%;
+      color: #171a15;
+      text-transform: uppercase;
+    }
+
+    .tm4-cassette-side {
+      justify-self: end;
+      align-self: start;
+      font-size: 0.78rem;
+      letter-spacing: 0.18em;
+      font-weight: 700;
+    }
+
+    .tm4-cassette-title {
+      align-self: center;
+      justify-self: center;
+      font-size: 1.12rem;
+      letter-spacing: 0.08em;
+      font-weight: 700;
+      max-width: 68%;
+      text-align: center;
+      line-height: 1.2;
+    }
+
+    .tm4-cassette-counter {
+      justify-self: center;
+      align-self: end;
+      font-size: 0.8rem;
+      letter-spacing: 0.14em;
+    }
+
+    @keyframes tm4-reel-spin {
+      from {
+        transform: rotate(0deg);
+      }
+
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    .tm4-transport {
+      padding: 12px;
+      display: grid;
+      gap: 12px;
+      background: linear-gradient(180deg, #a29780, #8f846d);
+    }
+
+    .tm4-transport-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .tm4-transport button,
+    .tm4-song-button {
+      border: 1px solid rgba(45, 31, 16, 0.45);
+      background: linear-gradient(180deg, #ece2c7, var(--button));
+      color: var(--ink);
+      padding: 8px 12px;
+      min-height: 38px;
+      cursor: pointer;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4);
+    }
+
+    .tm4-transport .tm4-nav {
+      min-width: 64px;
+    }
+
+    .tm4-song-button[data-active] {
+      background: linear-gradient(180deg, #313229, #1c1d18);
+      color: var(--slot-glow);
+      border-color: #15150f;
+      box-shadow: inset 0 0 0 1px rgba(159, 209, 122, 0.2);
+    }
+
+    .tm4-meter {
+      display: grid;
+      gap: 6px;
+      flex: 1 1 220px;
+    }
+
+    .tm4-meter span {
+      font-size: 0.76rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .tm4-pitch {
+      align-items: center;
+    }
+
+    .tm4-pitch-row {
+      display: flex;
+      gap: 14px;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .tm4-pitch-row output {
+      min-width: 48px;
+      text-align: right;
+    }
+
+    .tm4-right {
+      padding: 14px;
+      display: grid;
+      grid-template-rows: auto auto;
+      gap: 14px;
+      align-content: start;
+      background: linear-gradient(180deg, #aa9f88, #938771);
+    }
+
+    .tm4-hidden-lists {
+      display: none;
+    }
+
+    @media (max-width: 900px) {
+      body {
+        padding: 12px;
+      }
+
+      .tm4-layout {
+        grid-template-columns: 1fr;
+      }
+
+      .tm4-track-bank {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+  </style>
+</head>
+<body>
+  <div data-album-mixer>
+    <header class="tm4-header">
+      <h1 class="tm4-title">4-Track Album Mixer</h1>
+      <div class="tm4-badge">424</div>
+    </header>
+
+    <div class="tm4-layout">
+      <div class="tm4-left">
+        <section class="tm4-track-bank">
+          <div data-mixer-track-controls></div>
+          <section class="tm4-master-strip">
+            <div class="tm4-strip-title">Master</div>
+            <label class="tm4-master-wrap">
+              <span>Level</span>
+              <input class="tm4-master-fader" type="range" min="0" max="1" step="0.01" value="0.7" data-mixer-master />
+              <output class="tm4-readout" data-mixer-master-value>7.0</output>
+            </label>
+            <div class="tm4-readout">Bus</div>
+          </section>
+        </section>
+      </div>
+
+      <div class="tm4-right">
+        <section class="tm4-display">
+          <div class="tm4-screen">
+            <div class="tm4-cassette" aria-hidden="true">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 810 513.5">
+                <rect class="tm4-cassette-shell" x="10" y="10" width="790" height="493.5" rx="20.59" />
+                <rect class="tm4-cassette-label" x="45" y="36" width="720" height="333" />
+                <rect class="tm4-cassette-stripe" x="45" y="36" width="720" height="27" />
+                <rect class="tm4-cassette-bottom" x="45" y="315" width="720" height="54" />
+                <rect class="tm4-cassette-window" x="162" y="171" width="486" height="126" />
+
+                <g class="tm4-cassette-reel is-left">
+                  <g class="tm4-cassette-mass is-left">
+                    <circle cx="234" cy="234" r="124" fill="#111110" />
+                    <circle cx="234" cy="234" r="104" fill="none" stroke="#2f322c" stroke-width="6" />
+                    <circle cx="234" cy="234" r="84" fill="none" stroke="#2f322c" stroke-width="6" />
+                  </g>
+                  <circle cx="234" cy="234" r="88" fill="#f2f2f2" />
+                  <circle cx="234" cy="234" r="56" fill="#bfbfbf" />
+                  <circle cx="234" cy="234" r="24" fill="#1a1a1a" />
+                  <polygon points="234 186 204 238 264 238 234 186" fill="#1a1a1a" />
+                </g>
+
+                <g class="tm4-cassette-reel is-right">
+                  <g class="tm4-cassette-mass is-right">
+                    <circle cx="576" cy="234" r="124" fill="#111110" />
+                    <circle cx="576" cy="234" r="104" fill="none" stroke="#2f322c" stroke-width="6" />
+                    <circle cx="576" cy="234" r="84" fill="none" stroke="#2f322c" stroke-width="6" />
+                  </g>
+                  <circle cx="576" cy="234" r="88" fill="#f2f2f2" />
+                  <circle cx="576" cy="234" r="56" fill="#bfbfbf" />
+                  <circle cx="576" cy="234" r="24" fill="#1a1a1a" />
+                  <polygon points="576 186 546 238 606 238 576 186" fill="#1a1a1a" />
+                </g>
+
+                <circle class="tm4-cassette-screw" cx="220.5" cy="472.5" r="13.5" />
+                <circle class="tm4-cassette-screw" cx="292.5" cy="463.5" r="13.5" />
+                <circle class="tm4-cassette-screw" cx="517.5" cy="463.5" r="13.5" />
+                <circle class="tm4-cassette-screw" cx="589.5" cy="472.5" r="13.5" />
+              </svg>
+              <div class="tm4-cassette-overlay">
+                <div class="tm4-cassette-side" data-mixer-current-side>A</div>
+                <div class="tm4-cassette-title" data-mixer-cassette-title>Loading...</div>
+                <div class="tm4-cassette-counter" data-mixer-cassette-time>0:00 / 0:00</div>
+              </div>
+            </div>
+            <output data-mixer-current-song hidden>Loading...</output>
+            <output data-mixer-time hidden>0:00 / 0:00</output>
+          </div>
+        </section>
+
+        <section class="tm4-transport">
+          <div class="tm4-transport-row">
+            <button type="button" class="tm4-nav" data-mixer-prev>Rew</button>
+            <button type="button" data-mixer-play>Play</button>
+            <button type="button" data-mixer-pause>Pause</button>
+            <button type="button" data-mixer-stop>Stop</button>
+            <button type="button" class="tm4-nav" data-mixer-next>Ff</button>
+          </div>
+
+          <div class="tm4-transport-row">
+            <label class="tm4-meter">
+              <span>Seek</span>
+              <input type="range" min="0" max="0" step="0.01" value="0" data-mixer-seek />
+            </label>
+          </div>
+
+          <div class="tm4-transport-row tm4-pitch">
+            <label class="tm4-meter">
+              
+              <div class="tm4-pitch-row">
+                <div data-mixer-pitch-knob></div>
+                <output data-mixer-pitch-value>100%</output>
+              </div>
+            </label>
+          </div>
+        </section>
+      </div>
+
+      <div class="tm4-hidden-lists">
+        <div data-mixer-side-a></div>
+        <div data-mixer-side-b></div>
+      </div>
+    </div>
   </div>
 
-</div>
-  <!-- Local JS (engin bundling) -->
-  <script type="module" src="src/multitrackplayer.js"></script>
+  <script src="/vogor/dist/main.js" defer></script>
 </body>
 </html>
