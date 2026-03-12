@@ -19,100 +19,10 @@
   box-sizing: border-box;
 }
 
-body {
-  margin: 0;
-  min-height: 100vh;
-  background: #fff;
-  color: var(--ink);
-  font-family: "Courier New", monospace;
-  padding: 24px;
-}
-
 button,
 input,
 output {
   font: inherit;
-}
-
-[data-album-mixer] {
-  width: min(1080px, 100%);
-  margin: 0 auto;
-  background: transparent;
-  border: 0;
-  border-radius: 0;
-  box-shadow: none;
-  padding: 18px;
-}
-
-.tm4-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  margin-bottom: 16px;
-}
-
-.tm4-header-meta {
-  display: flex;
-  align-items: flex-start;
-  gap: 14px;
-}
-
-.tm4-title {
-  margin: 0;
-  font-size: clamp(1.6rem, 4vw, 2.5rem);
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-}
-
-.tm4-badge {
-  border: 0;
-  background: transparent;
-  padding: 10px 14px;
-  font-size: 1.4rem;
-  font-weight: 700;
-  min-width: 82px;
-  text-align: center;
-}
-
-.tm4-brand {
-  min-width: 124px;
-  padding: 12px 16px 10px;
-  color: inherit;
-  font-size: 1.65rem;
-  font-weight: 800;
-  letter-spacing: -0.04em;
-  line-height: 1;
-}
-
-.tm4-layout {
-  display: grid;
-  grid-template-columns: minmax(340px, 1.15fr) minmax(260px, 0.95fr);
-  gap: 18px;
-}
-
-.tm4-left,
-.tm4-right,
-.tm4-display,
-.tm4-transport {
-  border: 0;
-  background: transparent;
-  box-shadow: none;
-}
-
-.tm4-left {
-  display: grid;
-  grid-template-rows: auto auto;
-  gap: 16px;
-  padding: 14px;
-}
-
-.tm4-track-bank {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr)) minmax(72px, 0.62fr);
-  gap: 10px;
-  min-height: 420px;
-  align-items: stretch;
 }
 
 [data-mixer-track-controls] {
@@ -410,13 +320,6 @@ output {
   text-align: center;
 }
 
-.tm4-screen-label {
-  font-size: 0.74rem;
-  text-transform: uppercase;
-  letter-spacing: 0.15em;
-  opacity: 0.7;
-}
-
 [data-mixer-current-song] {
   font-size: clamp(1.1rem, 3vw, 1.7rem);
   font-weight: 700;
@@ -630,12 +533,6 @@ output {
   flex: 1 1 220px;
 }
 
-.tm4-meter span {
-  font-size: 0.76rem;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-}
-
 .tm4-pitch {
   align-items: center;
 }
@@ -652,28 +549,11 @@ output {
   text-align: right;
 }
 
-.tm4-right {
-  padding: 14px;
-  display: grid;
-  grid-template-rows: auto auto;
-  gap: 14px;
-  align-content: start;
-  background: transparent;
-}
-
 .tm4-hidden-lists {
   display: none;
 }
 
 @media (max-width: 900px) {
-  body {
-    padding: 12px;
-  }
-
-  .tm4-layout {
-    grid-template-columns: 1fr;
-  }
-
   .tm4-track-bank {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
