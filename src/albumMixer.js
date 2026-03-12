@@ -370,8 +370,23 @@ export function setupAlbumMixer(root = document) {
   let meterFrame = 0;
   const navAudio = new Audio("https://audiocdn.epidemicsound.com/lqmp3/01KJCP9BWYZXJ0JTZ1Z4XRKVC4.mp3");
   navAudio.preload = "auto";
+  const transportAudio = new Audio("https://assets.mixkit.co/active_storage/sfx/1133/1133-preview.mp3");
+  transportAudio.preload = "auto";
   const durationMap = new Map();
   let sideMeta = buildSideMetadata(songs, durationMap);
+
+  function playCue(audio, { playbackRate = 1, volume = 0.25 } = {}) {
+    try {
+      audio.pause();
+      audio.currentTime = 0;
+      audio.playbackRate = playbackRate;
+      audio.volume = volume;
+      const promise = audio.play();
+      if (promise && typeof promise.catch === "function") {
+        promise.catch(() => {});
+      }
+    } catch {}
+  }
 
   function updateSideMetadata() {
     sideMeta = buildSideMetadata(songs, durationMap);
@@ -441,13 +456,7 @@ export function setupAlbumMixer(root = document) {
     }
     const { isPlaying } = engine.getState();
 
-    try {
-      navAudio.currentTime = 0;
-      const promise = navAudio.play();
-      if (promise && typeof promise.catch === "function") {
-        promise.catch(() => {});
-      }
-    } catch {}
+    playCue(navAudio, { playbackRate: 1.15, volume: 0.22 });
 
     await engine.loadSong(targetSong.id, { autoplay: isPlaying });
     renderTrackControls();
@@ -731,6 +740,7 @@ export function setupAlbumMixer(root = document) {
   }
 
   container.querySelector("[data-mixer-play]")?.addEventListener("click", async () => {
+    playCue(transportAudio, { playbackRate: 1.08, volume: 0.18 });
     try {
       await engine.play();
     } catch (error) {
@@ -739,10 +749,12 @@ export function setupAlbumMixer(root = document) {
   });
 
   container.querySelector("[data-mixer-pause]")?.addEventListener("click", () => {
+    playCue(transportAudio, { playbackRate: 0.92, volume: 0.16 });
     engine.pause();
   });
 
   container.querySelector("[data-mixer-stop]")?.addEventListener("click", () => {
+    playCue(transportAudio, { playbackRate: 0.82, volume: 0.18 });
     engine.stop();
   });
 
