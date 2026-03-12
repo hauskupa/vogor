@@ -1,112 +1,17 @@
-:root {
-  --deck: transparent;
-  --deck-dark: transparent;
-  --panel: transparent;
-  --ink: #111;
-  --slot: #111;
-  --slot-glow: #111;
-  --line: rgba(0, 0, 0, 0.14);
-  --button: transparent;
-  --range-track: #ddd;
-  --range-track-edge: rgba(0, 0, 0, 0.18);
-  --range-fill: #666;
-  --range-fill-soft: #cfcfcf;
-  --range-thumb: #fff;
-  --range-thumb-edge: rgba(0, 0, 0, 0.28);
-}
 
 * {
   box-sizing: border-box;
 }
-
 button,
 input,
 output {
   font: inherit;
 }
-
-[data-mixer-track-controls] {
-  display: contents;
-}
-
-.tm4-strip {
-  background: transparent;
-  border: 0;
-  padding: 10px 8px 12px;
-  display: grid;
-  grid-template-rows: auto auto 1fr auto;
-  gap: 10px;
-  min-height: 420px;
-}
-
-.tm4-master-strip {
-  background: transparent;
-  border: 0;
-  padding: 10px 6px 12px;
-  display: grid;
-  grid-template-rows: auto 1fr auto;
-  gap: 10px;
-  min-height: 360px;
-  justify-items: center;
-}
-
-.tm4-master-wrap {
-  align-self: end;
-  grid-template-rows: auto 1fr auto;
-  min-height: 270px;
-  display: grid;
-  gap: 6px;
-  justify-items: center;
-  font-size: 0.76rem;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-.tm4-master-fader {
-  width: 28px;
-  height: 220px;
-}
-
-.tm4-strip-title {
-  text-align: center;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  font-size: 0.9rem;
-  min-height: 1.2em;
-}
-
-.tm4-strip-scale {
-  min-height: 10px;
-}
-
-.tm4-strip-controls {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  row-gap: 8px;
-  align-content: start;
-}
-
-.tm4-knob,
-.tm4-fader-wrap {
-  display: grid;
-  gap: 3px;
-  justify-items: center;
-  font-size: 0.68rem;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  text-align: center;
-}
-
-.tm4-knob {
-  width: 100%;
-  grid-template-columns: 1fr auto;
+.tm4-knob { 
   grid-template-areas:
     "label readout"
-    "dial dial";
-  align-items: end;
+    "dial dial"; 
 }
-
 .tm4-knob > span:first-child {
   grid-area: label;
   min-height: 1.9em;
@@ -127,15 +32,7 @@ output {
   cursor: pointer;
 }
 
-.tm4-dial {
-  position: relative;
-  width: 54px;
-  height: 54px;
-  border-radius: 50%;
-  border: 1px solid var(--line);
-  background: transparent;
-  box-shadow: none;
-}
+
 
 .tm4-dial::after {
   content: "";
@@ -152,17 +49,6 @@ output {
     rotate(calc(-135deg + (var(--turn, 0.5) * 270deg)));
 }
 
-.tm4-fader-wrap {
-  align-self: end;
-  grid-template-rows: auto 1fr auto;
-  min-height: 180px;
-}
-
-.tm4-readout {
-  font-size: 0.62rem;
-  letter-spacing: 0.04em;
-  opacity: 0.8;
-}
 
 .tm4-knob .tm4-readout {
   grid-area: readout;
@@ -171,32 +57,13 @@ output {
   text-align: right;
 }
 
-.tm4-meter-rail {
-  position: relative;
-  justify-self: center;
-  width: 14px;
-  height: 96px;
-  border: 1px solid var(--line);
-  background: #f2f2f2;
-  overflow: hidden;
-}
-
 .tm4-meter-fill {
-  --level: 0;
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  height: calc(var(--level) * 100%);
-  background: #666;
+  --level: 0;  
+  height: calc(var(--level) * 100%); 
   box-shadow: none;
   transition: height 60ms linear;
 }
 
-.tm4-fader {
-  width: 26px;
-  height: 150px;
-}
 
 .tm4-fader,
 .tm4-master-fader {
@@ -300,24 +167,13 @@ output {
   box-shadow: none;
 }
 
-.tm4-display {
-  padding: 18px;
-  display: grid;
-  gap: 14px;
-  background: transparent;
-}
 
-.tm4-screen {
-  background: transparent;
-  color: inherit;
-  border: 1px dashed var(--line);
-  box-shadow: none;
-  padding: 10px;
-  min-height: 300px;
-  display: grid;
-  align-content: start;
-  gap: 0;
-  text-align: center;
+
+.tm4-screen-label {
+  font-size: 0.74rem;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  opacity: 0.7;
 }
 
 [data-mixer-current-song] {
@@ -533,6 +389,12 @@ output {
   flex: 1 1 220px;
 }
 
+.tm4-meter span {
+  font-size: 0.76rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
 .tm4-pitch {
   align-items: center;
 }
@@ -554,6 +416,14 @@ output {
 }
 
 @media (max-width: 900px) {
+  body {
+    padding: 12px;
+  }
+
+  .tm4-layout {
+    grid-template-columns: 1fr;
+  }
+
   .tm4-track-bank {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
