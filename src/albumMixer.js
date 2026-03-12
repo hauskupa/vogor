@@ -27,6 +27,11 @@ function formatTime(value) {
   return `${minutes}:${seconds}`;
 }
 
+function formatTapeCounter(value) {
+  const safeValue = Number.isFinite(value) ? Math.max(0, value) : 0;
+  return String(Math.floor(safeValue) % 1000).padStart(3, "0");
+}
+
 function formatDbFromLinear(value) {
   if (value <= 0.0001) return "-inf dB";
   const db = 20 * Math.log10(value);
@@ -38,6 +43,12 @@ function formatDriveValue(value) {
   const db = (value / 2) * 12;
   if (db < 0.05) return "0 dB";
   return `+${db.toFixed(1)} dB`;
+}
+
+function formatEqValue(value) {
+  const db = value * 12;
+  if (Math.abs(db) < 0.05) return "0 dB";
+  return `${db > 0 ? "+" : ""}${db.toFixed(1)} dB`;
 }
 
 function formatConsoleScale(value) {
@@ -214,8 +225,10 @@ export function setupAlbumMixer(root = document) {
   const cassetteTitleEl = container.querySelector("[data-mixer-cassette-title]");
   const cassetteTimeEl = container.querySelector("[data-mixer-cassette-time]");
   const cassetteSideEl = container.querySelector("[data-mixer-current-side]");
+  const cassetteEl = container.querySelector("[data-cassette]");
   const tracksEl = container.querySelector("[data-mixer-track-controls]");
   const seekEl = container.querySelector("[data-mixer-seek]");
+  const counterEl = container.querySelector("[data-mixer-counter]");
   const timeEl = container.querySelector("[data-mixer-time]");
   const masterEl = container.querySelector("[data-mixer-master]");
   const masterValueEl = container.querySelector("[data-mixer-master-value]");
@@ -394,6 +407,36 @@ export function setupAlbumMixer(root = document) {
         onPanChange(parseFloat(event.target.value));
       });
 
+      const eqHigh = document.createElement("input");
+      eqHigh.type = "range";
+      eqHigh.min = "-1";
+      eqHigh.max = "1";
+      eqHigh.step = "0.01";
+      eqHigh.value = String(track.eqHigh ?? 0);
+      const onEqHighChange = (nextValue) => {
+        setDialValue(eqHigh, nextValue, -1, 1);
+        engine.setTrackEqHigh(track.id, nextValue);
+        eqHighValue.textContent = formatEqValue(nextValue);
+      };
+      eqHigh.addEventListener("input", (event) => {
+        onEqHighChange(parseFloat(event.target.value));
+      });
+
+      const eqLow = document.createElement("input");
+      eqLow.type = "range";
+      eqLow.min = "-1";
+      eqLow.max = "1";
+      eqLow.step = "0.01";
+      eqLow.value = String(track.eqLow ?? 0);
+      const onEqLowChange = (nextValue) => {
+        setDialValue(eqLow, nextValue, -1, 1);
+        engine.setTrackEqLow(track.id, nextValue);
+        eqLowValue.textContent = formatEqValue(nextValue);
+      };
+      eqLow.addEventListener("input", (event) => {
+        onEqLowChange(parseFloat(event.target.value));
+      });
+
       const fader = document.createElement("input");
       fader.type = "range";
       fader.min = "0";
@@ -415,12 +458,24 @@ export function setupAlbumMixer(root = document) {
       panValue.className = "tm4-readout";
       panValue.textContent = track.pan ? (track.pan < 0 ? `L${Math.abs(track.pan).toFixed(1)}` : `R${track.pan.toFixed(1)}`) : "C";
 
+      const eqHighValue = document.createElement("span");
+      eqHighValue.className = "tm4-readout";
+      eqHighValue.textContent = formatEqValue(track.eqHigh ?? 0);
+
+      const eqLowValue = document.createElement("span");
+      eqLowValue.className = "tm4-readout";
+      eqLowValue.textContent = formatEqValue(track.eqLow ?? 0);
+
       const levelValue = document.createElement("span");
       levelValue.className = "tm4-readout";
       levelValue.textContent = formatConsoleScale(track.fader ?? 0.7);
 
       const gainLabel = createKnob("Gain", gain, (track.gain ?? 0) / 2, onGainChange);
       gainLabel.appendChild(gainValue);
+      const eqHighLabel = createKnob("EQ Hi", eqHigh, ((track.eqHigh ?? 0) + 1) / 2, onEqHighChange);
+      eqHighLabel.appendChild(eqHighValue);
+      const eqLowLabel = createKnob("EQ Lo", eqLow, ((track.eqLow ?? 0) + 1) / 2, onEqLowChange);
+      eqLowLabel.appendChild(eqLowValue);
       const panLabel = createKnob("Pan", pan, ((track.pan ?? 0) + 1) / 2, onPanChange);
       panLabel.appendChild(panValue);
 
@@ -440,6 +495,8 @@ export function setupAlbumMixer(root = document) {
       const controls = document.createElement("div");
       controls.className = "tm4-strip-controls";
       controls.appendChild(gainLabel);
+      controls.appendChild(eqHighLabel);
+      controls.appendChild(eqLowLabel);
       controls.appendChild(panLabel);
 
       strip.appendChild(title);
@@ -469,6 +526,9 @@ export function setupAlbumMixer(root = document) {
     if (timeEl) {
       timeEl.textContent = `${cueLabel} ${formatTime(sideElapsed)} / ${formatTime(sideTotal)}`;
     }
+    if (counterEl) {
+      counterEl.textContent = formatTapeCounter(sideElapsed);
+    }
     if (cassetteTimeEl) {
       cassetteTimeEl.textContent = `${cueLabel} ${formatTime(sideElapsed)} / ${formatTime(sideTotal)}`;
     }
@@ -480,6 +540,7 @@ export function setupAlbumMixer(root = document) {
     const { isPlaying, pitch, song } = engine.getState();
     const currentMeta = sideMeta.byId.get(song?.id || "");
     container.classList.toggle("is-playing", Boolean(isPlaying));
+    cassetteEl?.classList.toggle("is-playing", Boolean(isPlaying));
     container.style.setProperty("--pitch-rate", String(pitch || 1));
     if (cassetteTitleEl) {
       cassetteTitleEl.textContent = song?.title || "No Tape";
@@ -531,13 +592,13 @@ export function setupAlbumMixer(root = document) {
   if (pitchKnobEl) {
     const pitchInput = document.createElement("input");
     pitchInput.type = "range";
-    pitchInput.min = "0.85";
-    pitchInput.max = "1.15";
+    pitchInput.min = "0.75";
+    pitchInput.max = "1.25";
     pitchInput.step = "0.005";
     pitchInput.value = String(engine.getState().pitch);
 
     const onPitchChange = (value) => {
-      setDialValue(pitchInput, value, 0.85, 1.15);
+      setDialValue(pitchInput, value, 0.75, 1.25);
       engine.setPitch(value);
       if (pitchValueEl) {
         pitchValueEl.textContent = `${Math.round(value * 100)}%`;
@@ -547,7 +608,7 @@ export function setupAlbumMixer(root = document) {
     const pitchKnob = createKnob(
       "Pitch",
       pitchInput,
-      (engine.getState().pitch - 0.85) / 0.3,
+      (engine.getState().pitch - 0.75) / 0.5,
       onPitchChange
     );
 

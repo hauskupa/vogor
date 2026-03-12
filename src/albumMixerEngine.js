@@ -53,6 +53,8 @@ export function createAlbumMixerEngine({ songs = [] } = {}) {
         audio,
         index,
         gain: 0,
+        eqLow: 0,
+        eqHigh: 0,
         pan: 0,
         fader: 0.7,
         nodes: null,
@@ -63,6 +65,8 @@ export function createAlbumMixerEngine({ songs = [] } = {}) {
     const gainNode = audioContext.createGain();
     const colorInNode = audioContext.createGain();
     const compressorNode = audioContext.createDynamicsCompressor();
+    const eqLowNode = audioContext.createBiquadFilter();
+    const eqHighNode = audioContext.createBiquadFilter();
     const toneNode = audioContext.createBiquadFilter();
     const saturatorNode = audioContext.createWaveShaper();
     const makeupNode = audioContext.createGain();
@@ -77,6 +81,12 @@ export function createAlbumMixerEngine({ songs = [] } = {}) {
     compressorNode.ratio.value = 1.8;
     compressorNode.attack.value = 0.01;
     compressorNode.release.value = 0.08;
+    eqLowNode.type = "lowshelf";
+    eqLowNode.frequency.value = 180;
+    eqLowNode.gain.value = 0;
+    eqHighNode.type = "highshelf";
+    eqHighNode.frequency.value = 3200;
+    eqHighNode.gain.value = 0;
     toneNode.type = "lowpass";
     toneNode.frequency.value = 17000;
     toneNode.Q.value = 0.0001;
@@ -91,7 +101,9 @@ export function createAlbumMixerEngine({ songs = [] } = {}) {
     source.connect(gainNode);
     gainNode.connect(colorInNode);
     colorInNode.connect(compressorNode);
-    compressorNode.connect(toneNode);
+    compressorNode.connect(eqLowNode);
+    eqLowNode.connect(eqHighNode);
+    eqHighNode.connect(toneNode);
     toneNode.connect(saturatorNode);
     saturatorNode.connect(makeupNode);
     makeupNode.connect(panNode);
@@ -104,6 +116,8 @@ export function createAlbumMixerEngine({ songs = [] } = {}) {
       audio,
       index,
       gain: 0,
+      eqLow: 0,
+      eqHigh: 0,
       pan: 0,
       fader: 0.7,
       nodes: {
@@ -111,6 +125,8 @@ export function createAlbumMixerEngine({ songs = [] } = {}) {
         gainNode,
         colorInNode,
         compressorNode,
+        eqLowNode,
+        eqHighNode,
         toneNode,
         saturatorNode,
         makeupNode,
@@ -370,7 +386,7 @@ export function createAlbumMixerEngine({ songs = [] } = {}) {
   }
 
   function setPitch(value) {
-    currentPitch = clamp(value, 0.85, 1.15);
+    currentPitch = clamp(value, 0.75, 1.25);
     getCurrentTracks().forEach((track) => {
       if (!track._nudgeTimeout) {
         track.audio.playbackRate = currentPitch;
@@ -438,6 +454,16 @@ export function createAlbumMixerEngine({ songs = [] } = {}) {
       track.nodes?.panNode.pan.setValueAtTime(track.pan, audioContext.currentTime);
     }
 
+    if (key === "eqLow") {
+      track.eqLow = clamp(value, -1, 1);
+      track.nodes?.eqLowNode.gain.setValueAtTime(track.eqLow * 12, audioContext.currentTime);
+    }
+
+    if (key === "eqHigh") {
+      track.eqHigh = clamp(value, -1, 1);
+      track.nodes?.eqHighNode.gain.setValueAtTime(track.eqHigh * 12, audioContext.currentTime);
+    }
+
     if (key === "fader") {
       track.fader = clamp(value, 0, 1);
       track.nodes?.faderNode.gain.setValueAtTime(track.fader, audioContext.currentTime);
@@ -447,6 +473,8 @@ export function createAlbumMixerEngine({ songs = [] } = {}) {
       songId: currentSongId,
       trackId,
       gain: track.gain,
+      eqLow: track.eqLow,
+      eqHigh: track.eqHigh,
       pan: track.pan,
       fader: track.fader,
     });
@@ -480,6 +508,8 @@ export function createAlbumMixerEngine({ songs = [] } = {}) {
     setPitch,
     getMeterLevels,
     setTrackGain: (trackId, value) => updateTrackValue(trackId, "gain", value),
+    setTrackEqLow: (trackId, value) => updateTrackValue(trackId, "eqLow", value),
+    setTrackEqHigh: (trackId, value) => updateTrackValue(trackId, "eqHigh", value),
     setTrackPan: (trackId, value) => updateTrackValue(trackId, "pan", value),
     setTrackFader: (trackId, value) => updateTrackValue(trackId, "fader", value),
   };

@@ -22,7 +22,12 @@ await build({
 
 // CSS + LRC yfir í dist
 for (const f of readdirSync("src")) {
-  if (f.endsWith(".css") || f.endsWith(".lrc")) {
+  if (
+    f.endsWith(".css") ||
+    f.endsWith(".lrc") ||
+    f.endsWith(".svg") ||
+    f.endsWith(".png")
+  ) {
     copyFileSync(`src/${f}`, `dist/${f}`);
   }
 }
