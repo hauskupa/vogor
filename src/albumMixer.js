@@ -365,6 +365,8 @@ export function setupAlbumMixer(root = document) {
   const masterValueEl = container.querySelector("[data-mixer-master-value]");
   const pitchKnobEl = container.querySelector("[data-mixer-pitch-knob]");
   const pitchValueEl = container.querySelector("[data-mixer-pitch-value]");
+  const playLightEl = container.querySelector("[data-mixer-play-light]");
+  const stopLightEl = container.querySelector("[data-mixer-stop-light]");
   const prevBtn = container.querySelector("[data-mixer-prev]");
   const nextBtn = container.querySelector("[data-mixer-next]");
   let meterFrame = 0;
@@ -727,6 +729,8 @@ export function setupAlbumMixer(root = document) {
     const currentMeta = sideMeta.byId.get(song?.id || "");
     container.classList.toggle("is-playing", Boolean(isPlaying));
     cassetteEl?.classList.toggle("is-playing", Boolean(isPlaying));
+    playLightEl?.toggleAttribute("data-active", Boolean(isPlaying));
+    stopLightEl?.toggleAttribute("data-active", !isPlaying);
     container.style.setProperty("--pitch-rate", String(pitch || 1));
     if (cassetteTitleEl) {
       cassetteTitleEl.textContent = song?.title || "No Tape";
