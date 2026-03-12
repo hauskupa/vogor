@@ -192,11 +192,17 @@ function createKnob(labelText, input, normalizedValue, onChange) {
 
 function cloneTrackStripTemplate(container) {
   const template = container.querySelector("[data-mixer-track-template]");
-  if (!(template instanceof HTMLTemplateElement)) {
+  if (!template) {
     return null;
   }
 
-  const fragment = template.content.cloneNode(true);
+  let fragment = null;
+  if (template instanceof HTMLTemplateElement) {
+    fragment = template.content.cloneNode(true);
+  } else {
+    fragment = template.cloneNode(true);
+  }
+
   const strip = fragment.querySelector(".tm4-strip");
   return strip instanceof HTMLElement ? strip : null;
 }
@@ -527,8 +533,18 @@ export function setupAlbumMixer(root = document) {
       bindKnob(eqLowLabel, eqLow, eqLowValue, track.eqLow ?? 0, -1, 1);
       bindKnob(panLabel, pan, panValue, track.pan ?? 0, -1, 1);
 
+      if (!controls.contains(gainLabel)) controls.appendChild(gainLabel);
+      if (!controls.contains(eqHighLabel)) controls.appendChild(eqHighLabel);
+      if (!controls.contains(eqLowLabel)) controls.appendChild(eqLowLabel);
+      if (!controls.contains(panLabel)) controls.appendChild(panLabel);
+
       const faderLabel = strip.querySelector(".tm4-fader-wrap") || document.createElement("label");
       faderLabel.className = "tm4-fader-wrap";
+      if (!faderLabel.querySelector(":scope > span")) {
+        const faderTitle = document.createElement("span");
+        faderTitle.textContent = "Level";
+        faderLabel.prepend(faderTitle);
+      }
       const existingFader = faderLabel.querySelector("input");
       const existingLevelReadout = faderLabel.querySelector(".tm4-readout");
       if (existingFader && existingFader !== fader) {
