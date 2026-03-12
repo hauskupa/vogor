@@ -113,6 +113,7 @@ function setDialValue(input, value, min, max) {
   const turn = String(clamp01(normalized));
   input.style.setProperty("--turn", turn);
   input.parentElement?.style.setProperty("--turn", turn);
+  input.closest(".tm4-dial, .tm4-knob-visual, .tm4-knob")?.style.setProperty("--turn", turn);
 }
 
 function attachDialInteraction(dial, input, min, max, onChange) {
@@ -188,6 +189,23 @@ function createKnob(labelText, input, normalizedValue, onChange) {
   );
 
   return label;
+}
+
+function findControlInput(wrapper) {
+  return wrapper?.querySelector('input[type="range"]') || null;
+}
+
+function findKnobVisual(wrapper) {
+  if (!wrapper) return null;
+  if (wrapper.matches(".tm4-dial, .tm4-knob-visual")) {
+    return wrapper;
+  }
+  return wrapper.querySelector(".tm4-dial, .tm4-knob-visual");
+}
+
+function findReadoutTarget(wrapper) {
+  if (!wrapper) return null;
+  return wrapper.querySelector("[data-readout]") || wrapper.querySelector(".tm4-readout");
 }
 
 function cloneTrackStripTemplate(container) {
@@ -504,10 +522,9 @@ export function setupAlbumMixer(root = document) {
         controls.querySelector('[data-control="pan"]') || createKnob("Pan", pan, ((track.pan ?? 0) + 1) / 2, onPanChange);
 
       const bindKnob = (label, inputEl, valueEl, value, min, max) => {
-        const titleEl = label.querySelector("span");
-        const dialEl = label.querySelector(".tm4-dial");
-        const existingInput = dialEl?.querySelector("input");
-        const readoutEl = label.querySelector(".tm4-readout");
+        const dialEl = findKnobVisual(label);
+        const existingInput = findControlInput(label);
+        const readoutEl = findReadoutTarget(label);
 
         if (existingInput && existingInput !== inputEl) {
           existingInput.replaceWith(inputEl);
@@ -515,14 +532,10 @@ export function setupAlbumMixer(root = document) {
           dialEl.appendChild(inputEl);
         }
 
-        if (readoutEl && readoutEl !== valueEl) {
-          readoutEl.replaceWith(valueEl);
-        } else if (!readoutEl) {
+        if (readoutEl) {
+          readoutEl.textContent = valueEl.textContent;
+        } else {
           label.appendChild(valueEl);
-        }
-
-        if (titleEl) {
-          titleEl.textContent = titleEl.textContent;
         }
 
         setDialValue(inputEl, value, min, max);
