@@ -140,7 +140,7 @@ function attachDialInteraction(dial, input, min, max, onChange) {
   function updateFromClientY(clientY) {
     const deltaY = startY - clientY;
     const range = max - min;
-    const sensitivity = range / 140;
+    const sensitivity = range / 220;
     const nextValue = Math.min(max, Math.max(min, startValue + deltaY * sensitivity));
     input.value = String(nextValue);
     setDialValue(input, nextValue, min, max);
@@ -275,6 +275,21 @@ function findKnobVisual(wrapper) {
 function findReadoutTarget(wrapper) {
   if (!wrapper) return null;
   return wrapper.querySelector("[data-readout]") || wrapper.querySelector(".tm4-readout");
+}
+
+function setReadoutText(wrapper, fallbackNode, text) {
+  const readoutEl = findReadoutTarget(wrapper);
+  if (readoutEl) {
+    readoutEl.textContent = text;
+    return readoutEl;
+  }
+
+  if (fallbackNode) {
+    fallbackNode.textContent = text;
+    return fallbackNode;
+  }
+
+  return null;
 }
 
 function findFaderVisual(wrapper) {
@@ -500,7 +515,7 @@ export function setupAlbumMixer(root = document) {
       const onGainChange = (nextValue) => {
         setDialValue(gain, nextValue, 0, 2);
         engine.setTrackGain(track.id, nextValue);
-        gainValue.textContent = formatDriveValue(nextValue);
+        setReadoutText(gainLabel, gainValue, formatDriveValue(nextValue));
       };
       gain.addEventListener("input", (event) => {
         onGainChange(parseFloat(event.target.value));
@@ -515,7 +530,11 @@ export function setupAlbumMixer(root = document) {
       const onPanChange = (nextValue) => {
         setDialValue(pan, nextValue, -1, 1);
         engine.setTrackPan(track.id, nextValue);
-        panValue.textContent = nextValue === 0 ? "C" : nextValue < 0 ? `L${Math.abs(nextValue).toFixed(1)}` : `R${nextValue.toFixed(1)}`;
+        setReadoutText(
+          panLabel,
+          panValue,
+          nextValue === 0 ? "C" : nextValue < 0 ? `L${Math.abs(nextValue).toFixed(1)}` : `R${nextValue.toFixed(1)}`
+        );
       };
       pan.addEventListener("input", (event) => {
         onPanChange(parseFloat(event.target.value));
@@ -530,7 +549,7 @@ export function setupAlbumMixer(root = document) {
       const onEqHighChange = (nextValue) => {
         setDialValue(eqHigh, nextValue, -1, 1);
         engine.setTrackEqHigh(track.id, nextValue);
-        eqHighValue.textContent = formatEqValue(nextValue);
+        setReadoutText(eqHighLabel, eqHighValue, formatEqValue(nextValue));
       };
       eqHigh.addEventListener("input", (event) => {
         onEqHighChange(parseFloat(event.target.value));
@@ -545,7 +564,7 @@ export function setupAlbumMixer(root = document) {
       const onEqLowChange = (nextValue) => {
         setDialValue(eqLow, nextValue, -1, 1);
         engine.setTrackEqLow(track.id, nextValue);
-        eqLowValue.textContent = formatEqValue(nextValue);
+        setReadoutText(eqLowLabel, eqLowValue, formatEqValue(nextValue));
       };
       eqLow.addEventListener("input", (event) => {
         onEqLowChange(parseFloat(event.target.value));
@@ -602,7 +621,6 @@ export function setupAlbumMixer(root = document) {
       const bindKnob = (label, inputEl, valueEl, value, min, max) => {
         const dialEl = findKnobVisual(label);
         const existingInput = findControlInput(label);
-        const readoutEl = findReadoutTarget(label);
 
         if (existingInput && existingInput !== inputEl) {
           existingInput.replaceWith(inputEl);
@@ -610,9 +628,7 @@ export function setupAlbumMixer(root = document) {
           dialEl.appendChild(inputEl);
         }
 
-        if (readoutEl) {
-          readoutEl.textContent = valueEl.textContent;
-        } else {
+        if (!setReadoutText(label, valueEl, valueEl.textContent)) {
           label.appendChild(valueEl);
         }
 

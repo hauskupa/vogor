@@ -23,6 +23,7 @@ output {
   top: 50%;
   transform-origin: 50% 100%;
   transform: translate(-50%, -100%) rotate(calc(-135deg + (var(--turn, 0.5) * 270deg)));
+  transition: transform 90ms ease-out;
 }
 
 .tm4-fader-visual,
@@ -40,6 +41,7 @@ output {
   left: 50%;
   top: calc((1 - var(--fader-position, 0.7)) * 100%);
   transform: translate(-50%, -50%);
+  transition: top 90ms ease-out, transform 90ms ease-out;
 }
 
 .tm4-meter-rail {
