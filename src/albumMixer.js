@@ -676,19 +676,9 @@ export function setupAlbumMixer(root = document) {
         levelValue.textContent = formatConsoleScale(nextValue);
       });
 
-      const meter = strip.querySelector(".tm4-meter-rail") || document.createElement("div");
-      meter.className = "tm4-meter-rail";
-      meter.dataset.trackMeter = trackSlotId;
-      if (!meter.querySelector(".tm4-meter-fill")) {
-        const meterFill = document.createElement("div");
-        meterFill.className = "tm4-meter-fill";
-        meter.appendChild(meterFill);
-      }
-
       if (!strip.contains(title)) strip.appendChild(title);
       if (!strip.contains(scale)) strip.appendChild(scale);
       if (!strip.contains(controls)) strip.appendChild(controls);
-      if (!strip.contains(meter)) strip.appendChild(meter);
       if (!strip.contains(faderLabel)) strip.appendChild(faderLabel);
 
       tracksEl.appendChild(strip);
