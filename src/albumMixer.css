@@ -8,6 +8,29 @@ output {
   font: inherit;
 }
 
+.tm4-knob-visual,
+.tm4-dial {
+  --turn: 0.5;
+}
+
+.tm4-knob-pointer {
+  transform-origin: 50% 100%;
+  transform: rotate(calc(-135deg + (var(--turn, 0.5) * 270deg)));
+}
+
+.tm4-fader-visual,
+.tm4-fader-wrap,
+.tm4-master-strip {
+  --fader-position: 0.7;
+}
+
+.tm4-fader-cap {
+  position: absolute;
+  left: 50%;
+  top: calc((1 - var(--fader-position, 0.7)) * 100%);
+  transform: translate(-50%, -50%);
+}
+
 .tm4-cassette {
   width: min(92%, 720px);
   margin: 0 auto;

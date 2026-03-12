@@ -116,6 +116,15 @@ function setDialValue(input, value, min, max) {
   input.closest(".tm4-dial, .tm4-knob-visual, .tm4-knob")?.style.setProperty("--turn", turn);
 }
 
+function setFaderVisualValue(input, value, min, max) {
+  const range = max - min || 1;
+  const normalized = clamp01((value - min) / range);
+  input.style.setProperty("--fader-position", String(normalized));
+  input
+    .closest(".tm4-fader-visual, .tm4-fader-wrap, .tm4-master-strip")
+    ?.style.setProperty("--fader-position", String(normalized));
+}
+
 function attachDialInteraction(dial, input, min, max, onChange) {
   let startY = 0;
   let startValue = 0;
@@ -483,6 +492,7 @@ export function setupAlbumMixer(root = document) {
       fader.className = "tm4-fader";
       fader.addEventListener("input", (event) => {
         const nextValue = parseFloat(event.target.value);
+        setFaderVisualValue(fader, nextValue, 0, 1);
         engine.setTrackFader(track.id, nextValue);
         levelValue.textContent = formatConsoleScale(nextValue);
       });
@@ -570,6 +580,7 @@ export function setupAlbumMixer(root = document) {
       } else if (!existingLevelReadout) {
         faderLabel.appendChild(levelValue);
       }
+      setFaderVisualValue(fader, track.fader ?? 0.7, 0, 1);
 
       const meter = strip.querySelector(".tm4-meter-rail") || document.createElement("div");
       meter.className = "tm4-meter-rail";
@@ -665,6 +676,7 @@ export function setupAlbumMixer(root = document) {
 
   masterEl?.addEventListener("input", (event) => {
     const value = parseFloat(event.target.value);
+    setFaderVisualValue(masterEl, value, 0, 1);
     engine.setMasterVolume(value);
     if (masterValueEl) {
       masterValueEl.textContent = formatConsoleScale(value);
@@ -741,6 +753,9 @@ export function setupAlbumMixer(root = document) {
   }
   if (masterValueEl) {
     masterValueEl.textContent = formatConsoleScale(engine.getState().masterVolume);
+  }
+  if (masterEl) {
+    setFaderVisualValue(masterEl, engine.getState().masterVolume, 0, 1);
   }
   engine.loadSong(songs[0].id);
   meterFrame = window.requestAnimationFrame(updateMeters);
