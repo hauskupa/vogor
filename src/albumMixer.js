@@ -59,6 +59,10 @@ function clamp01(value) {
   return Math.min(1, Math.max(0, value));
 }
 
+function getTrackSlotId(index) {
+  return `track${index + 1}`;
+}
+
 function compareSongsBySide(a, b) {
   const sideCompare = String(a.side || "A").localeCompare(String(b.side || "A"));
   if (sideCompare !== 0) return sideCompare;
@@ -493,7 +497,8 @@ export function setupAlbumMixer(root = document) {
 
     titleEl && (titleEl.textContent = song.title);
 
-    song.tracks.forEach((track) => {
+    song.tracks.forEach((track, trackIndex) => {
+      const trackSlotId = getTrackSlotId(trackIndex);
       const strip = cloneTrackStripTemplate(container) || document.createElement("section");
       if (!strip.classList.contains("tm4-strip")) {
         strip.className = "tm4-strip";
@@ -673,7 +678,7 @@ export function setupAlbumMixer(root = document) {
 
       const meter = strip.querySelector(".tm4-meter-rail") || document.createElement("div");
       meter.className = "tm4-meter-rail";
-      meter.dataset.trackMeter = track.id;
+      meter.dataset.trackMeter = trackSlotId;
       if (!meter.querySelector(".tm4-meter-fill")) {
         const meterFill = document.createElement("div");
         meterFill.className = "tm4-meter-fill";
@@ -839,8 +844,9 @@ export function setupAlbumMixer(root = document) {
 
   function updateMeters() {
     const levels = engine.getMeterLevels();
-    levels.forEach(({ trackId, level }) => {
-      const el = container.querySelector(`[data-track-meter="${trackId}"] .tm4-meter-fill`);
+    levels.forEach(({ level }, trackIndex) => {
+      const trackSlotId = getTrackSlotId(trackIndex);
+      const el = container.querySelector(`[data-track-meter="${trackSlotId}"] .tm4-meter-fill`);
       if (!el) return;
       el.style.setProperty("--level", String(level));
     });
