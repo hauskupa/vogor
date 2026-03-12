@@ -1,18 +1,18 @@
 :root {
-  --deck: #b7ab8f;
-  --deck-dark: #8f856f;
-  --panel: #9f957f;
-  --ink: #261f15;
-  --slot: #2a2928;
-  --slot-glow: #9fd17a;
-  --line: rgba(32, 24, 15, 0.25);
-  --button: #d7ccb4;
-  --range-track: #2a2d28;
-  --range-track-edge: rgba(18, 14, 9, 0.5);
-  --range-fill: #1c7ddd;
-  --range-fill-soft: #8dc0f0;
-  --range-thumb: #e8dfca;
-  --range-thumb-edge: rgba(39, 29, 17, 0.55);
+  --deck: transparent;
+  --deck-dark: transparent;
+  --panel: transparent;
+  --ink: #111;
+  --slot: #111;
+  --slot-glow: #111;
+  --line: rgba(0, 0, 0, 0.14);
+  --button: transparent;
+  --range-track: #ddd;
+  --range-track-edge: rgba(0, 0, 0, 0.18);
+  --range-fill: #666;
+  --range-fill-soft: #cfcfcf;
+  --range-thumb: #fff;
+  --range-thumb-edge: rgba(0, 0, 0, 0.28);
 }
 
 * {
@@ -22,8 +22,7 @@
 body {
   margin: 0;
   min-height: 100vh;
-  background:
-    radial-gradient(circle at top, #eee4cb, #d4c8ad 42%, #b2a58d 100%);
+  background: #fff;
   color: var(--ink);
   font-family: "Courier New", monospace;
   padding: 24px;
@@ -38,13 +37,10 @@ output {
 [data-album-mixer] {
   width: min(1080px, 100%);
   margin: 0 auto;
-  background:
-    linear-gradient(180deg, #bcb197, var(--deck) 18%, var(--deck-dark));
-  border: 1px solid rgba(31, 21, 11, 0.45);
-  border-radius: 14px;
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.35),
-    0 18px 40px rgba(49, 33, 18, 0.2);
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
   padding: 18px;
 }
 
@@ -70,8 +66,8 @@ output {
 }
 
 .tm4-badge {
-  border: 2px solid rgba(57, 42, 22, 0.45);
-  background: #c9bd9f;
+  border: 0;
+  background: transparent;
   padding: 10px 14px;
   font-size: 1.4rem;
   font-weight: 700;
@@ -82,7 +78,7 @@ output {
 .tm4-brand {
   min-width: 124px;
   padding: 12px 16px 10px;
-  color: #d45a31;
+  color: inherit;
   font-size: 1.65rem;
   font-weight: 800;
   letter-spacing: -0.04em;
@@ -99,9 +95,9 @@ output {
 .tm4-right,
 .tm4-display,
 .tm4-transport {
-  border: 1px solid var(--line);
-  background: rgba(255, 255, 255, 0.08);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.15);
+  border: 0;
+  background: transparent;
+  box-shadow: none;
 }
 
 .tm4-left {
@@ -124,8 +120,8 @@ output {
 }
 
 .tm4-strip {
-  background: linear-gradient(180deg, #cac0a7, #a59a82 65%, #988c75);
-  border: 1px solid var(--line);
+  background: transparent;
+  border: 0;
   padding: 10px 8px 12px;
   display: grid;
   grid-template-rows: auto auto 1fr auto;
@@ -134,8 +130,8 @@ output {
 }
 
 .tm4-master-strip {
-  background: linear-gradient(180deg, #b7ac93, #958a73 65%, #867b64);
-  border: 1px solid var(--line);
+  background: transparent;
+  border: 0;
   padding: 10px 6px 12px;
   display: grid;
   grid-template-rows: auto 1fr auto;
@@ -226,12 +222,9 @@ output {
   width: 54px;
   height: 54px;
   border-radius: 50%;
-  border: 2px solid rgba(41, 29, 15, 0.4);
-  background:
-    radial-gradient(circle at 35% 30%, #ded5bf, #9f947d 62%, #7f745f 100%);
-  box-shadow:
-    inset 0 1px 2px rgba(255,255,255,0.35),
-    inset 0 -3px 5px rgba(0,0,0,0.18);
+  border: 1px solid var(--line);
+  background: transparent;
+  box-shadow: none;
 }
 
 .tm4-dial::after {
@@ -241,7 +234,7 @@ output {
   top: 7px;
   width: 3px;
   height: 18px;
-  background: #22190f;
+  background: currentColor;
   border-radius: 999px;
   transform-origin: 50% 20px;
   transform:
@@ -273,9 +266,8 @@ output {
   justify-self: center;
   width: 14px;
   height: 96px;
-  border: 1px solid rgba(33, 25, 16, 0.4);
-  background:
-    linear-gradient(180deg, rgba(11, 15, 10, 0.9), rgba(32, 38, 28, 0.95));
+  border: 1px solid var(--line);
+  background: #f2f2f2;
   overflow: hidden;
 }
 
@@ -286,9 +278,8 @@ output {
   right: 0;
   bottom: 0;
   height: calc(var(--level) * 100%);
-  background:
-    linear-gradient(180deg, #e75d39 0%, #e7ba39 28%, #8dd957 62%, #4dcf74 100%);
-  box-shadow: 0 0 10px rgba(141, 217, 87, 0.2);
+  background: #666;
+  box-shadow: none;
   transition: height 60ms linear;
 }
 
@@ -312,11 +303,8 @@ output {
   width: 10px;
   border-radius: 999px;
   border: 1px solid var(--range-track-edge);
-  background:
-    linear-gradient(180deg, #eff2f6 0 8%, #d9dfe6 8% 100%);
-  box-shadow:
-    inset 0 1px 1px rgba(255, 255, 255, 0.85),
-    inset 0 -1px 1px rgba(0, 0, 0, 0.12);
+  background: var(--range-track);
+  box-shadow: none;
 }
 
 .tm4-fader::-webkit-slider-thumb,
@@ -328,11 +316,8 @@ output {
   margin-left: -6px;
   border-radius: 4px;
   border: 1px solid var(--range-thumb-edge);
-  background:
-    linear-gradient(180deg, #2c3540, #10161b 55%, #3e4750);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.14),
-    0 1px 3px rgba(0, 0, 0, 0.35);
+  background: var(--range-thumb);
+  box-shadow: none;
 }
 
 .tm4-fader::-moz-range-track,
@@ -340,11 +325,8 @@ output {
   width: 10px;
   border-radius: 999px;
   border: 1px solid var(--range-track-edge);
-  background:
-    linear-gradient(180deg, #eff2f6 0 8%, #d9dfe6 8% 100%);
-  box-shadow:
-    inset 0 1px 1px rgba(255, 255, 255, 0.85),
-    inset 0 -1px 1px rgba(0, 0, 0, 0.12);
+  background: var(--range-track);
+  box-shadow: none;
 }
 
 .tm4-fader::-moz-range-thumb,
@@ -353,11 +335,8 @@ output {
   height: 14px;
   border-radius: 4px;
   border: 1px solid var(--range-thumb-edge);
-  background:
-    linear-gradient(180deg, #2c3540, #10161b 55%, #3e4750);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.14),
-    0 1px 3px rgba(0, 0, 0, 0.35);
+  background: var(--range-thumb);
+  box-shadow: none;
 }
 
 [data-mixer-seek] {
@@ -372,11 +351,8 @@ output {
   height: 8px;
   border-radius: 999px;
   border: 1px solid var(--range-track-edge);
-  background:
-    linear-gradient(90deg, var(--range-fill-soft), #eff2f6 26%, #d2d7de 100%);
-  box-shadow:
-    inset 0 1px 1px rgba(255, 255, 255, 0.75),
-    inset 0 -1px 1px rgba(0, 0, 0, 0.12);
+  background: var(--range-track);
+  box-shadow: none;
 }
 
 [data-mixer-seek]::-webkit-slider-thumb {
@@ -387,28 +363,22 @@ output {
   margin-top: -5px;
   border-radius: 50%;
   border: 1px solid var(--range-thumb-edge);
-  background:
-    radial-gradient(circle at 35% 30%, var(--range-thumb), #bbb19a 68%, #8c816b 100%);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.5),
-    0 1px 2px rgba(0, 0, 0, 0.28);
+  background: var(--range-thumb);
+  box-shadow: none;
 }
 
 [data-mixer-seek]::-moz-range-track {
   height: 8px;
   border-radius: 999px;
   border: 1px solid var(--range-track-edge);
-  background:
-    linear-gradient(90deg, var(--range-fill-soft), #eff2f6 26%, #d2d7de 100%);
-  box-shadow:
-    inset 0 1px 1px rgba(255, 255, 255, 0.75),
-    inset 0 -1px 1px rgba(0, 0, 0, 0.12);
+  background: var(--range-track);
+  box-shadow: none;
 }
 
 [data-mixer-seek]::-moz-range-progress {
   height: 8px;
   border-radius: 999px;
-  background: linear-gradient(90deg, var(--range-fill), var(--range-fill-soft));
+  background: var(--range-fill);
 }
 
 [data-mixer-seek]::-moz-range-thumb {
@@ -416,27 +386,22 @@ output {
   height: 16px;
   border-radius: 50%;
   border: 1px solid var(--range-thumb-edge);
-  background:
-    radial-gradient(circle at 35% 30%, var(--range-thumb), #bbb19a 68%, #8c816b 100%);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.5),
-    0 1px 2px rgba(0, 0, 0, 0.28);
+  background: var(--range-thumb);
+  box-shadow: none;
 }
 
 .tm4-display {
   padding: 18px;
   display: grid;
   gap: 14px;
-  background:
-    linear-gradient(180deg, rgba(0, 0, 0, 0.08), rgba(255,255,255,0.05)),
-    var(--panel);
+  background: transparent;
 }
 
 .tm4-screen {
-  background: linear-gradient(180deg, #b9af96, #9d927a);
-  color: #1b1b17;
-  border: 2px solid #7f745d;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.22);
+  background: transparent;
+  color: inherit;
+  border: 1px dashed var(--line);
+  box-shadow: none;
   padding: 10px;
   min-height: 300px;
   display: grid;
@@ -466,7 +431,7 @@ output {
 .tm4-cassette {
   width: min(92%, 720px);
   margin: 0 auto;
-  filter: drop-shadow(0 10px 12px rgba(0, 0, 0, 0.12));
+  filter: none;
   position: relative;
   align-self: center;
 }
@@ -534,8 +499,9 @@ output {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: #2a2928;
-  color: #f4f1e6;
+  background: transparent;
+  color: inherit;
+  border: 1px solid var(--line);
   font-size: 0.98rem;
   letter-spacing: 0.04em;
   font-weight: 700;
@@ -574,7 +540,7 @@ output {
   padding: 12px;
   display: grid;
   gap: 12px;
-  background: linear-gradient(180deg, #a29780, #8f846d);
+  background: transparent;
 }
 
 .tm4-transport-row {
@@ -614,14 +580,11 @@ output {
   min-height: 42px;
   min-width: 92px;
   padding: 6px 10px;
-  border: 1px solid rgba(31, 24, 16, 0.5);
+  border: 1px solid var(--line);
   border-radius: 4px;
-  background:
-    linear-gradient(180deg, #181711, #0e0e0b 50%, #181711);
-  box-shadow:
-    inset 0 0 0 1px rgba(184, 172, 142, 0.08),
-    inset 0 0 14px rgba(159, 209, 122, 0.12);
-  color: var(--slot-glow);
+  background: transparent;
+  box-shadow: none;
+  color: inherit;
   font-size: 1.5rem;
   font-weight: 700;
   letter-spacing: 0.18em;
@@ -639,15 +602,15 @@ output {
 
 .tm4-transport button,
 .tm4-song-button {
-  border: 1px solid rgba(45, 31, 16, 0.45);
-  background: linear-gradient(180deg, #ece2c7, var(--button));
+  border: 1px solid var(--line);
+  background: transparent;
   color: var(--ink);
   padding: 8px 12px;
   min-height: 38px;
   cursor: pointer;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4);
+  box-shadow: none;
 }
 
 .tm4-transport .tm4-nav {
@@ -655,10 +618,10 @@ output {
 }
 
 .tm4-song-button[data-active] {
-  background: linear-gradient(180deg, #313229, #1c1d18);
-  color: var(--slot-glow);
-  border-color: #15150f;
-  box-shadow: inset 0 0 0 1px rgba(159, 209, 122, 0.2);
+  background: transparent;
+  color: inherit;
+  border-color: currentColor;
+  font-weight: 700;
 }
 
 .tm4-meter {
@@ -695,7 +658,7 @@ output {
   grid-template-rows: auto auto;
   gap: 14px;
   align-content: start;
-  background: linear-gradient(180deg, #aa9f88, #938771);
+  background: transparent;
 }
 
 .tm4-hidden-lists {

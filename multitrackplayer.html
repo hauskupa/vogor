@@ -33,6 +33,50 @@
             <div class="tm4-readout">Bus</div>
           </section>
         </section>
+        <template data-mixer-track-template>
+          <section class="tm4-strip">
+            <div class="tm4-strip-title" data-track-title>Track</div>
+            <div class="tm4-strip-scale"></div>
+            <div class="tm4-strip-controls">
+              <label class="tm4-knob" data-control="gain">
+                <span>Gain</span>
+                <span class="tm4-dial">
+                  <input type="range" min="0" max="2" step="0.01" />
+                </span>
+                <span class="tm4-readout" data-readout="gain">0 dB</span>
+              </label>
+              <label class="tm4-knob" data-control="eq-high">
+                <span>EQ Hi</span>
+                <span class="tm4-dial">
+                  <input type="range" min="-1" max="1" step="0.01" />
+                </span>
+                <span class="tm4-readout" data-readout="eq-high">0 dB</span>
+              </label>
+              <label class="tm4-knob" data-control="eq-low">
+                <span>EQ Lo</span>
+                <span class="tm4-dial">
+                  <input type="range" min="-1" max="1" step="0.01" />
+                </span>
+                <span class="tm4-readout" data-readout="eq-low">0 dB</span>
+              </label>
+              <label class="tm4-knob" data-control="pan">
+                <span>Pan</span>
+                <span class="tm4-dial">
+                  <input type="range" min="-1" max="1" step="0.01" />
+                </span>
+                <span class="tm4-readout" data-readout="pan">C</span>
+              </label>
+            </div>
+            <div class="tm4-meter-rail" data-track-meter>
+              <div class="tm4-meter-fill"></div>
+            </div>
+            <label class="tm4-fader-wrap">
+              <span>Level</span>
+              <input type="range" min="0" max="1" step="0.01" class="tm4-fader" data-control="level" />
+              <span class="tm4-readout" data-readout="level">7.0</span>
+            </label>
+          </section>
+        </template>
       </div>
 
       <div class="tm4-right">

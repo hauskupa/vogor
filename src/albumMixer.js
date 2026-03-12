@@ -190,6 +190,17 @@ function createKnob(labelText, input, normalizedValue, onChange) {
   return label;
 }
 
+function cloneTrackStripTemplate(container) {
+  const template = container.querySelector("[data-mixer-track-template]");
+  if (!(template instanceof HTMLTemplateElement)) {
+    return null;
+  }
+
+  const fragment = template.content.cloneNode(true);
+  const strip = fragment.querySelector(".tm4-strip");
+  return strip instanceof HTMLElement ? strip : null;
+}
+
 function getSongs() {
   return albumMixerSongs
     .map((song, index) => ({
@@ -367,14 +378,16 @@ export function setupAlbumMixer(root = document) {
     titleEl && (titleEl.textContent = song.title);
 
     song.tracks.forEach((track) => {
-      const strip = document.createElement("section");
-      strip.className = "tm4-strip";
+      const strip = cloneTrackStripTemplate(container) || document.createElement("section");
+      if (!strip.classList.contains("tm4-strip")) {
+        strip.className = "tm4-strip";
+      }
 
-      const title = document.createElement("div");
+      const title = strip.querySelector("[data-track-title]") || document.createElement("div");
       title.className = "tm4-strip-title";
       title.textContent = track.title;
 
-      const scale = document.createElement("div");
+      const scale = strip.querySelector(".tm4-strip-scale") || document.createElement("div");
       scale.className = "tm4-strip-scale";
 
       const gain = document.createElement("input");
@@ -470,40 +483,80 @@ export function setupAlbumMixer(root = document) {
       levelValue.className = "tm4-readout";
       levelValue.textContent = formatConsoleScale(track.fader ?? 0.7);
 
-      const gainLabel = createKnob("Gain", gain, (track.gain ?? 0) / 2, onGainChange);
-      gainLabel.appendChild(gainValue);
-      const eqHighLabel = createKnob("EQ Hi", eqHigh, ((track.eqHigh ?? 0) + 1) / 2, onEqHighChange);
-      eqHighLabel.appendChild(eqHighValue);
-      const eqLowLabel = createKnob("EQ Lo", eqLow, ((track.eqLow ?? 0) + 1) / 2, onEqLowChange);
-      eqLowLabel.appendChild(eqLowValue);
-      const panLabel = createKnob("Pan", pan, ((track.pan ?? 0) + 1) / 2, onPanChange);
-      panLabel.appendChild(panValue);
+      const controls = strip.querySelector(".tm4-strip-controls") || document.createElement("div");
+      controls.className = "tm4-strip-controls";
 
-      const faderLabel = document.createElement("label");
+      const gainLabel =
+        controls.querySelector('[data-control="gain"]') || createKnob("Gain", gain, (track.gain ?? 0) / 2, onGainChange);
+      const eqHighLabel =
+        controls.querySelector('[data-control="eq-high"]') ||
+        createKnob("EQ Hi", eqHigh, ((track.eqHigh ?? 0) + 1) / 2, onEqHighChange);
+      const eqLowLabel =
+        controls.querySelector('[data-control="eq-low"]') ||
+        createKnob("EQ Lo", eqLow, ((track.eqLow ?? 0) + 1) / 2, onEqLowChange);
+      const panLabel =
+        controls.querySelector('[data-control="pan"]') || createKnob("Pan", pan, ((track.pan ?? 0) + 1) / 2, onPanChange);
+
+      const bindKnob = (label, inputEl, valueEl, value, min, max) => {
+        const titleEl = label.querySelector("span");
+        const dialEl = label.querySelector(".tm4-dial");
+        const existingInput = dialEl?.querySelector("input");
+        const readoutEl = label.querySelector(".tm4-readout");
+
+        if (existingInput && existingInput !== inputEl) {
+          existingInput.replaceWith(inputEl);
+        } else if (dialEl && !existingInput) {
+          dialEl.appendChild(inputEl);
+        }
+
+        if (readoutEl && readoutEl !== valueEl) {
+          readoutEl.replaceWith(valueEl);
+        } else if (!readoutEl) {
+          label.appendChild(valueEl);
+        }
+
+        if (titleEl) {
+          titleEl.textContent = titleEl.textContent;
+        }
+
+        setDialValue(inputEl, value, min, max);
+      };
+
+      bindKnob(gainLabel, gain, gainValue, track.gain ?? 0, 0, 2);
+      bindKnob(eqHighLabel, eqHigh, eqHighValue, track.eqHigh ?? 0, -1, 1);
+      bindKnob(eqLowLabel, eqLow, eqLowValue, track.eqLow ?? 0, -1, 1);
+      bindKnob(panLabel, pan, panValue, track.pan ?? 0, -1, 1);
+
+      const faderLabel = strip.querySelector(".tm4-fader-wrap") || document.createElement("label");
       faderLabel.className = "tm4-fader-wrap";
-      faderLabel.innerHTML = "<span>Level</span>";
-      faderLabel.appendChild(fader);
-      faderLabel.appendChild(levelValue);
+      const existingFader = faderLabel.querySelector("input");
+      const existingLevelReadout = faderLabel.querySelector(".tm4-readout");
+      if (existingFader && existingFader !== fader) {
+        existingFader.replaceWith(fader);
+      } else if (!existingFader) {
+        faderLabel.appendChild(fader);
+      }
+      if (existingLevelReadout && existingLevelReadout !== levelValue) {
+        existingLevelReadout.replaceWith(levelValue);
+      } else if (!existingLevelReadout) {
+        faderLabel.appendChild(levelValue);
+      }
 
-      const meter = document.createElement("div");
+      const meter = strip.querySelector(".tm4-meter-rail") || document.createElement("div");
       meter.className = "tm4-meter-rail";
       meter.dataset.trackMeter = track.id;
-      const meterFill = document.createElement("div");
-      meterFill.className = "tm4-meter-fill";
-      meter.appendChild(meterFill);
+      if (!meter.querySelector(".tm4-meter-fill")) {
+        const meterFill = document.createElement("div");
+        meterFill.className = "tm4-meter-fill";
+        meter.appendChild(meterFill);
+      }
 
-      const controls = document.createElement("div");
-      controls.className = "tm4-strip-controls";
-      controls.appendChild(gainLabel);
-      controls.appendChild(eqHighLabel);
-      controls.appendChild(eqLowLabel);
-      controls.appendChild(panLabel);
+      if (!strip.contains(title)) strip.appendChild(title);
+      if (!strip.contains(scale)) strip.appendChild(scale);
+      if (!strip.contains(controls)) strip.appendChild(controls);
+      if (!strip.contains(meter)) strip.appendChild(meter);
+      if (!strip.contains(faderLabel)) strip.appendChild(faderLabel);
 
-      strip.appendChild(title);
-      strip.appendChild(scale);
-      strip.appendChild(controls);
-      strip.appendChild(meter);
-      strip.appendChild(faderLabel);
       tracksEl.appendChild(strip);
     });
   }
