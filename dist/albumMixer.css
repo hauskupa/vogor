@@ -1,198 +1,17 @@
-
 * {
   box-sizing: border-box;
 }
+
 button,
 input,
 output {
   font: inherit;
 }
-.tm4-knob { 
-  grid-template-areas:
-    "label readout"
-    "dial dial"; 
-}
-.tm4-knob > span:first-child {
-  grid-area: label;
-  min-height: 1.9em;
-  display: inline-flex;
-  align-items: flex-end;
-  justify-content: flex-start;
-  line-height: 1;
-}
-
-.tm4-knob .tm4-dial {
-  grid-area: dial;
-}
-
-.tm4-knob input {
-  position: absolute;
-  inset: 0;
-  opacity: 0;
-  cursor: pointer;
-}
-
-
-
-.tm4-dial::after {
-  content: "";
-  position: absolute;
-  left: 50%;
-  top: 7px;
-  width: 3px;
-  height: 18px;
-  background: currentColor;
-  border-radius: 999px;
-  transform-origin: 50% 20px;
-  transform:
-    translateX(-50%)
-    rotate(calc(-135deg + (var(--turn, 0.5) * 270deg)));
-}
-
-
-.tm4-knob .tm4-readout {
-  grid-area: readout;
-  align-self: end;
-  justify-self: end;
-  text-align: right;
-}
-
-.tm4-meter-fill {
-  --level: 0;  
-  height: calc(var(--level) * 100%); 
-  box-shadow: none;
-  transition: height 60ms linear;
-}
-
-
-.tm4-fader,
-.tm4-master-fader {
-  appearance: none;
-  -webkit-appearance: none;
-  writing-mode: vertical-lr;
-  direction: rtl;
-  background: transparent;
-  accent-color: transparent;
-}
-
-.tm4-fader::-webkit-slider-runnable-track,
-.tm4-master-fader::-webkit-slider-runnable-track {
-  width: 10px;
-  border-radius: 999px;
-  border: 1px solid var(--range-track-edge);
-  background: var(--range-track);
-  box-shadow: none;
-}
-
-.tm4-fader::-webkit-slider-thumb,
-.tm4-master-fader::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  appearance: none;
-  width: 22px;
-  height: 14px;
-  margin-left: -6px;
-  border-radius: 4px;
-  border: 1px solid var(--range-thumb-edge);
-  background: var(--range-thumb);
-  box-shadow: none;
-}
-
-.tm4-fader::-moz-range-track,
-.tm4-master-fader::-moz-range-track {
-  width: 10px;
-  border-radius: 999px;
-  border: 1px solid var(--range-track-edge);
-  background: var(--range-track);
-  box-shadow: none;
-}
-
-.tm4-fader::-moz-range-thumb,
-.tm4-master-fader::-moz-range-thumb {
-  width: 22px;
-  height: 14px;
-  border-radius: 4px;
-  border: 1px solid var(--range-thumb-edge);
-  background: var(--range-thumb);
-  box-shadow: none;
-}
-
-[data-mixer-seek] {
-  appearance: none;
-  -webkit-appearance: none;
-  width: 100%;
-  height: 22px;
-  background: transparent;
-}
-
-[data-mixer-seek]::-webkit-slider-runnable-track {
-  height: 8px;
-  border-radius: 999px;
-  border: 1px solid var(--range-track-edge);
-  background: var(--range-track);
-  box-shadow: none;
-}
-
-[data-mixer-seek]::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  appearance: none;
-  width: 16px;
-  height: 16px;
-  margin-top: -5px;
-  border-radius: 50%;
-  border: 1px solid var(--range-thumb-edge);
-  background: var(--range-thumb);
-  box-shadow: none;
-}
-
-[data-mixer-seek]::-moz-range-track {
-  height: 8px;
-  border-radius: 999px;
-  border: 1px solid var(--range-track-edge);
-  background: var(--range-track);
-  box-shadow: none;
-}
-
-[data-mixer-seek]::-moz-range-progress {
-  height: 8px;
-  border-radius: 999px;
-  background: var(--range-fill);
-}
-
-[data-mixer-seek]::-moz-range-thumb {
-  width: 16px;
-  height: 16px;
-  border-radius: 50%;
-  border: 1px solid var(--range-thumb-edge);
-  background: var(--range-thumb);
-  box-shadow: none;
-}
-
-
-
-.tm4-screen-label {
-  font-size: 0.74rem;
-  text-transform: uppercase;
-  letter-spacing: 0.15em;
-  opacity: 0.7;
-}
-
-[data-mixer-current-song] {
-  font-size: clamp(1.1rem, 3vw, 1.7rem);
-  font-weight: 700;
-  text-transform: uppercase;
-}
-
-[data-mixer-time] {
-  display: block;
-  font-size: 0.95rem;
-}
 
 .tm4-cassette {
   width: min(92%, 720px);
   margin: 0 auto;
-  filter: none;
   position: relative;
-  align-self: center;
 }
 
 .cassette {
@@ -258,9 +77,6 @@ output {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: transparent;
-  color: inherit;
-  border: 1px solid var(--line);
   font-size: 0.98rem;
   letter-spacing: 0.04em;
   font-weight: 700;
@@ -285,6 +101,10 @@ output {
   display: none;
 }
 
+.tm4-hidden-lists {
+  display: none;
+}
+
 @keyframes tm4-reel-spin {
   from {
     transform: rotate(0deg);
@@ -292,139 +112,5 @@ output {
 
   to {
     transform: rotate(360deg);
-  }
-}
-
-.tm4-transport {
-  padding: 12px;
-  display: grid;
-  gap: 12px;
-  background: transparent;
-}
-
-.tm4-transport-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  align-items: center;
-}
-
-.tm4-counter-panel {
-  display: grid;
-  gap: 6px;
-  min-width: 120px;
-}
-
-.tm4-counter-panel--header {
-  min-width: 68px;
-  justify-items: center;
-  padding-top: 4px;
-}
-
-.tm4-counter-label {
-  font-size: 0.76rem;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-}
-
-.tm4-counter-panel--header .tm4-counter-label {
-  font-size: 0.54rem;
-  letter-spacing: 0.06em;
-}
-
-.tm4-counter-readout {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 42px;
-  min-width: 92px;
-  padding: 6px 10px;
-  border: 1px solid var(--line);
-  border-radius: 4px;
-  background: transparent;
-  box-shadow: none;
-  color: inherit;
-  font-size: 1.5rem;
-  font-weight: 700;
-  letter-spacing: 0.18em;
-  text-align: center;
-}
-
-.tm4-counter-panel--header .tm4-counter-readout {
-  min-width: 56px;
-  min-height: 30px;
-  padding: 3px 6px;
-  border-radius: 3px;
-  font-size: 1rem;
-  letter-spacing: 0.12em;
-}
-
-.tm4-transport button,
-.tm4-song-button {
-  border: 1px solid var(--line);
-  background: transparent;
-  color: var(--ink);
-  padding: 8px 12px;
-  min-height: 38px;
-  cursor: pointer;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  box-shadow: none;
-}
-
-.tm4-transport .tm4-nav {
-  min-width: 64px;
-}
-
-.tm4-song-button[data-active] {
-  background: transparent;
-  color: inherit;
-  border-color: currentColor;
-  font-weight: 700;
-}
-
-.tm4-meter {
-  display: grid;
-  gap: 6px;
-  flex: 1 1 220px;
-}
-
-.tm4-meter span {
-  font-size: 0.76rem;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-}
-
-.tm4-pitch {
-  align-items: center;
-}
-
-.tm4-pitch-row {
-  display: flex;
-  gap: 14px;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.tm4-pitch-row output {
-  min-width: 48px;
-  text-align: right;
-}
-
-.tm4-hidden-lists {
-  display: none;
-}
-
-@media (max-width: 900px) {
-  body {
-    padding: 12px;
-  }
-
-  .tm4-layout {
-    grid-template-columns: 1fr;
-  }
-
-  .tm4-track-bank {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
