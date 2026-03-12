@@ -125,6 +125,13 @@ function setFaderVisualValue(input, value, min, max) {
     ?.style.setProperty("--fader-position", String(normalized));
 }
 
+function bindRangePointerState(host, input) {
+  if (!host || !input || host.dataset.pointerBound === "true") return;
+  host.dataset.pointerBound = "true";
+  host.style.touchAction = "none";
+  input.style.touchAction = "none";
+}
+
 function attachDialInteraction(dial, input, min, max, onChange) {
   let startY = 0;
   let startValue = 0;
@@ -151,6 +158,8 @@ function attachDialInteraction(dial, input, min, max, onChange) {
     window.removeEventListener("pointerup", onPointerUp);
   }
 
+  bindRangePointerState(dial, input);
+
   dial.addEventListener("pointerdown", (event) => {
     event.preventDefault();
     dragging = true;
@@ -168,6 +177,57 @@ function attachDialInteraction(dial, input, min, max, onChange) {
     const nextValue = Math.min(max, Math.max(min, currentValue + direction * step));
     input.value = String(nextValue);
     setDialValue(input, nextValue, min, max);
+    onChange(nextValue);
+  });
+}
+
+function attachFaderInteraction(host, input, min, max, onChange) {
+  let startY = 0;
+  let startValue = 0;
+  let dragging = false;
+
+  function updateFromClientY(clientY) {
+    const rect = host.getBoundingClientRect();
+    const deltaY = startY - clientY;
+    const range = max - min;
+    const sensitivity = range / Math.max(rect.height || 180, 120);
+    const nextValue = Math.min(max, Math.max(min, startValue + deltaY * sensitivity));
+    input.value = String(nextValue);
+    setFaderVisualValue(input, nextValue, min, max);
+    onChange(nextValue);
+  }
+
+  function onPointerMove(event) {
+    if (!dragging) return;
+    event.preventDefault();
+    updateFromClientY(event.clientY);
+  }
+
+  function onPointerUp() {
+    dragging = false;
+    window.removeEventListener("pointermove", onPointerMove);
+    window.removeEventListener("pointerup", onPointerUp);
+  }
+
+  bindRangePointerState(host, input);
+
+  host.addEventListener("pointerdown", (event) => {
+    event.preventDefault();
+    dragging = true;
+    startY = event.clientY;
+    startValue = parseFloat(input.value);
+    window.addEventListener("pointermove", onPointerMove, { passive: false });
+    window.addEventListener("pointerup", onPointerUp);
+  });
+
+  host.addEventListener("wheel", (event) => {
+    event.preventDefault();
+    const currentValue = parseFloat(input.value);
+    const step = parseFloat(input.step || "0.01");
+    const direction = event.deltaY < 0 ? 1 : -1;
+    const nextValue = Math.min(max, Math.max(min, currentValue + direction * step));
+    input.value = String(nextValue);
+    setFaderVisualValue(input, nextValue, min, max);
     onChange(nextValue);
   });
 }
@@ -215,6 +275,14 @@ function findKnobVisual(wrapper) {
 function findReadoutTarget(wrapper) {
   if (!wrapper) return null;
   return wrapper.querySelector("[data-readout]") || wrapper.querySelector(".tm4-readout");
+}
+
+function findFaderVisual(wrapper) {
+  if (!wrapper) return null;
+  if (wrapper.matches(".tm4-fader-visual")) {
+    return wrapper;
+  }
+  return wrapper.querySelector(".tm4-fader-visual");
 }
 
 function cloneTrackStripTemplate(container) {
@@ -581,6 +649,11 @@ export function setupAlbumMixer(root = document) {
         faderLabel.appendChild(levelValue);
       }
       setFaderVisualValue(fader, track.fader ?? 0.7, 0, 1);
+      const faderVisual = findFaderVisual(faderLabel) || faderLabel;
+      attachFaderInteraction(faderVisual, fader, 0, 1, (nextValue) => {
+        engine.setTrackFader(track.id, nextValue);
+        levelValue.textContent = formatConsoleScale(nextValue);
+      });
 
       const meter = strip.querySelector(".tm4-meter-rail") || document.createElement("div");
       meter.className = "tm4-meter-rail";
@@ -682,9 +755,19 @@ export function setupAlbumMixer(root = document) {
       masterValueEl.textContent = formatConsoleScale(value);
     }
   });
+  if (masterEl) {
+    const masterHost = findFaderVisual(masterEl.closest(".tm4-fader-wrap, .tm4-master-strip")) || masterEl;
+    attachFaderInteraction(masterHost, masterEl, 0, 1, (value) => {
+      engine.setMasterVolume(value);
+      if (masterValueEl) {
+        masterValueEl.textContent = formatConsoleScale(value);
+      }
+    });
+  }
 
   if (pitchKnobEl) {
-    const pitchInput = document.createElement("input");
+    const existingPitchInput = findControlInput(pitchKnobEl);
+    const pitchInput = existingPitchInput || document.createElement("input");
     pitchInput.type = "range";
     pitchInput.min = "0.75";
     pitchInput.max = "1.25";
@@ -699,19 +782,23 @@ export function setupAlbumMixer(root = document) {
       }
     };
 
-    const pitchKnob = createKnob(
-      "Pitch",
-      pitchInput,
-      (engine.getState().pitch - 0.75) / 0.5,
-      onPitchChange
-    );
-
     pitchInput.addEventListener("input", (event) => {
       onPitchChange(parseFloat(event.target.value));
     });
-
-    pitchKnobEl.innerHTML = "";
-    pitchKnobEl.appendChild(pitchKnob);
+    if (existingPitchInput) {
+      const pitchVisual = findKnobVisual(pitchKnobEl) || pitchKnobEl;
+      setDialValue(pitchInput, engine.getState().pitch, 0.75, 1.25);
+      attachDialInteraction(pitchVisual, pitchInput, 0.75, 1.25, onPitchChange);
+    } else {
+      const pitchKnob = createKnob(
+        "Pitch",
+        pitchInput,
+        (engine.getState().pitch - 0.75) / 0.5,
+        onPitchChange
+      );
+      pitchKnobEl.innerHTML = "";
+      pitchKnobEl.appendChild(pitchKnob);
+    }
   }
 
   engine.addEventListener("songchange", () => {

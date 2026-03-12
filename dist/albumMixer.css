@@ -13,9 +13,16 @@ output {
   --turn: 0.5;
 }
 
+.tm4-knob-visual {
+  position: relative;
+}
+
 .tm4-knob-pointer {
+  position: absolute;
+  left: 50%;
+  top: 50%;
   transform-origin: 50% 100%;
-  transform: rotate(calc(-135deg + (var(--turn, 0.5) * 270deg)));
+  transform: translate(-50%, -100%) rotate(calc(-135deg + (var(--turn, 0.5) * 270deg)));
 }
 
 .tm4-fader-visual,
@@ -24,11 +31,29 @@ output {
   --fader-position: 0.7;
 }
 
+.tm4-fader-visual {
+  position: relative;
+}
+
 .tm4-fader-cap {
   position: absolute;
   left: 50%;
   top: calc((1 - var(--fader-position, 0.7)) * 100%);
   transform: translate(-50%, -50%);
+}
+
+.tm4-meter-rail {
+  position: relative;
+  overflow: hidden;
+}
+
+.tm4-meter-fill {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: calc(var(--level, 0) * 100%);
+  transition: height 60ms linear;
 }
 
 .tm4-cassette {
