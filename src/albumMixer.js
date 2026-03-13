@@ -92,7 +92,11 @@ function createAlbumMixerPreloader(container) {
   const existing =
     container.querySelector("[data-album-mixer-preloader]") ||
     container.querySelector("[data-asleep-preloader]");
-  if (existing instanceof HTMLElement) return existing;
+  if (existing instanceof HTMLElement) {
+    existing.classList.add("tm4-preloader");
+    existing.setAttribute("aria-hidden", existing.getAttribute("aria-hidden") || "true");
+    return existing;
+  }
 
   const preloader = document.createElement("div");
   preloader.className = "tm4-preloader";
