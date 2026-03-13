@@ -2,7 +2,7 @@
 export const albumMixerSongs = [
   {
     id: "sud",
-    title: "Suð",
+    title: "Sud",
     side: "A",
     sideIndex: 1,
     tracks: [

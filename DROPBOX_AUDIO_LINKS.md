@@ -62,7 +62,7 @@ Map those slots however you want per song. The visible labels in the UI can stil
 - `4`: https://www.dropbox.com/scl/fi/pm3clkuizb7yv7jby98jo/4.mp3?rlkey=ggw52d4fou23hghszad9klh67&st=xmy7l2t9&dl=0
 
 
-### Suð
+### Sud
 
 - `1`: https://www.dropbox.com/scl/fi/zgsy9i6oyyc1b0twc0x0o/1.mp3?rlkey=cepxn8sfb78gqcdubtigj0l28&st=quuattk9&dl=0
 - `2`: https://www.dropbox.com/scl/fi/uv21x5z6xt9cyb1k7xdk4/2.mp3?rlkey=x25t0mgvjm613lvtw3k2ii5qd&st=dkj0e1z2&dl=0
