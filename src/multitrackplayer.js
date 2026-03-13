@@ -16,6 +16,180 @@ function fadeVolume(audio, target, duration = 300) {
   }, stepTime);
 }
 
+// Shared engine used by the cassette deck MVP.
+// It keeps the same <audio>-based architecture as multitrack mode so we can
+// swap in a Web Audio implementation later without changing cassette UI code.
+export function createSongStemEngine() {
+  let tracks = [];
+  let readyPromises = [];
+  let isPlaying = false;
+  let endedHandler = null;
+
+  function clearTracks() {
+    tracks.forEach((track) => {
+      try {
+        track.audio.pause();
+      } catch (e) {}
+      try {
+        track.audio.currentTime = 0;
+      } catch (e) {}
+      if (track._onEnded) {
+        track.audio.removeEventListener("ended", track._onEnded);
+      }
+    });
+    tracks = [];
+    readyPromises = [];
+    isPlaying = false;
+  }
+
+  function bindEnded() {
+    tracks.forEach((track) => {
+      if (track._onEnded) {
+        track.audio.removeEventListener("ended", track._onEnded);
+      }
+      track._onEnded = () => {
+        if (!endedHandler) return;
+        // Trigger on any stem end only once all stems reached the end.
+        const done = tracks.every(
+          (t) =>
+            !Number.isFinite(t.audio.duration) ||
+            t.audio.currentTime >= Math.max(0, t.audio.duration - 0.2)
+        );
+        if (done) endedHandler();
+      };
+      track.audio.addEventListener("ended", track._onEnded, { passive: true });
+    });
+  }
+
+  function createReadyPromise(audio) {
+    return new Promise((resolve) => {
+      let settled = false;
+
+      const done = (payload) => {
+        if (settled) return;
+        settled = true;
+        audio.removeEventListener("canplaythrough", onReady);
+        audio.removeEventListener("loadedmetadata", onReady);
+        audio.removeEventListener("error", onError);
+        resolve(payload);
+      };
+
+      const onReady = () => done({ ok: true });
+      const onError = () => done({ ok: false, error: true });
+
+      if (audio.readyState >= 3) {
+        done({ ok: true, cached: true });
+        return;
+      }
+
+      audio.addEventListener("canplaythrough", onReady, { passive: true });
+      audio.addEventListener("loadedmetadata", onReady, { passive: true });
+      audio.addEventListener("error", onError, { passive: true });
+
+      setTimeout(() => done({ ok: false, timeout: true }), 3500);
+    });
+  }
+
+  return {
+    loadSong(stems = []) {
+      clearTracks();
+
+      tracks = stems
+        .map((stem, idx) => {
+          const url = (stem.url || "").trim();
+          if (!url) return null;
+
+          const audio = new Audio(url);
+          audio.preload = "auto";
+          audio.volume = 1;
+
+          return {
+            id: stem.id || `stem-${idx}`,
+            name: stem.name || stem.id || `Stem ${idx + 1}`,
+            audio,
+            meta: stem.meta || null,
+          };
+        })
+        .filter(Boolean);
+
+      readyPromises = tracks.map((track) => createReadyPromise(track.audio));
+      bindEnded();
+      return tracks;
+    },
+
+    getTracks() {
+      return tracks;
+    },
+
+    ensureLoaded() {
+      tracks.forEach((track) => {
+        if (track.audio.readyState < 3) {
+          try {
+            track.audio.load();
+          } catch (e) {}
+        }
+      });
+      return readyPromises;
+    },
+
+    async waitUntilReady({ timeout = 3500 } = {}) {
+      return Promise.race([
+        Promise.all(readyPromises),
+        new Promise((resolve) => setTimeout(resolve, timeout)),
+      ]);
+    },
+
+    onEnded(handler) {
+      endedHandler = typeof handler === "function" ? handler : null;
+    },
+
+    play() {
+      tracks.forEach((track) => {
+        track.audio.play().catch(() => {});
+      });
+      isPlaying = true;
+    },
+
+    pause() {
+      tracks.forEach((track) => track.audio.pause());
+      isPlaying = false;
+    },
+
+    stop() {
+      tracks.forEach((track) => {
+        track.audio.pause();
+        track.audio.currentTime = 0;
+      });
+      isPlaying = false;
+    },
+
+    seek(time) {
+      tracks.forEach((track) => {
+        try {
+          track.audio.currentTime = time;
+        } catch (e) {}
+      });
+    },
+
+    getCurrentTime() {
+      return tracks[0]?.audio?.currentTime || 0;
+    },
+
+    getDuration() {
+      return tracks[0]?.audio?.duration || 0;
+    },
+
+    isPlaying() {
+      return isPlaying;
+    },
+
+    destroy() {
+      clearTracks();
+      endedHandler = null;
+    },
+  };
+}
+
 export function setupMultitrackPlayer(root = document) {
   console.log("multitrack: init");
 
