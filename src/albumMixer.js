@@ -63,6 +63,18 @@ function getTrackSlotId(index) {
   return `track${index + 1}`;
 }
 
+const DEFAULT_TRACK_LABELS = ["Pulse", "Weight", "Frame", "Air"];
+
+function getTrackLabel(track, index) {
+  const explicitLabel = String(track?.label || track?.role || "").trim();
+  if (explicitLabel) return explicitLabel;
+
+  const title = String(track?.title || "").trim();
+  if (title && !/^track\s*\d+$/i.test(title)) return title;
+
+  return DEFAULT_TRACK_LABELS[index] || `Track ${index + 1}`;
+}
+
 const METER_SEGMENT_COUNT = 12;
 const METER_WARN_START = 9;
 const METER_PEAK_START = 11;
@@ -606,6 +618,11 @@ export function setupAlbumMixer(root = document) {
       title.className = "tm4-strip-title";
       title.textContent = String(trackIndex + 1);
 
+      const trackLabel = strip.querySelector("[data-track-label]") || document.createElement("div");
+      trackLabel.className = "tm4-strip-label";
+      trackLabel.dataset.trackLabel = "";
+      trackLabel.textContent = getTrackLabel(track, trackIndex);
+
       const gain = document.createElement("input");
       gain.type = "range";
       gain.min = "0";
@@ -781,6 +798,7 @@ export function setupAlbumMixer(root = document) {
       if (!strip.contains(controls)) strip.appendChild(controls);
       if (meterPanel && !meterBankEl && !strip.contains(meterPanel)) strip.appendChild(meterPanel);
       if (!strip.contains(faderLabel)) strip.appendChild(faderLabel);
+      if (!strip.contains(trackLabel)) strip.appendChild(trackLabel);
 
       tracksEl.appendChild(strip);
     });
