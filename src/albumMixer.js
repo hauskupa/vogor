@@ -63,6 +63,50 @@ function getTrackSlotId(index) {
   return `track${index + 1}`;
 }
 
+const METER_SEGMENT_COUNT = 12;
+const METER_WARN_START = 9;
+const METER_PEAK_START = 11;
+
+function createMeterPanel(trackSlotId) {
+  const panel = document.createElement("div");
+  panel.className = "tm4-meter-panel";
+  panel.dataset.trackMeter = trackSlotId;
+
+  const stack = document.createElement("div");
+  stack.className = "tm4-meter-stack";
+
+  for (let index = METER_SEGMENT_COUNT - 1; index >= 0; index -= 1) {
+    const segment = document.createElement("span");
+    segment.className = "tm4-meter-segment inactive";
+    segment.dataset.segmentIndex = String(index);
+    stack.appendChild(segment);
+  }
+
+  panel.appendChild(stack);
+  return panel;
+}
+
+function updateMeterPanel(panel, level) {
+  if (!panel) return;
+
+  const activeSegments = Math.max(
+    0,
+    Math.min(METER_SEGMENT_COUNT, Math.round(level * METER_SEGMENT_COUNT))
+  );
+
+  panel.querySelectorAll(".tm4-meter-segment").forEach((segment) => {
+    const segmentIndex = Number(segment.dataset.segmentIndex || "0");
+    const isOn = segmentIndex < activeSegments;
+    const isWarn = isOn && segmentIndex >= METER_WARN_START;
+    const isPeak = isOn && segmentIndex >= METER_PEAK_START;
+
+    segment.classList.toggle("inactive", !isOn);
+    segment.classList.toggle("is-on", isOn && !isWarn && !isPeak);
+    segment.classList.toggle("is-warn", isWarn && !isPeak);
+    segment.classList.toggle("is-peak", isPeak);
+  });
+}
+
 function compareSongsBySide(a, b) {
   const sideCompare = String(a.side || "A").localeCompare(String(b.side || "A"));
   if (sideCompare !== 0) return sideCompare;
@@ -370,6 +414,7 @@ export function setupAlbumMixer(root = document) {
   const prevBtn = container.querySelector("[data-mixer-prev]");
   const nextBtn = container.querySelector("[data-mixer-next]");
   let meterFrame = 0;
+  const meterState = new Map();
   const uiSounds = {
     play: new Audio(normalizeAudioUrl("https://www.dropbox.com/scl/fi/sgvhyxbqoc0pakf6il1sq/4track-play.mp3?rlkey=zl6thgu94wmmd00pd5epuuex4&st=rj781cfj&dl=0")),
     pause: new Audio(normalizeAudioUrl("https://www.dropbox.com/scl/fi/tbdvqrzh699clxtz4ui82/4trackstopp.mp3?rlkey=ejma0tqs2r9v0vid6c5n0d9aq&st=0q465h7m&dl=0")),
@@ -689,9 +734,22 @@ export function setupAlbumMixer(root = document) {
         engine.setTrackFader(track.id, nextValue);
         levelValue.textContent = formatConsoleScale(nextValue);
       });
+      const meterPanel =
+        strip.querySelector(`[data-track-meter="${trackSlotId}"]`) ||
+        strip.querySelector("[data-track-meter]") ||
+        createMeterPanel(trackSlotId);
+      meterPanel.dataset.trackMeter = trackSlotId;
+      if (!meterPanel.classList.contains("tm4-meter-panel")) {
+        meterPanel.className = "tm4-meter-panel";
+      }
+      if (!meterPanel.querySelector(".tm4-meter-segment")) {
+        meterPanel.replaceChildren(createMeterPanel(trackSlotId).firstElementChild);
+      }
+      updateMeterPanel(meterPanel, meterState.get(trackSlotId) || 0);
 
       if (!strip.contains(title)) strip.appendChild(title);
       if (!strip.contains(controls)) strip.appendChild(controls);
+      if (!strip.contains(meterPanel)) strip.appendChild(meterPanel);
       if (!strip.contains(faderLabel)) strip.appendChild(faderLabel);
 
       tracksEl.appendChild(strip);
@@ -854,9 +912,16 @@ export function setupAlbumMixer(root = document) {
     const levels = engine.getMeterLevels();
     levels.forEach(({ level }, trackIndex) => {
       const trackSlotId = getTrackSlotId(trackIndex);
-      const el = container.querySelector(`[data-track-meter="${trackSlotId}"] .tm4-meter-fill`);
-      if (!el) return;
-      el.style.setProperty("--level", String(level));
+      const panel = container.querySelector(`[data-track-meter="${trackSlotId}"]`);
+      if (!panel) return;
+
+      const previous = meterState.get(trackSlotId) || 0;
+      const attack = 0.42;
+      const release = 0.18;
+      const smoothing = level >= previous ? attack : release;
+      const nextLevel = previous + (level - previous) * smoothing;
+      meterState.set(trackSlotId, nextLevel);
+      updateMeterPanel(panel, nextLevel);
     });
     meterFrame = window.requestAnimationFrame(updateMeters);
   }

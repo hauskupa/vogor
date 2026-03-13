@@ -77,6 +77,75 @@ output {
   display: none;
 }
 
+[data-album-mixer] .tm4-meter-panel {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  min-width: 28px;
+  padding: 8px 5px;
+  border: 1px solid #57544b;
+  border-radius: 2px;
+  background:
+    linear-gradient(180deg, #6f6b62 0%, #49453e 9%, #2b2824 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    inset 0 0 0 1px rgba(0, 0, 0, 0.28),
+    0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+[data-album-mixer] .tm4-meter-stack {
+  display: grid;
+  grid-template-rows: repeat(12, minmax(0, 1fr));
+  gap: 3px;
+  width: 100%;
+  height: 108px;
+}
+
+[data-album-mixer] .tm4-meter-segment {
+  display: block;
+  width: 100%;
+  min-height: 5px;
+  border-radius: 1px;
+  border: 1px solid rgba(0, 0, 0, 0.32);
+  background: #141614;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.04),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.45);
+  transition:
+    background-color 70ms linear,
+    box-shadow 70ms linear,
+    border-color 70ms linear;
+}
+
+[data-album-mixer] .tm4-meter-segment.inactive {
+  background: #171917;
+}
+
+[data-album-mixer] .tm4-meter-segment.is-on {
+  background: #5fa64d;
+  border-color: rgba(70, 109, 55, 0.9);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    0 0 3px rgba(95, 166, 77, 0.18);
+}
+
+[data-album-mixer] .tm4-meter-segment.is-warn {
+  background: #c0ab52;
+  border-color: rgba(122, 104, 40, 0.92);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    0 0 3px rgba(192, 171, 82, 0.16);
+}
+
+[data-album-mixer] .tm4-meter-segment.is-peak {
+  background: #a85d49;
+  border-color: rgba(110, 56, 46, 0.92);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    0 0 2px rgba(168, 93, 73, 0.14);
+}
+
 @keyframes tm4-reel-spin {
   from {
     transform: rotate(0deg);

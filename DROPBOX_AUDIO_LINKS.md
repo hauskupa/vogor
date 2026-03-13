@@ -32,6 +32,7 @@ Map those slots however you want per song. The visible labels in the UI can stil
 - `track2`: https://www.dropbox.com/scl/fi/ograninvnde6zf8txjayb/2.mp3?rlkey=ymecvwo07oky35bdi5sw9ix2x&st=i4murf85&dl=0
 - `track3`: https://www.dropbox.com/scl/fi/dreo46i530qa781guwef2/3.mp3?rlkey=rpaj5o7cdzq3j7sf0npjiovo2&st=s0bks9bb&dl=0
 - `track4`: https://www.dropbox.com/scl/fi/1fi90cdpjaolfgxvgvpno/4.mp3?rlkey=xbcjrmv2748e96im9sq1i50ir&st=635huu6j&dl=0
+
 ### Prestur
 
 - `track1`: https://www.dropbox.com/scl/fi/9g7bokxqpdrgr16r9dvaz/1.mp3?rlkey=7a0mbchhes6a5qg4r0a2mlt6c&st=x5pzqjha&dl=0
@@ -46,20 +47,40 @@ Map those slots however you want per song. The visible labels in the UI can stil
 - `track3`: https://www.dropbox.com/scl/fi/jibaxw8ygxmypzzq8nci9/3.mp3?rlkey=bpxxsihbdlkf9kpun1nooys5r&st=s0064tck&dl=0
 - `track4`: https://www.dropbox.com/scl/fi/0v3cdudm5bsp5ezqf3dce/4.mp3?rlkey=evs94sdvwhg5ufv96fhdswqxp&st=m3dkwsj7&dl=0
 
-### ToCoco
+### Tú-Kókó
 
 - `track1`: https://www.dropbox.com/scl/fi/13j3fudow85byz31ul0ng/1.mp3?rlkey=1o3fwdeo9fsmaasjls1vmnvqz&st=6r9gz2ok&dl=0
 - `track2`: https://www.dropbox.com/scl/fi/hqf1p139zwzpn1ribu9u1/2.mp3?rlkey=sq1sn7p9r5fduzyqowa2acjlm&st=y5e5h0an&dl=0
 - `track3`: https://www.dropbox.com/scl/fi/3x8loz2zspr6a9iyztj7p/3.mp3?rlkey=refhlyfhf91stvcdu7lvykabr&st=8tyimiw5&dl=0
 - `track4`: https://www.dropbox.com/scl/fi/mnffw1fsyeburoivg81of/4.mp3?rlkey=trvo7n19utspqn141kkpeuihq&st=a28ic9dv&dl=0
 
-### Gloria
+### Vélknúin Önd
 
-- `track1`: https://www.dropbox.com/scl/fi/3xc5zi4lxom331go574rz/1.mp3?rlkey=wiqz56rxbr3hiu5murgbitohk&st=ghlgtet4&dl=0
-- `track2`: https://www.dropbox.com/scl/fi/ohsyqwffuq5bev9t079n5/2.mp3?rlkey=otso51wid23ciuqyyzgjjd0zt&st=en87r3ds&dl=0
-- `track3`: https://www.dropbox.com/scl/fi/jibaxw8ygxmypzzq8nci9/3.mp3?rlkey=bpxxsihbdlkf9kpun1nooys5r&st=s0064tck&dl=0
-- `track4`: https://www.dropbox.com/scl/fi/0v3cdudm5bsp5ezqf3dce/4.mp3?rlkey=evs94sdvwhg5ufv96fhdswqxp&st=m3dkwsj7&dl=0
+- `track1`: https://www.dropbox.com/scl/fi/xix3dsi6q68ye0vtda929/1.mp3?rlkey=xagdu3pekd1rfjt80k0duj3xp&st=trqgzglv&dl=0
+- `track2`: https://www.dropbox.com/scl/fi/d3faubt2g2j2ohs4y3yh9/2.mp3?rlkey=zqeohfa999cjg38x554cvwinq&st=t507qwzz&dl=0
+- `track3`: https://www.dropbox.com/scl/fi/fp8qcf879tddvznbuplm5/3.mp3?rlkey=55tm4a88t6dd6dtm3ktrod10n&st=pbvaimqi&dl=0
+- `track4`: https://www.dropbox.com/scl/fi/pm3clkuizb7yv7jby98jo/4.mp3?rlkey=ggw52d4fou23hghszad9klh67&st=xmy7l2t9&dl=0
 
+### Vélknúin Önd
+
+- `track1`: https://www.dropbox.com/scl/fi/xix3dsi6q68ye0vtda929/1.mp3?rlkey=xagdu3pekd1rfjt80k0duj3xp&st=trqgzglv&dl=0
+- `track2`: https://www.dropbox.com/scl/fi/d3faubt2g2j2ohs4y3yh9/2.mp3?rlkey=zqeohfa999cjg38x554cvwinq&st=t507qwzz&dl=0
+- `track3`: https://www.dropbox.com/scl/fi/fp8qcf879tddvznbuplm5/3.mp3?rlkey=55tm4a88t6dd6dtm3ktrod10n&st=pbvaimqi&dl=0
+- `track4`: https://www.dropbox.com/scl/fi/pm3clkuizb7yv7jby98jo/4.mp3?rlkey=ggw52d4fou23hghszad9klh67&st=xmy7l2t9&dl=0
+
+### AMB1
+
+- `track1`: https://www.dropbox.com/scl/fi/zgsy9i6oyyc1b0twc0x0o/1.mp3?rlkey=cepxn8sfb78gqcdubtigj0l28&st=quuattk9&dl=0
+- `track2`: https://www.dropbox.com/scl/fi/uv21x5z6xt9cyb1k7xdk4/2.mp3?rlkey=x25t0mgvjm613lvtw3k2ii5qd&st=dkj0e1z2&dl=0
+- `track3`: https://www.dropbox.com/scl/fi/y2lthp1q9jln9h9xq9ut6/3.mp3?rlkey=d07qon36cmmqslihmyn22hor2&st=u67v60r3&dl=0
+- `track4`: https://www.dropbox.com/scl/fi/0gcmw5oxzsry9bzf491hp/4.mp3?rlkey=inza92nn2f3g33marzxe1zuld&st=50awcoai&dl=0
+
+### AMB2
+
+- `track1`: https://www.dropbox.com/scl/fi/r7bhvawo0ibk52u4ta2ia/1.mp3?rlkey=c8daev8tmburrmvrkoukgijk6&st=4a3rk04i&dl=0
+- `track2`: https://www.dropbox.com/scl/fi/7zojfskh3d9tnmi6wqog7/2.mp3?rlkey=nvqrgkf0joo56kmnw1vxt1am6&st=a2hlv9a7&dl=0
+- `track3`: https://www.dropbox.com/scl/fi/8esu7tkgu5yklkmv8vng5/3.mp3?rlkey=bn1dk2nb2q7cru0c3t8lknp34&st=oefn04d3&dl=0
+- `track4`: https://www.dropbox.com/scl/fi/4o37pmi2dmmixltyas5iq/4.mp3?rlkey=cnpribh02xj2t4sl66o827skf&st=23z4b8x5&dl=0
 
 ## UI Sounds
 
