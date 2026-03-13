@@ -63,16 +63,9 @@ function getTrackSlotId(index) {
   return `track${index + 1}`;
 }
 
-const DEFAULT_TRACK_LABELS = ["Pulse", "Weight", "Frame", "Air"];
-
-function getTrackLabel(track, index) {
-  const explicitLabel = String(track?.label || track?.role || "").trim();
-  if (explicitLabel) return explicitLabel;
-
+function getTrackTitle(track, index) {
   const title = String(track?.title || "").trim();
-  if (title && !/^track\s*\d+$/i.test(title)) return title;
-
-  return DEFAULT_TRACK_LABELS[index] || `Track ${index + 1}`;
+  return title || `Track ${index + 1}`;
 }
 
 const METER_SEGMENT_COUNT = 12;
@@ -616,12 +609,12 @@ export function setupAlbumMixer(root = document) {
 
       const title = strip.querySelector("[data-track-title]") || document.createElement("div");
       title.className = "tm4-strip-title";
-      title.textContent = String(trackIndex + 1);
+      title.textContent = getTrackTitle(track, trackIndex);
 
       const trackLabel = strip.querySelector("[data-track-label]") || document.createElement("div");
       trackLabel.className = "tm4-strip-label";
       trackLabel.dataset.trackLabel = "";
-      trackLabel.textContent = getTrackLabel(track, trackIndex);
+      trackLabel.textContent = getTrackTitle(track, trackIndex);
 
       const gain = document.createElement("input");
       gain.type = "range";
