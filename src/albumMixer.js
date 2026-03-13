@@ -68,6 +68,18 @@ function getTrackTitle(track, index) {
   return title || `Track ${index + 1}`;
 }
 
+function getMarkupTrackTitles(container) {
+  return Array.from(container.querySelectorAll("[data-track-title]"))
+    .filter((element) => {
+      if (!(element instanceof HTMLElement)) return false;
+      if (element.closest("[data-mixer-track-template]")) return false;
+      if (element.closest(".tm4-master-strip")) return false;
+      return true;
+    })
+    .map((element) => element.textContent?.trim() || "")
+    .filter(Boolean);
+}
+
 const METER_SEGMENT_COUNT = 12;
 const METER_WARN_START = 9;
 const METER_PEAK_START = 11;
@@ -446,6 +458,7 @@ export function setupAlbumMixer(root = document) {
   const prevBtn = container.querySelector("[data-mixer-prev]");
   const nextBtn = container.querySelector("[data-mixer-next]");
   const meterBankEl = container.querySelector("[data-mixer-meter-bank]");
+  const markupTrackTitles = getMarkupTrackTitles(container);
   let meterFrame = 0;
   const meterState = new Map();
   const uiSounds = {
@@ -607,14 +620,16 @@ export function setupAlbumMixer(root = document) {
         strip.className = "tm4-strip";
       }
 
+      const resolvedTrackTitle = markupTrackTitles[trackIndex] || getTrackTitle(track, trackIndex);
+
       const title = strip.querySelector("[data-track-title]") || document.createElement("div");
       title.className = "tm4-strip-title";
-      title.textContent = getTrackTitle(track, trackIndex);
+      title.textContent = resolvedTrackTitle;
 
       const trackLabel = strip.querySelector("[data-track-label]") || document.createElement("div");
       trackLabel.className = "tm4-strip-label";
       trackLabel.dataset.trackLabel = "";
-      trackLabel.textContent = getTrackTitle(track, trackIndex);
+      trackLabel.textContent = resolvedTrackTitle;
 
       const gain = document.createElement("input");
       gain.type = "range";
