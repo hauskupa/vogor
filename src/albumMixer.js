@@ -65,6 +65,14 @@ function getTrackSlotId(index) {
 
 function getTrackTitle(track, index) {
   const title = String(track?.title || "").trim();
+  if (title && !/^track\s+\d+$/i.test(title)) return title;
+
+  const slotId = String(track?.id || "").trim();
+  if (slotId) {
+    const normalized = slotId.replace(/^track/i, "");
+    if (/^\d+$/.test(normalized)) return normalized;
+  }
+
   return title || `Track ${index + 1}`;
 }
 
