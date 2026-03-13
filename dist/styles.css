@@ -39,3 +39,42 @@
 .slide.playing { box-shadow: 0 12px 40px rgba(0,0,0,0.28); }
 .slide.paused { opacity: 0.98; }
 
+[data-asleep-preloader],
+[data-album-mixer-preloader] {
+	transition: opacity 180ms ease, visibility 180ms ease;
+}
+
+[data-asleep-preloader][aria-hidden="false"],
+[data-album-mixer-preloader][aria-hidden="false"] {
+	opacity: 1 !important;
+	pointer-events: auto !important;
+	visibility: visible !important;
+}
+
+[data-asleep-preloader][aria-hidden="true"],
+[data-album-mixer-preloader][aria-hidden="true"] {
+	opacity: 0 !important;
+	pointer-events: none !important;
+	visibility: hidden !important;
+}
+
+[data-album-mixer-preloader] {
+	position: absolute;
+	inset: 0;
+	z-index: 20;
+	display: grid;
+	place-items: center;
+	background: rgba(18,20,24,0.48);
+}
+
+[data-preloader-panel] {
+	padding: 0.75rem 1rem;
+	border-radius: 999px;
+	background: rgba(28,30,36,0.92);
+	color: #f5f5f5;
+	font-size: 0.875rem;
+	font-weight: 700;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+}
+

@@ -184,30 +184,6 @@
     0 0 2px rgba(168, 93, 73, 0.14);
 }
 
-.tm4-preloader[aria-hidden="true"] {
-  display: none;
-}
-
-.tm4-preloader {
-  position: absolute;
-  inset: 0;
-  z-index: 20;
-  display: grid;
-  place-items: center;
-  background: rgba(18, 20, 24, 0.48);
-}
-
-.tm4-preloader__panel {
-  padding: 0.75rem 1rem;
-  border-radius: 999px;
-  background: rgba(28, 30, 36, 0.92);
-  color: #f5f5f5;
-  font-size: 0.875rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
 @keyframes tm4-reel-spin {
   from {
     transform: rotate(0deg);

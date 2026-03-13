@@ -93,16 +93,14 @@ function createAlbumMixerPreloader(container) {
     container.querySelector("[data-album-mixer-preloader]") ||
     container.querySelector("[data-asleep-preloader]");
   if (existing instanceof HTMLElement) {
-    existing.classList.add("tm4-preloader");
     existing.setAttribute("aria-hidden", existing.getAttribute("aria-hidden") || "true");
     return existing;
   }
 
   const preloader = document.createElement("div");
-  preloader.className = "tm4-preloader";
   preloader.dataset.albumMixerPreloader = "";
   preloader.setAttribute("aria-hidden", "true");
-  preloader.innerHTML = '<div class="tm4-preloader__panel">Loading tape...</div>';
+  preloader.innerHTML = '<div data-preloader-panel>Loading tape...</div>';
   container.appendChild(preloader);
   return preloader;
 }
