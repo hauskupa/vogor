@@ -72,8 +72,6 @@ output {
   transform: scale(var(--right-reel-scale, 0.72));
 }
 
-
-
 .tm4-cassette-counter {
   display: none;
 }

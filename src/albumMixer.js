@@ -80,6 +80,21 @@ function getMarkupTrackTitles(container) {
     .filter(Boolean);
 }
 
+function createAlbumMixerPreloader(container) {
+  const existing =
+    container.querySelector("[data-album-mixer-preloader]") ||
+    container.querySelector("[data-asleep-preloader]");
+  if (existing instanceof HTMLElement) return existing;
+
+  const preloader = document.createElement("div");
+  preloader.className = "tm4-preloader";
+  preloader.dataset.albumMixerPreloader = "";
+  preloader.setAttribute("aria-hidden", "true");
+  preloader.innerHTML = '<div class="tm4-preloader__panel">Loading tape...</div>';
+  container.appendChild(preloader);
+  return preloader;
+}
+
 const METER_SEGMENT_COUNT = 12;
 const METER_WARN_START = 9;
 const METER_PEAK_START = 11;
@@ -459,6 +474,7 @@ export function setupAlbumMixer(root = document) {
   const nextBtn = container.querySelector("[data-mixer-next]");
   const meterBankEl = container.querySelector("[data-mixer-meter-bank]");
   const markupTrackTitles = getMarkupTrackTitles(container);
+  const preloaderEl = createAlbumMixerPreloader(container);
   let meterFrame = 0;
   const meterState = new Map();
   const uiSounds = {
@@ -522,6 +538,92 @@ export function setupAlbumMixer(root = document) {
 
   songs.forEach(loadSongMetadata);
 
+  function isAudioReady(audio) {
+    return Boolean(audio && audio.readyState >= 3);
+  }
+
+  function preloadTrackAudio(track) {
+    const audio = track?.audio;
+    if (!audio) return Promise.resolve({ ok: false, missing: true });
+
+    audio.preload = "auto";
+
+    if (isAudioReady(audio)) {
+      return Promise.resolve({ ok: true, cached: true });
+    }
+
+    if (!track._readyPromise) {
+      track._readyPromise = new Promise((resolve) => {
+        let settled = false;
+
+        const cleanup = () => {
+          audio.removeEventListener("canplaythrough", onReady);
+          audio.removeEventListener("loadedmetadata", onReady);
+          audio.removeEventListener("error", onError);
+        };
+
+        const done = (result) => {
+          if (settled) return;
+          settled = true;
+          cleanup();
+          track._readyPromise = null;
+          resolve(result);
+        };
+
+        const onReady = () => done({ ok: true });
+        const onError = (error) => {
+          console.warn("album-mixer: preload error", audio.src, error);
+          done({ ok: false, error: true });
+        };
+
+        audio.addEventListener("canplaythrough", onReady, { passive: true });
+        audio.addEventListener("loadedmetadata", onReady, { passive: true });
+        audio.addEventListener("error", onError, { passive: true });
+
+        window.setTimeout(() => done({ ok: false, timeout: true }), 3500);
+      });
+    }
+
+    if (audio.readyState < 3) {
+      try {
+        audio.load();
+      } catch {}
+    }
+
+    return track._readyPromise;
+  }
+
+  function preloadSongAudio(song) {
+    if (!song?.tracks?.length) return Promise.resolve([]);
+    return Promise.all(song.tracks.map((track) => preloadTrackAudio(track)));
+  }
+
+  async function showPreloaderUntilReady(song, { timeout = 3500, minShow = 900 } = {}) {
+    if (!song?.tracks?.length) return;
+
+    const tracks = song.tracks.filter((track) => track?.audio);
+    if (!tracks.length || tracks.every((track) => isAudioReady(track.audio))) return;
+
+    const started = performance.now();
+    preloaderEl.setAttribute("aria-hidden", "false");
+
+    await Promise.race([
+      preloadSongAudio(song),
+      new Promise((resolve) => window.setTimeout(resolve, timeout)),
+    ]);
+
+    const elapsed = performance.now() - started;
+    if (elapsed < minShow) {
+      await new Promise((resolve) => window.setTimeout(resolve, minShow - elapsed));
+    }
+
+    preloaderEl.setAttribute("aria-hidden", "true");
+  }
+
+  function warmSongAudio(song) {
+    preloadSongAudio(song).catch(() => {});
+  }
+
   function getAdjacentSong(direction) {
     const { currentSongId } = engine.getState();
     const currentMeta = sideMeta.byId.get(currentSongId);
@@ -565,6 +667,7 @@ export function setupAlbumMixer(root = document) {
 
     playCue(direction < 0 ? uiSounds.rew : uiSounds.ff, { playbackRate: 1, volume: 0.22 });
 
+    await showPreloaderUntilReady(targetSong);
     await engine.loadSong(targetSong.id, { autoplay: isPlaying });
     renderTrackControls();
     syncSongButtons();
@@ -583,6 +686,7 @@ export function setupAlbumMixer(root = document) {
       button.dataset.songId = song.id;
       button.className = "tm4-song-button";
       button.addEventListener("click", async () => {
+        await showPreloaderUntilReady(song);
         await engine.loadSong(song.id);
         renderTrackControls();
         syncSongButtons();
@@ -860,11 +964,15 @@ export function setupAlbumMixer(root = document) {
   }
 
   container.querySelector("[data-mixer-play]")?.addEventListener("click", async () => {
-    playCue(uiSounds.play, { playbackRate: 1, volume: 0.18 });
     try {
+      const activeSong = engine.getState().song || (await engine.loadSong(songs[0].id));
+      await showPreloaderUntilReady(activeSong);
+      playCue(uiSounds.play, { playbackRate: 1, volume: 0.18 });
       await engine.play();
     } catch (error) {
       console.warn("album-mixer: play request failed", error);
+    } finally {
+      preloaderEl.setAttribute("aria-hidden", "true");
     }
   });
 
@@ -950,6 +1058,9 @@ export function setupAlbumMixer(root = document) {
     syncSongButtons();
     syncTimeline();
     syncTransportState();
+    const currentSong = engine.getState().song;
+    warmSongAudio(currentSong);
+    warmSongAudio(getAdjacentSong(1));
   });
 
   engine.addEventListener("timeupdate", () => {
@@ -967,6 +1078,7 @@ export function setupAlbumMixer(root = document) {
   engine.addEventListener("songended", async () => {
     const targetSong = getAdjacentSong(1);
     if (!targetSong) return;
+    await showPreloaderUntilReady(targetSong);
     await engine.loadSong(targetSong.id, { autoplay: true });
     renderTrackControls();
     syncSongButtons();
@@ -1004,6 +1116,8 @@ export function setupAlbumMixer(root = document) {
     setFaderVisualValue(masterEl, engine.getState().masterVolume, 0, 1);
   }
   engine.loadSong(songs[0].id);
+  warmSongAudio(songs[0]);
+  warmSongAudio(songs[1]);
   meterFrame = window.requestAnimationFrame(updateMeters);
 
   return {
