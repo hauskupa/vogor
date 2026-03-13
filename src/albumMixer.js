@@ -107,6 +107,33 @@ function updateMeterPanel(panel, level) {
   });
 }
 
+function ensureMeterPanel(panel, trackSlotId) {
+  if (!panel) return null;
+
+  panel.dataset.trackMeter = trackSlotId;
+  if (!panel.classList.contains("tm4-meter-panel")) {
+    panel.classList.add("tm4-meter-panel");
+  }
+
+  let stack = panel.querySelector(".tm4-meter-stack");
+  if (!stack) {
+    stack = document.createElement("div");
+    stack.className = "tm4-meter-stack";
+    panel.replaceChildren(stack);
+  }
+
+  if (!panel.querySelector(".tm4-meter-segment")) {
+    for (let index = METER_SEGMENT_COUNT - 1; index >= 0; index -= 1) {
+      const segment = document.createElement("span");
+      segment.className = "tm4-meter-segment inactive";
+      segment.dataset.segmentIndex = String(index);
+      stack.appendChild(segment);
+    }
+  }
+
+  return panel;
+}
+
 function compareSongsBySide(a, b) {
   const sideCompare = String(a.side || "A").localeCompare(String(b.side || "A"));
   if (sideCompare !== 0) return sideCompare;
@@ -413,6 +440,7 @@ export function setupAlbumMixer(root = document) {
   const stopLightEl = container.querySelector("[data-mixer-stop-light]");
   const prevBtn = container.querySelector("[data-mixer-prev]");
   const nextBtn = container.querySelector("[data-mixer-next]");
+  const meterBankEl = container.querySelector("[data-mixer-meter-bank]");
   let meterFrame = 0;
   const meterState = new Map();
   const uiSounds = {
@@ -734,22 +762,19 @@ export function setupAlbumMixer(root = document) {
         engine.setTrackFader(track.id, nextValue);
         levelValue.textContent = formatConsoleScale(nextValue);
       });
-      const meterPanel =
-        strip.querySelector(`[data-track-meter="${trackSlotId}"]`) ||
-        strip.querySelector("[data-track-meter]") ||
-        createMeterPanel(trackSlotId);
-      meterPanel.dataset.trackMeter = trackSlotId;
-      if (!meterPanel.classList.contains("tm4-meter-panel")) {
-        meterPanel.className = "tm4-meter-panel";
-      }
-      if (!meterPanel.querySelector(".tm4-meter-segment")) {
-        meterPanel.replaceChildren(createMeterPanel(trackSlotId).firstElementChild);
-      }
+      const meterPanel = ensureMeterPanel(
+        meterBankEl?.querySelector(`[data-track-meter="${trackSlotId}"]`) ||
+          (!meterBankEl &&
+            (strip.querySelector(`[data-track-meter="${trackSlotId}"]`) ||
+              strip.querySelector("[data-track-meter]"))) ||
+          (!meterBankEl ? createMeterPanel(trackSlotId) : null),
+        trackSlotId
+      );
       updateMeterPanel(meterPanel, meterState.get(trackSlotId) || 0);
 
       if (!strip.contains(title)) strip.appendChild(title);
       if (!strip.contains(controls)) strip.appendChild(controls);
-      if (!strip.contains(meterPanel)) strip.appendChild(meterPanel);
+      if (meterPanel && !meterBankEl && !strip.contains(meterPanel)) strip.appendChild(meterPanel);
       if (!strip.contains(faderLabel)) strip.appendChild(faderLabel);
 
       tracksEl.appendChild(strip);
