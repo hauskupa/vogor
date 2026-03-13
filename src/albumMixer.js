@@ -504,16 +504,10 @@ export function setupAlbumMixer(root = document) {
 
   songs.forEach(loadSongMetadata);
 
-  async function navigateSong(direction) {
-    const { currentSongId, currentTime } = engine.getState();
+  function getAdjacentSong(direction) {
+    const { currentSongId } = engine.getState();
     const currentMeta = sideMeta.byId.get(currentSongId);
     let targetSong = null;
-
-    if (direction < 0 && currentTime > 3) {
-      engine.seek(0);
-      syncTimeline();
-      return;
-    }
 
     if (currentMeta) {
       const currentSideSongs = sideMeta.sideSongs.get(currentMeta.side) || [];
@@ -535,6 +529,20 @@ export function setupAlbumMixer(root = document) {
       const nextIndex = (currentIndex + direction + songs.length) % songs.length;
       targetSong = songs[nextIndex];
     }
+
+    return targetSong;
+  }
+
+  async function navigateSong(direction) {
+    const { currentTime } = engine.getState();
+
+    if (direction < 0 && currentTime > 3) {
+      engine.seek(0);
+      syncTimeline();
+      return;
+    }
+
+    const targetSong = getAdjacentSong(direction);
     const { isPlaying } = engine.getState();
 
     playCue(direction < 0 ? uiSounds.rew : uiSounds.ff, { playbackRate: 1, volume: 0.22 });
@@ -928,6 +936,14 @@ export function setupAlbumMixer(root = document) {
 
   engine.addEventListener("pitchchange", () => {
     syncTransportState();
+  });
+
+  engine.addEventListener("songended", async () => {
+    const targetSong = getAdjacentSong(1);
+    if (!targetSong) return;
+    await engine.loadSong(targetSong.id, { autoplay: true });
+    renderTrackControls();
+    syncSongButtons();
   });
 
   function updateMeters() {
