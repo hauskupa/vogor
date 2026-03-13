@@ -105,51 +105,7 @@ output {
   transform: scale(var(--right-reel-scale, 0.72));
 }
 
-.tm4-cassette-overlay {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  display: grid;
-  grid-template-columns: 64px 1fr 100px;
-  grid-template-rows: 42px 52px 1fr;
-  padding: 15.6% 9.8% 20.8%;
-  color: #161613;
-  text-transform: uppercase;
-}
 
-.tm4-cassette-side {
-  grid-column: 1;
-  grid-row: 1;
-  justify-self: start;
-  align-self: start;
-  width: 36px;
-  height: 36px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 0.98rem;
-  letter-spacing: 0.04em;
-  font-weight: 700;
-}
-
-.tm4-cassette-title {
-  grid-column: 1 / span 2;
-  grid-row: 1;
-  align-self: start;
-  justify-self: start;
-  margin-left: 54px;
-  margin-top: 3px;
-  font-size: 0.52rem;
-  letter-spacing: 0.04em;
-  font-weight: 700;
-  max-width: 50%;
-  text-align: left;
-  line-height: 1.2;
-}
-
-.tm4-cassette-counter {
-  display: none;
-}
 
 .tm4-hidden-lists {
   display: none;
