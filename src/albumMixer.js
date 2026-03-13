@@ -525,9 +525,6 @@ export function setupAlbumMixer(root = document) {
       title.className = "tm4-strip-title";
       title.textContent = track.title;
 
-      const scale = strip.querySelector(".tm4-strip-scale") || document.createElement("div");
-      scale.className = "tm4-strip-scale";
-
       const gain = document.createElement("input");
       gain.type = "range";
       gain.min = "0";
@@ -694,7 +691,6 @@ export function setupAlbumMixer(root = document) {
       });
 
       if (!strip.contains(title)) strip.appendChild(title);
-      if (!strip.contains(scale)) strip.appendChild(scale);
       if (!strip.contains(controls)) strip.appendChild(controls);
       if (!strip.contains(faderLabel)) strip.appendChild(faderLabel);
 
