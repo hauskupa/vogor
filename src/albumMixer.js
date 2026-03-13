@@ -731,7 +731,7 @@ export function setupAlbumMixer(root = document) {
       title.textContent = resolvedTrackTitle;
 
       const trackLabel = strip.querySelector("[data-track-label]") || document.createElement("div");
-      trackLabel.className = "tm4-strip-label";
+      trackLabel.className = "tm4-strip-title";
       trackLabel.dataset.trackLabel = "";
       trackLabel.textContent = resolvedTrackTitle;
 
