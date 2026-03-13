@@ -596,7 +596,7 @@ export function setupAlbumMixer(root = document) {
 
       const title = strip.querySelector("[data-track-title]") || document.createElement("div");
       title.className = "tm4-strip-title";
-      title.textContent = track.title;
+      title.textContent = String(trackIndex + 1);
 
       const gain = document.createElement("input");
       gain.type = "range";
@@ -739,11 +739,8 @@ export function setupAlbumMixer(root = document) {
 
       const faderLabel = strip.querySelector(".tm4-fader-wrap") || document.createElement("label");
       faderLabel.className = "tm4-fader-wrap";
-      if (!faderLabel.querySelector(":scope > span")) {
-        const faderTitle = document.createElement("span");
-        faderTitle.textContent = "Level";
-        faderLabel.prepend(faderTitle);
-      }
+      const existingFaderTitle = faderLabel.querySelector(":scope > span");
+      existingFaderTitle?.remove();
       const existingFader = faderLabel.querySelector("input");
       const existingLevelReadout = faderLabel.querySelector(".tm4-readout");
       if (existingFader && existingFader !== fader) {
