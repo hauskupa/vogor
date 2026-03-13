@@ -4,7 +4,6 @@ import { setupPlayer } from "./player.js";
 import { setupAlbumMixer } from "./albumMixer.js";
 import { setupMultitrackPlayer } from "./multitrackplayer.js";
 import { setupAsleepArtwork } from "./asleep.js";
-import { setupCassetteDeck } from "./cassette.js";
 
 document.addEventListener("DOMContentLoaded", () => {
   // Mixer
@@ -35,11 +34,5 @@ document.addEventListener("DOMContentLoaded", () => {
     console.log("Found [data-multitrack-player], initializing multitrack...");
     const mt = setupMultitrackPlayer(document);  // engine
     setupAsleepArtwork(mt);                      // song-switching & visuals
-  }
-
-  // Cassette deck (isolated feature flag to avoid affecting Asleep/Awake)
-  if (document.querySelector("[data-cassette-deck]")) {
-    console.log("Found [data-cassette-deck], initializing cassette...");
-    setupCassetteDeck(document);
   }
 });

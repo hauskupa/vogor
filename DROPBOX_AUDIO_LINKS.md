@@ -46,6 +46,20 @@ Map those slots however you want per song. The visible labels in the UI can stil
 - `track3`: https://www.dropbox.com/scl/fi/jibaxw8ygxmypzzq8nci9/3.mp3?rlkey=bpxxsihbdlkf9kpun1nooys5r&st=s0064tck&dl=0
 - `track4`: https://www.dropbox.com/scl/fi/0v3cdudm5bsp5ezqf3dce/4.mp3?rlkey=evs94sdvwhg5ufv96fhdswqxp&st=m3dkwsj7&dl=0
 
+### ToCoco
+
+- `track1`: https://www.dropbox.com/scl/fi/13j3fudow85byz31ul0ng/1.mp3?rlkey=1o3fwdeo9fsmaasjls1vmnvqz&st=6r9gz2ok&dl=0
+- `track2`: https://www.dropbox.com/scl/fi/hqf1p139zwzpn1ribu9u1/2.mp3?rlkey=sq1sn7p9r5fduzyqowa2acjlm&st=y5e5h0an&dl=0
+- `track3`: https://www.dropbox.com/scl/fi/3x8loz2zspr6a9iyztj7p/3.mp3?rlkey=refhlyfhf91stvcdu7lvykabr&st=8tyimiw5&dl=0
+- `track4`: https://www.dropbox.com/scl/fi/mnffw1fsyeburoivg81of/4.mp3?rlkey=trvo7n19utspqn141kkpeuihq&st=a28ic9dv&dl=0
+
+### Gloria
+
+- `track1`: https://www.dropbox.com/scl/fi/3xc5zi4lxom331go574rz/1.mp3?rlkey=wiqz56rxbr3hiu5murgbitohk&st=ghlgtet4&dl=0
+- `track2`: https://www.dropbox.com/scl/fi/ohsyqwffuq5bev9t079n5/2.mp3?rlkey=otso51wid23ciuqyyzgjjd0zt&st=en87r3ds&dl=0
+- `track3`: https://www.dropbox.com/scl/fi/jibaxw8ygxmypzzq8nci9/3.mp3?rlkey=bpxxsihbdlkf9kpun1nooys5r&st=s0064tck&dl=0
+- `track4`: https://www.dropbox.com/scl/fi/0v3cdudm5bsp5ezqf3dce/4.mp3?rlkey=evs94sdvwhg5ufv96fhdswqxp&st=m3dkwsj7&dl=0
+
 
 ## UI Sounds
 
