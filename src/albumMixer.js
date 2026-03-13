@@ -370,10 +370,16 @@ export function setupAlbumMixer(root = document) {
   const prevBtn = container.querySelector("[data-mixer-prev]");
   const nextBtn = container.querySelector("[data-mixer-next]");
   let meterFrame = 0;
-  const navAudio = new Audio("https://audiocdn.epidemicsound.com/lqmp3/01KJCP9BWYZXJ0JTZ1Z4XRKVC4.mp3");
-  navAudio.preload = "auto";
-  const transportAudio = new Audio("https://assets.mixkit.co/active_storage/sfx/1133/1133-preview.mp3");
-  transportAudio.preload = "auto";
+  const uiSounds = {
+    play: new Audio(normalizeAudioUrl("https://www.dropbox.com/scl/fi/sgvhyxbqoc0pakf6il1sq/4track-play.mp3?rlkey=zl6thgu94wmmd00pd5epuuex4&st=rj781cfj&dl=0")),
+    pause: new Audio(normalizeAudioUrl("https://www.dropbox.com/scl/fi/tbdvqrzh699clxtz4ui82/4trackstopp.mp3?rlkey=ejma0tqs2r9v0vid6c5n0d9aq&st=0q465h7m&dl=0")),
+    stop: new Audio(normalizeAudioUrl("https://www.dropbox.com/scl/fi/tbdvqrzh699clxtz4ui82/4trackstopp.mp3?rlkey=ejma0tqs2r9v0vid6c5n0d9aq&st=0q465h7m&dl=0")),
+    rew: new Audio(normalizeAudioUrl("https://www.dropbox.com/scl/fi/vyvts53ptjniimubulalu/4trackffw.mp3?rlkey=j9ezqp10z86qc04zthakrpcxx&st=k4ydo9v9&dl=0")),
+    ff: new Audio(normalizeAudioUrl("https://www.dropbox.com/scl/fi/vyvts53ptjniimubulalu/4trackffw.mp3?rlkey=j9ezqp10z86qc04zthakrpcxx&st=k4ydo9v9&dl=0")),
+  };
+  Object.values(uiSounds).forEach((audio) => {
+    audio.preload = "auto";
+  });
   const durationMap = new Map();
   let sideMeta = buildSideMetadata(songs, durationMap);
 
@@ -458,7 +464,7 @@ export function setupAlbumMixer(root = document) {
     }
     const { isPlaying } = engine.getState();
 
-    playCue(navAudio, { playbackRate: 1.15, volume: 0.22 });
+    playCue(direction < 0 ? uiSounds.rew : uiSounds.ff, { playbackRate: 1, volume: 0.22 });
 
     await engine.loadSong(targetSong.id, { autoplay: isPlaying });
     renderTrackControls();
@@ -744,7 +750,7 @@ export function setupAlbumMixer(root = document) {
   }
 
   container.querySelector("[data-mixer-play]")?.addEventListener("click", async () => {
-    playCue(transportAudio, { playbackRate: 1.08, volume: 0.18 });
+    playCue(uiSounds.play, { playbackRate: 1, volume: 0.18 });
     try {
       await engine.play();
     } catch (error) {
@@ -753,12 +759,12 @@ export function setupAlbumMixer(root = document) {
   });
 
   container.querySelector("[data-mixer-pause]")?.addEventListener("click", () => {
-    playCue(transportAudio, { playbackRate: 0.92, volume: 0.16 });
+    playCue(uiSounds.pause, { playbackRate: 1, volume: 0.16 });
     engine.pause();
   });
 
   container.querySelector("[data-mixer-stop]")?.addEventListener("click", () => {
-    playCue(transportAudio, { playbackRate: 0.82, volume: 0.18 });
+    playCue(uiSounds.stop, { playbackRate: 1, volume: 0.18 });
     engine.stop();
   });
 

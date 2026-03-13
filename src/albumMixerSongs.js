@@ -1,115 +1,63 @@
-// Temporary test dataset for the 4-track album mixer.
+// Current Dropbox-backed test dataset for the 4-track album mixer.
 export const albumMixerSongs = [
   {
-    id: "nirfana",
-    title: "Nirfana",
+    id: "jeppi-net",
+    title: "Jeppi/Net",
     side: "A",
     sideIndex: 1,
     tracks: [
-      {
-        id: "drums",
-        title: "Drums",
-        url: "https://www.dropbox.com/scl/fi/yduulz1htfnrt83489han/DRUMS.mp3?rlkey=cj7dc0zomfbbf0nhws2cumc5p&st=j3l9u8zc&dl=0",
-      },
-      {
-        id: "bass",
-        title: "Bass",
-        url: "https://www.dropbox.com/scl/fi/ui5v0jhc8yl4phmtxis5f/BASS.mp3?rlkey=zq7xrfa4ed85vsvncyjmjsurp&st=mkqcpfdu&dl=0",
-      },
-      {
-        id: "acoustic",
-        title: "Acoustic",
-        url: "https://www.dropbox.com/scl/fi/zk9vh0ics17qv8j3my9z1/ACOUSTIC.mp3?rlkey=2ium0dwofahw0f2do6j92v4cc&st=xz6di70x&dl=0",
-      },
-      {
-        id: "vox",
-        title: "Vox",
-        url: "https://www.dropbox.com/scl/fi/vdn7gmdo3gk9opmxysa0s/VOX.mp3?rlkey=kofora60lom2115mzq3pm0n7j&st=b4mgcqlg&dl=0",
-      },
+      { id: "track1", title: "Track 1", url: "https://www.dropbox.com/scl/fi/hflt0eq0z8b9jddh9ct4e/1.mp3?rlkey=f3ndqsxd4r77bodtmsfxndk8r&st=lwi2rmqf&dl=0" },
+      { id: "track2", title: "Track 2", url: "https://www.dropbox.com/scl/fi/xqexn3ec0lnq4hivepffp/2.mp3?rlkey=5maivs7cmb006elunzn5o383n&st=s7sk6o05&dl=0" },
+      { id: "track3", title: "Track 3", url: "https://www.dropbox.com/scl/fi/l9q75j7g3ckxhmlfmd8hd/3.mp3?rlkey=ui4hdmprr86t5v5pzzv5bk5jl&st=bbcjbzvt&dl=0" },
+      { id: "track4", title: "Track 4", url: "https://www.dropbox.com/scl/fi/kspeknwrx7je4ql8kd5n9/4.mp3?rlkey=yvu9z6kji52y6ms6l1tlx4g3k&st=nz4v8x8k&dl=0" },
     ],
   },
   {
-    id: "nafir",
-    title: "Nafir",
-    side: "B",
-    sideIndex: 1,
-    tracks: [
-      {
-        id: "drums",
-        title: "Drums",
-        url: "https://www.dropbox.com/scl/fi/lyylypc18fwshc0tkp49n/DRUMS.mp3?rlkey=2t5j2odn0c6m14011diho2h12&st=dvh4d0ha&dl=0",
-      },
-      {
-        id: "bass",
-        title: "Bass",
-        url: "https://www.dropbox.com/scl/fi/miad4wkhb4z1bvwpj9m6a/BASS.mp3?rlkey=ndycs97q9gpb542b6371lpbrp&st=kgsburf3&dl=0",
-      },
-      {
-        id: "acoustic",
-        title: "Acoustic",
-        url: "https://www.dropbox.com/scl/fi/hpmxzk21dv7gt3xnhglb6/ACOUSTIC.mp3?rlkey=foazaq3zq74l9usyhib8j3gl6&st=bkvrbkrb&dl=0",
-      },
-      {
-        id: "vox",
-        title: "Vox",
-        url: "https://www.dropbox.com/scl/fi/49yxujurw5h0ioedu7mub/VOX.mp3?rlkey=2ekcx6mlcvmryl8um9o4t5qel&st=y53fztm6&dl=0",
-      },
-    ],
-  },
-  {
-    id: "jafnari",
-    title: "Jafnari",
+    id: "forsmekkur",
+    title: "Forsmekkur",
     side: "A",
     sideIndex: 2,
     tracks: [
-      {
-        id: "drums",
-        title: "Drums",
-        url: "https://www.dropbox.com/scl/fi/5znafvauv7ucjfyy0izzj/DRUMS.mp3?rlkey=sads5qwwad4xd43ur2zzjlx1o&st=cont2l9u&dl=0",
-      },
-      {
-        id: "bass",
-        title: "Bass",
-        url: "https://www.dropbox.com/scl/fi/xtsnw0pgqsutmwhw01441/BASS.mp3?rlkey=5k3zzurlkpdqmspe2x630kkdg&st=9bmrtn1q&dl=0",
-      },
-      {
-        id: "acoustic",
-        title: "Acoustic",
-        url: "https://www.dropbox.com/scl/fi/rsva2x0bvsgy4tq8nxlt9/ACOUSTIC.mp3?rlkey=8eirgrsylrmlqg5e215gqq1eh&st=dpo8web2&dl=0",
-      },
-      {
-        id: "vox",
-        title: "Vox",
-        url: "https://www.dropbox.com/scl/fi/58l9hy4fjq2z37ypsoz7y/VOX.mp3?rlkey=6ihb8h7n820pn3s0iike9pnk5&st=d3l0cw2u&dl=0",
-      },
+      { id: "track1", title: "Track 1", url: "https://www.dropbox.com/scl/fi/0gxiy8foct7wc4ety9sjs/1.mp3?rlkey=ypqrnkchwvo3s993s9jpnqdom&st=twoye4dc&dl=0" },
+      { id: "track2", title: "Track 2", url: "https://www.dropbox.com/scl/fi/zj6z5l48tu2kete4ievm5/2.mp3?rlkey=070cu7rizalysjvxqj48m0b5u&st=k3vjt449&dl=0" },
+      { id: "track3", title: "Track 3", url: "https://www.dropbox.com/scl/fi/436t3f7r180di9rz5jpma/3.mp3?rlkey=04r7g3d7mowsvu1ydsomdl3kl&st=0uzit6ot&dl=0" },
+      { id: "track4", title: "Track 4", url: "https://www.dropbox.com/scl/fi/scjf69pu1ngu083y0g0af/4.mp3?rlkey=tsramre7ztxn2udx5nxls2xgf&st=uxylybvp&dl=0" },
     ],
   },
   {
-    id: "djakninn",
-    title: "Djakninn",
+    id: "sturtudrengur",
+    title: "Sturtudrengur",
+    side: "A",
+    sideIndex: 3,
+    tracks: [
+      { id: "track1", title: "Track 1", url: "https://www.dropbox.com/scl/fi/72wf04peul4p9i1qwpo60/1.mp3?rlkey=1dvgbfdusipi347psm7cyf0xm&st=pkpqek2k&dl=0" },
+      { id: "track2", title: "Track 2", url: "https://www.dropbox.com/scl/fi/ograninvnde6zf8txjayb/2.mp3?rlkey=ymecvwo07oky35bdi5sw9ix2x&st=i4murf85&dl=0" },
+      { id: "track3", title: "Track 3", url: "https://www.dropbox.com/scl/fi/dreo46i530qa781guwef2/3.mp3?rlkey=rpaj5o7cdzq3j7sf0npjiovo2&st=s0bks9bb&dl=0" },
+      { id: "track4", title: "Track 4", url: "https://www.dropbox.com/scl/fi/1fi90cdpjaolfgxvgvpno/4.mp3?rlkey=xbcjrmv2748e96im9sq1i50ir&st=635huu6j&dl=0" },
+    ],
+  },
+  {
+    id: "prestur",
+    title: "Prestur",
+    side: "B",
+    sideIndex: 1,
+    tracks: [
+      { id: "track1", title: "Track 1", url: "https://www.dropbox.com/scl/fi/9g7bokxqpdrgr16r9dvaz/1.mp3?rlkey=7a0mbchhes6a5qg4r0a2mlt6c&st=x5pzqjha&dl=0" },
+      { id: "track2", title: "Track 2", url: "https://www.dropbox.com/scl/fi/tl51k4a776np4fd466apz/2.mp3?rlkey=8m03p40hgi2bdskthp09oakut&st=3bmo0f37&dl=0" },
+      { id: "track3", title: "Track 3", url: "https://www.dropbox.com/scl/fi/fpuu570d9aihi1yey3gmg/3.mp3?rlkey=paxl3dnexkwb1vkwspmpgxmtw&st=9i90s4me&dl=0" },
+      { id: "track4", title: "Track 4", url: "https://www.dropbox.com/scl/fi/a940y5xbkgji1qvy1ycja/4.mp3?rlkey=y95i77mp6pp4cli8ie0r85k68&st=uk7ls9th&dl=0" },
+    ],
+  },
+  {
+    id: "gloria",
+    title: "Gloria",
     side: "B",
     sideIndex: 2,
     tracks: [
-      {
-        id: "drums",
-        title: "Drums",
-        url: "https://www.dropbox.com/scl/fi/ohf4rxbopfmjr8yyopw3q/DRUMS.mp3?rlkey=thzzy8fp4bddbwa4fw6jm21hl&st=t3firw7e&dl=0",
-      },
-      {
-        id: "bass",
-        title: "Bass",
-        url: "https://www.dropbox.com/scl/fi/4tj2yh8i2ic12ko32hwwd/BASS.mp3?rlkey=zu18mtb7wtld0nch2qrhcca14&st=r0usvmgi&dl=0",
-      },
-      {
-        id: "acoustic",
-        title: "Acoustic",
-        url: "https://www.dropbox.com/scl/fi/ogs2yp4djqro63ne3r98f/ACOUSTIC.mp3?rlkey=yvxxg5sm4o8mfmrqy7pvvyt5z&st=qrkyr8er&dl=0",
-      },
-      {
-        id: "vox",
-        title: "Vox",
-        url: "https://www.dropbox.com/scl/fi/rn0bjv2n6wjxhg8tl906e/VOX.mp3?rlkey=u7skphgp0vvnqwus1o25lfxa4&st=owxvg3ss&dl=0",
-      },
+      { id: "track1", title: "Track 1", url: "https://www.dropbox.com/scl/fi/3xc5zi4lxom331go574rz/1.mp3?rlkey=wiqz56rxbr3hiu5murgbitohk&st=ghlgtet4&dl=0" },
+      { id: "track2", title: "Track 2", url: "https://www.dropbox.com/scl/fi/ohsyqwffuq5bev9t079n5/2.mp3?rlkey=otso51wid23ciuqyyzgjjd0zt&st=en87r3ds&dl=0" },
+      { id: "track3", title: "Track 3", url: "https://www.dropbox.com/scl/fi/jibaxw8ygxmypzzq8nci9/3.mp3?rlkey=bpxxsihbdlkf9kpun1nooys5r&st=s0064tck&dl=0" },
+      { id: "track4", title: "Track 4", url: "https://www.dropbox.com/scl/fi/0v3cdudm5bsp5ezqf3dce/4.mp3?rlkey=evs94sdvwhg5ufv96fhdswqxp&st=m3dkwsj7&dl=0" },
     ],
   },
 ];
