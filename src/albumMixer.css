@@ -24,7 +24,7 @@
 }
 
 .tm4-knob-pointer {
-  transition: transform 90ms ease-out;
+  transition: transform 300ms ease-out;
 }
 
 [data-mixer-play-light],
@@ -67,6 +67,25 @@
 
 .tm4-cassette {
   position: relative;
+  z-index: 1;
+}
+
+.tm4-cassette-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+}
+
+.tm4-screen {
+  position: relative;
+  overflow: hidden;
+}
+
+.tm4-screen-depth {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
 }
 
 .cassette {
@@ -113,6 +132,95 @@
 .tm4-cassette-counter,
 .tm4-hidden-lists {
   display: none;
+}
+
+.tm4-strip,
+.tm4-master-strip {
+  position: relative;
+}
+
+.tm4-strip::after,
+.tm4-master-strip::after {
+  content: "";
+  position: absolute;
+  top: -18px;
+  right: 0;
+  bottom: -24px;
+  width: 4px;
+  border-radius: 2px;
+  pointer-events: none;
+  opacity: 0.9;
+  background:
+    linear-gradient(
+      to right,
+      rgba(255, 255, 255, 0.16) 0%,
+      rgba(255, 255, 255, 0.16) 24%,
+      rgba(0, 0, 0, 0.18) 24%,
+      rgba(0, 0, 0, 0.18) 52%,
+      rgba(255, 255, 255, 0.04) 52%,
+      rgba(255, 255, 255, 0) 100%
+    );
+}
+
+.tm4-strip:first-child::before {
+  content: "";
+  position: absolute;
+  top: -18px;
+  left: 0;
+  bottom: -24px;
+  width: 4px;
+  border-radius: 2px;
+  pointer-events: none;
+  opacity: 0.9;
+  background:
+    linear-gradient(
+      to right,
+      rgba(255, 255, 255, 0.16) 0%,
+      rgba(255, 255, 255, 0.16) 24%,
+      rgba(0, 0, 0, 0.18) 24%,
+      rgba(0, 0, 0, 0.18) 52%,
+      rgba(255, 255, 255, 0.04) 52%,
+      rgba(255, 255, 255, 0) 100%
+    );
+}
+
+[data-album-mixer] .tm4-fader-slot {
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.07),
+    inset 0 -4px 8px rgba(0, 0, 0, 0.18),
+    inset 6px 0 10px rgba(0, 0, 0, 0.06),
+    inset -6px 0 10px rgba(0, 0, 0, 0.06);
+}
+
+[data-album-mixer] .tm4-fader-slot::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 50%;
+  bottom: 0;
+  width: 1rem;
+  transform: translateX(-50%);
+  background: linear-gradient(180deg, #575354 0%, #474344 24%, #3f3b3c 100%);
+  box-shadow:
+    inset 0 1px 1px rgba(255, 255, 255, 0.05),
+    inset 0 -2px 3px rgba(0, 0, 0, 0.28);
+}
+
+[data-album-mixer] .tm4-fader-cap {
+  box-shadow:
+    0 2px 4px rgba(0, 0, 0, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.16),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.14);
+  transition:
+    transform 120ms ease-out,
+    top 120ms ease-out,
+    box-shadow 140ms ease-out;
+  will-change: transform, top;
+}
+
+[data-album-mixer] .tm4-fader-cap-line {
+  top: 50%;
+  transition: transform 120ms ease-out, top 120ms ease-out;
 }
 
 [data-album-mixer] .tm4-meter-panel {
