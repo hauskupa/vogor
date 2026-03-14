@@ -7,9 +7,15 @@ function normalizeAudioUrl(url) {
   try {
     const parsed = new URL(url, window.location.href);
 
-    // Keep Dropbox share links in markup/docs, but stream from the direct host.
-    if (parsed.hostname === "www.dropbox.com") {
-      parsed.hostname = "dl.dropboxusercontent.com";
+    // Use Dropbox's official shared-link render flow instead of legacy dl* host aliases.
+    if (
+      parsed.hostname === "www.dropbox.com" ||
+      parsed.hostname === "dl.dropbox.com" ||
+      parsed.hostname === "dl.dropboxusercontent.com"
+    ) {
+      parsed.hostname = "www.dropbox.com";
+      parsed.searchParams.delete("dl");
+      parsed.searchParams.set("raw", "1");
     }
 
     return parsed.toString();
