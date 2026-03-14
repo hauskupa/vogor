@@ -602,6 +602,45 @@ export function setupAlbumMixer(root = document) {
     return Boolean(audio && audio.readyState >= 3);
   }
 
+  function preloadAudioElement(audio, { timeout = 3500 } = {}) {
+    if (!audio) return Promise.resolve({ ok: false, missing: true });
+    if (isAudioReady(audio)) return Promise.resolve({ ok: true, cached: true });
+
+    return new Promise((resolve) => {
+      let settled = false;
+
+      const cleanup = () => {
+        audio.removeEventListener("canplaythrough", onReady);
+        audio.removeEventListener("loadedmetadata", onReady);
+        audio.removeEventListener("error", onError);
+      };
+
+      const done = (result) => {
+        if (settled) return;
+        settled = true;
+        cleanup();
+        resolve(result);
+      };
+
+      const onReady = () => done({ ok: true });
+      const onError = (error) => {
+        console.warn("album-mixer: ui audio preload error", audio.src, error);
+        done({ ok: false, error: true });
+      };
+
+      audio.addEventListener("canplaythrough", onReady, { passive: true });
+      audio.addEventListener("loadedmetadata", onReady, { passive: true });
+      audio.addEventListener("error", onError, { passive: true });
+      window.setTimeout(() => done({ ok: false, timeout: true }), timeout);
+
+      try {
+        audio.load();
+      } catch {
+        done({ ok: false, error: true });
+      }
+    });
+  }
+
   function preloadTrackAudio(track) {
     const audio = track?.audio;
     if (!audio) return Promise.resolve({ ok: false, missing: true });
@@ -664,6 +703,10 @@ export function setupAlbumMixer(root = document) {
     return Promise.all(song.tracks.map((track) => preloadTrackAudio(track)));
   }
 
+  function preloadUiSounds() {
+    return Promise.all(Object.values(uiSounds).map((audio) => preloadAudioElement(audio)));
+  }
+
   async function showPreloaderUntilReady(song, { timeout = 3500, minShow = 900 } = {}) {
     if (!song?.tracks?.length) return;
 
@@ -688,6 +731,27 @@ export function setupAlbumMixer(root = document) {
 
   function warmSongAudio(song) {
     preloadSongAudio(song).catch(() => {});
+  }
+
+  async function initializeMixer() {
+    const firstSong = songs[0];
+    if (!firstSong) return;
+
+    const started = performance.now();
+    preloaderEl.setAttribute("aria-hidden", "false");
+
+    await engine.loadSong(firstSong.id);
+    await Promise.race([
+      Promise.all([preloadSongAudio(firstSong), preloadUiSounds()]),
+      new Promise((resolve) => window.setTimeout(resolve, 4500)),
+    ]);
+
+    const elapsed = performance.now() - started;
+    if (elapsed < 900) {
+      await new Promise((resolve) => window.setTimeout(resolve, 900 - elapsed));
+    }
+
+    preloaderEl.setAttribute("aria-hidden", "true");
   }
 
   function getAdjacentSong(direction) {
@@ -1188,9 +1252,11 @@ export function setupAlbumMixer(root = document) {
   if (masterEl) {
     setFaderVisualValue(masterEl, engine.getState().masterVolume, 0, 1);
   }
-  engine.loadSong(songs[0].id);
-  warmSongAudio(songs[0]);
   meterFrame = window.requestAnimationFrame(updateMeters);
+  initializeMixer().catch((error) => {
+    console.warn("album-mixer: initial preload failed", error);
+    preloaderEl.setAttribute("aria-hidden", "true");
+  });
 
   return {
     container,
