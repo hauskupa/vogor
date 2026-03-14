@@ -377,6 +377,19 @@ function createKnob(labelText, input, normalizedValue, onChange) {
   return label;
 }
 
+function applyKnobControlClasses(label, controlName) {
+  if (!label || !controlName) return;
+
+  label.dataset.control = controlName;
+  label.classList.add(`tm4-knob--${controlName}`);
+
+  const dial = findKnobVisual(label);
+  dial?.classList.add(`tm4-dial--${controlName}`);
+
+  const pointer = label.querySelector(".tm4-knob-pointer");
+  pointer?.classList.add(`tm4-knob-pointer--${controlName}`);
+}
+
 function findControlInput(wrapper) {
   return wrapper?.querySelector('input[type="range"]') || null;
 }
@@ -856,6 +869,11 @@ export function setupAlbumMixer(root = document) {
         createKnob("EQ Lo", eqLow, ((track.eqLow ?? 0) + 1) / 2, onEqLowChange);
       const panLabel =
         controls.querySelector('[data-control="pan"]') || createKnob("Pan", pan, ((track.pan ?? 0) + 1) / 2, onPanChange);
+
+      applyKnobControlClasses(gainLabel, "gain");
+      applyKnobControlClasses(eqHighLabel, "eq-high");
+      applyKnobControlClasses(eqLowLabel, "eq-low");
+      applyKnobControlClasses(panLabel, "pan");
 
       const bindKnob = (label, inputEl, valueEl, value, min, max) => {
         const dialEl = findKnobVisual(label);
