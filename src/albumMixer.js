@@ -1134,7 +1134,6 @@ export function setupAlbumMixer(root = document) {
     syncTransportState();
     const currentSong = engine.getState().song;
     warmSongAudio(currentSong);
-    warmSongAudio(getAdjacentSong(1));
   });
 
   engine.addEventListener("timeupdate", () => {
@@ -1191,7 +1190,6 @@ export function setupAlbumMixer(root = document) {
   }
   engine.loadSong(songs[0].id);
   warmSongAudio(songs[0]);
-  warmSongAudio(songs[1]);
   meterFrame = window.requestAnimationFrame(updateMeters);
 
   return {
