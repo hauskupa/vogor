@@ -35,9 +35,46 @@ export function createAlbumMixerEngine({ songs = [] } = {}) {
   let playRequestId = 0;
   let currentPitch = 1;
   let endedSongId = null;
+  let endCheckTimer = null;
 
   function emit(type, detail = {}) {
     eventTarget.dispatchEvent(new CustomEvent(type, { detail }));
+  }
+
+  function clearEndCheck() {
+    if (endCheckTimer) {
+      window.clearTimeout(endCheckTimer);
+      endCheckTimer = null;
+    }
+  }
+
+  function getTrackRemaining(track) {
+    const audio = track?.audio;
+    if (!audio || !Number.isFinite(audio.duration) || audio.duration <= 0) {
+      return Number.POSITIVE_INFINITY;
+    }
+    return Math.max(0, audio.duration - (audio.currentTime || 0));
+  }
+
+  function isTrackNearEnd(track, tolerance = 0.18) {
+    const audio = track?.audio;
+    if (!audio) return true;
+    if (audio.ended) return true;
+    if (!Number.isFinite(audio.duration) || audio.duration <= 0) return false;
+    return audio.currentTime >= Math.max(0, audio.duration - tolerance);
+  }
+
+  function hasBufferedAhead(audio, minimumAhead = 0.35) {
+    if (!audio) return false;
+    const { buffered, currentTime } = audio;
+    for (let i = 0; i < buffered.length; i += 1) {
+      const start = buffered.start(i);
+      const end = buffered.end(i);
+      if (currentTime >= start && currentTime <= end) {
+        return end - currentTime >= minimumAhead;
+      }
+    }
+    return false;
   }
 
   function handleTrackEnded(songId) {
@@ -46,22 +83,33 @@ export function createAlbumMixerEngine({ songs = [] } = {}) {
     const tracks = getCurrentTracks();
     if (!tracks.length) return;
 
-    const allEnded = tracks.every((track) => {
-      const { audio } = track;
-      if (!audio) return true;
-      if (audio.ended) return true;
-      if (!Number.isFinite(audio.duration) || audio.duration <= 0) return false;
-      return audio.currentTime >= Math.max(0, audio.duration - 0.2);
-    });
+    const allEnded = tracks.every((track) => isTrackNearEnd(track, 0.14));
+    const longestRemaining = tracks.reduce(
+      (max, track) => Math.max(max, getTrackRemaining(track)),
+      0
+    );
 
-    if (!allEnded) return;
+    if (!allEnded || longestRemaining > 0.2) return;
 
-    endedSongId = songId;
-    isPlaying = false;
-    stopTimeLoop();
-    stopResyncLoop();
-    emit("playstatechange", { isPlaying, songId: currentSongId });
-    emit("songended", { songId: currentSongId, song: getCurrentSong() });
+    clearEndCheck();
+    endCheckTimer = window.setTimeout(() => {
+      endCheckTimer = null;
+
+      const freshTracks = getCurrentTracks();
+      if (!freshTracks.length || currentSongId !== songId || endedSongId === songId) {
+        return;
+      }
+
+      const stillEnded = freshTracks.every((track) => isTrackNearEnd(track, 0.12));
+      if (!stillEnded) return;
+
+      endedSongId = songId;
+      isPlaying = false;
+      stopTimeLoop();
+      stopResyncLoop();
+      emit("playstatechange", { isPlaying, songId: currentSongId });
+      emit("songended", { songId: currentSongId, song: getCurrentSong() });
+    }, 120);
   }
 
   function buildTrack(track, index, songId) {
@@ -73,6 +121,22 @@ export function createAlbumMixerEngine({ songs = [] } = {}) {
     audio.webkitPreservesPitch = false;
     audio.addEventListener("ended", () => {
       handleTrackEnded(songId);
+    });
+    audio.addEventListener("waiting", () => {
+      audio.dataset.tm4Buffering = "true";
+    });
+    audio.addEventListener("stalled", () => {
+      audio.dataset.tm4Buffering = "true";
+    });
+    audio.addEventListener("seeking", () => {
+      audio.dataset.tm4Buffering = "true";
+    });
+    ["canplaythrough", "playing", "seeked", "timeupdate"].forEach((eventName) => {
+      audio.addEventListener(eventName, () => {
+        if (hasBufferedAhead(audio, 0.2) || audio.readyState >= 3) {
+          delete audio.dataset.tm4Buffering;
+        }
+      });
     });
 
     if (!audioContext || !masterGain) {
@@ -229,17 +293,33 @@ export function createAlbumMixerEngine({ songs = [] } = {}) {
     const masterTrack = tracks[0];
     const master = masterTrack?.audio;
     if (!master || master.paused) return;
+    if (master.dataset.tm4Buffering === "true" && !hasBufferedAhead(master, 0.2)) return;
 
     const masterTime = master.currentTime;
     const EMA_ALPHA = 0.25;
-    const SMALL_TOL = 0.05;
+    const SMALL_TOL = 0.04;
     const SEEK_TOL = 0.25;
-    const NUDGE_RATE = 0.02;
-    const NUDGE_DURATION = 600;
+    const NUDGE_RATE = 0.0125;
+    const NUDGE_DURATION = 420;
+    const EDGE_GUARD = 0.75;
+    const masterRemaining = getTrackRemaining(masterTrack);
+
+    if (masterTime < 0.35 || masterRemaining < EDGE_GUARD) {
+      tracks.slice(1).forEach(resetTrackNudge);
+      return;
+    }
 
     tracks.slice(1).forEach((track) => {
       const audio = track.audio;
       if (!audio || audio.paused) return;
+      if (audio.dataset.tm4Buffering === "true" && !hasBufferedAhead(audio, 0.2)) {
+        resetTrackNudge(track);
+        return;
+      }
+      if (getTrackRemaining(track) < EDGE_GUARD) {
+        resetTrackNudge(track);
+        return;
+      }
 
       let measured = audio.currentTime - masterTime;
       if (!Number.isFinite(measured)) measured = 0;
@@ -281,7 +361,7 @@ export function createAlbumMixerEngine({ songs = [] } = {}) {
     if (!currentSongId) return;
     resyncTimer = window.setInterval(() => {
       resyncCurrentSong();
-    }, 800);
+    }, 900);
   }
 
   async function ensureContext() {
@@ -294,9 +374,11 @@ export function createAlbumMixerEngine({ songs = [] } = {}) {
   function stopSong(song) {
     if (!song) return;
     playRequestId += 1;
+    clearEndCheck();
     song.tracks.forEach((track) => {
       track.audio.pause();
       track.audio.currentTime = 0;
+      delete track.audio.dataset.tm4Buffering;
       resetTrackNudge(track);
     });
   }
@@ -307,6 +389,7 @@ export function createAlbumMixerEngine({ songs = [] } = {}) {
 
     const shouldResume = autoplay || isPlaying;
     endedSongId = null;
+    clearEndCheck();
 
     if (currentSongId && currentSongId !== songId) {
       stopSong(getCurrentSong());
@@ -326,6 +409,7 @@ export function createAlbumMixerEngine({ songs = [] } = {}) {
   async function play() {
     const requestId = ++playRequestId;
     endedSongId = null;
+    clearEndCheck();
 
     if (!currentSongId) {
       const firstSong = songs[0];
@@ -381,6 +465,7 @@ export function createAlbumMixerEngine({ songs = [] } = {}) {
   function pause() {
     playRequestId += 1;
     endedSongId = null;
+    clearEndCheck();
     getCurrentTracks().forEach((track) => {
       track.audio.pause();
     });
@@ -393,6 +478,7 @@ export function createAlbumMixerEngine({ songs = [] } = {}) {
   function stop() {
     playRequestId += 1;
     endedSongId = null;
+    clearEndCheck();
     stopSong(getCurrentSong());
     isPlaying = false;
     stopTimeLoop();
