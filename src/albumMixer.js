@@ -1,21 +1,22 @@
 import { createAlbumMixerEngine } from "./albumMixerEngine.js";
 import { albumMixerSongs } from "./albumMixerSongs.js";
 
+const AUDIO_PROXY_URL = "https://vogorrecords.com/audio-proxy";
+
 function normalizeAudioUrl(url) {
   if (!url) return "";
 
   try {
     const parsed = new URL(url, window.location.href);
 
-    // Use Dropbox's official shared-link render flow instead of legacy dl* host aliases.
     if (
       parsed.hostname === "www.dropbox.com" ||
       parsed.hostname === "dl.dropbox.com" ||
       parsed.hostname === "dl.dropboxusercontent.com"
     ) {
-      parsed.hostname = "www.dropbox.com";
-      parsed.searchParams.delete("dl");
-      parsed.searchParams.set("raw", "1");
+      const proxy = new URL(AUDIO_PROXY_URL, window.location.href);
+      proxy.searchParams.set("src", parsed.toString());
+      return proxy.toString();
     }
 
     return parsed.toString();
