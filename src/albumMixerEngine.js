@@ -16,6 +16,29 @@ function createTapeCurve(amount = 0) {
   return curve;
 }
 
+function applyTrackColor(nodes, audioContext, gain = 0) {
+  if (!nodes || !audioContext) return;
+
+  const normalizedGain = clamp(gain, 0, 2) / 2;
+  const drive = normalizedGain * normalizedGain;
+  const inputGain = 1 + drive * 0.85;
+  const outputTrim = 1 / (1 + drive * 0.2);
+  const toneFrequency = 17500 - drive * 1200;
+  const threshold = -18 - drive * 3;
+  const ratio = 1.35 + drive * 1.1;
+  const knee = 22 - drive * 2;
+
+  // Keep the neutral position close to clean and make coloration ramp in gradually.
+  nodes.gainNode.gain.setValueAtTime(1, audioContext.currentTime);
+  nodes.colorInNode.gain.setValueAtTime(inputGain, audioContext.currentTime);
+  nodes.compressorNode.threshold.setValueAtTime(threshold, audioContext.currentTime);
+  nodes.compressorNode.ratio.setValueAtTime(ratio, audioContext.currentTime);
+  nodes.compressorNode.knee.setValueAtTime(knee, audioContext.currentTime);
+  nodes.makeupNode.gain.setValueAtTime(outputTrim, audioContext.currentTime);
+  nodes.toneNode.frequency.setValueAtTime(toneFrequency, audioContext.currentTime);
+  nodes.saturatorNode.curve = createTapeCurve(0.015 + drive * 0.16);
+}
+
 export function createAlbumMixerEngine({ songs = [] } = {}) {
   const AudioContextCtor = window.AudioContext || window.webkitAudioContext;
   const audioContext = AudioContextCtor ? new AudioContextCtor() : null;
@@ -168,9 +191,9 @@ export function createAlbumMixerEngine({ songs = [] } = {}) {
 
     gainNode.gain.value = 1;
     colorInNode.gain.value = 1;
-    compressorNode.threshold.value = -20;
-    compressorNode.knee.value = 20;
-    compressorNode.ratio.value = 1.8;
+    compressorNode.threshold.value = -18;
+    compressorNode.knee.value = 22;
+    compressorNode.ratio.value = 1.35;
     compressorNode.attack.value = 0.01;
     compressorNode.release.value = 0.08;
     eqLowNode.type = "lowshelf";
@@ -180,9 +203,9 @@ export function createAlbumMixerEngine({ songs = [] } = {}) {
     eqHighNode.frequency.value = 3200;
     eqHighNode.gain.value = 0;
     toneNode.type = "lowpass";
-    toneNode.frequency.value = 17000;
+    toneNode.frequency.value = 17500;
     toneNode.Q.value = 0.0001;
-    saturatorNode.curve = createTapeCurve(0.06);
+    saturatorNode.curve = createTapeCurve(0.015);
     saturatorNode.oversample = "2x";
     makeupNode.gain.value = 1;
     panNode.pan.value = 0;
@@ -203,7 +226,7 @@ export function createAlbumMixerEngine({ songs = [] } = {}) {
     faderNode.connect(masterGain);
     faderNode.connect(analyserNode);
 
-    return {
+    const builtTrack = {
       ...track,
       audio,
       index,
@@ -229,6 +252,9 @@ export function createAlbumMixerEngine({ songs = [] } = {}) {
       _driftEMA: undefined,
       _nudgeTimeout: null,
     };
+
+    applyTrackColor(builtTrack.nodes, audioContext, 0);
+    return builtTrack;
   }
 
   songs.forEach((song) => {
@@ -547,23 +573,7 @@ export function createAlbumMixerEngine({ songs = [] } = {}) {
     if (key === "gain") {
       track.gain = clamp(value, 0, 2);
       if (track.nodes && audioContext) {
-        const drive = track.gain / 2;
-        const inputGain = 1 + drive * 1.5;
-        const outputTrim = 1 / (1 + drive * 0.45);
-        const toneFrequency = 17000 - drive * 2500;
-        const threshold = -20 - drive * 6;
-        const ratio = 1.8 + drive * 2.2;
-        const knee = 20 - drive * 4;
-
-        // Gain is a color stage; level stays on the fader.
-        track.nodes.gainNode.gain.setValueAtTime(1, audioContext.currentTime);
-        track.nodes.colorInNode.gain.setValueAtTime(inputGain, audioContext.currentTime);
-        track.nodes.compressorNode.threshold.setValueAtTime(threshold, audioContext.currentTime);
-        track.nodes.compressorNode.ratio.setValueAtTime(ratio, audioContext.currentTime);
-        track.nodes.compressorNode.knee.setValueAtTime(knee, audioContext.currentTime);
-        track.nodes.makeupNode.gain.setValueAtTime(outputTrim, audioContext.currentTime);
-        track.nodes.toneNode.frequency.setValueAtTime(toneFrequency, audioContext.currentTime);
-        track.nodes.saturatorNode.curve = createTapeCurve(0.06 + drive * 0.34);
+        applyTrackColor(track.nodes, audioContext, track.gain);
       }
     }
 
