@@ -1144,6 +1144,11 @@ export function setupAlbumMixer(root = document) {
     syncTransportState();
   });
 
+  engine.addEventListener("bufferingchange", (event) => {
+    const isBuffering = Boolean(event.detail?.isBuffering);
+    preloaderEl.setAttribute("aria-hidden", isBuffering ? "false" : "true");
+  });
+
   engine.addEventListener("pitchchange", () => {
     syncTransportState();
   });
