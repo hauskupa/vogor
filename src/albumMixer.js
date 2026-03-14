@@ -100,6 +100,22 @@ function getAlbumTitle(container, cassetteTitleEl) {
   return "";
 }
 
+function ensureCassetteAlbumTitle(container, cassetteTitleEl) {
+  const existing = container.querySelector("[data-mixer-cassette-album-title]");
+  if (existing instanceof HTMLElement) return existing;
+
+  const overlay = container.querySelector(".tm4-cassette-overlay");
+  if (!(overlay instanceof HTMLElement) || !(cassetteTitleEl instanceof HTMLElement)) {
+    return null;
+  }
+
+  const albumEl = document.createElement("div");
+  albumEl.dataset.mixerCassetteAlbumTitle = "";
+  albumEl.className = cassetteTitleEl.className;
+  overlay.insertBefore(albumEl, cassetteTitleEl);
+  return albumEl;
+}
+
 function createAlbumMixerPreloader(container) {
   const existing =
     container.querySelector("[data-album-mixer-preloader]") ||
@@ -492,6 +508,7 @@ export function setupAlbumMixer(root = document) {
   const sideBList = container.querySelector("[data-mixer-side-b]");
   const titleEl = container.querySelector("[data-mixer-current-song]");
   const cassetteTitleEl = container.querySelector("[data-mixer-cassette-title]");
+  const cassetteAlbumTitleEl = ensureCassetteAlbumTitle(container, cassetteTitleEl);
   const cassetteTimeEl = container.querySelector("[data-mixer-cassette-time]");
   const cassetteSideEl = container.querySelector("[data-mixer-current-side]");
   const cassetteEl = container.querySelector("[data-cassette]");
@@ -994,7 +1011,10 @@ export function setupAlbumMixer(root = document) {
     stopLightEl?.toggleAttribute("data-active", !isPlaying);
     container.style.setProperty("--pitch-rate", String(pitch || 1));
     if (cassetteTitleEl) {
-      cassetteTitleEl.textContent = albumTitle || song?.title || "No Tape";
+      cassetteTitleEl.textContent = song?.title || "No Tape";
+    }
+    if (cassetteAlbumTitleEl) {
+      cassetteAlbumTitleEl.textContent = albumTitle || "";
     }
     if (cassetteSideEl) {
       cassetteSideEl.textContent = currentMeta?.cueLabel || song?.side || "-";
