@@ -88,6 +88,18 @@ function getMarkupTrackTitles(container) {
     .filter(Boolean);
 }
 
+function getAlbumTitle(container, cassetteTitleEl) {
+  const fromAttr = String(container.dataset.albumTitle || "").trim();
+  if (fromAttr) return fromAttr;
+
+  const fromMarkup = String(cassetteTitleEl?.textContent || "").trim();
+  if (fromMarkup && fromMarkup.toLowerCase() !== "loading...") {
+    return fromMarkup;
+  }
+
+  return "";
+}
+
 function createAlbumMixerPreloader(container) {
   const existing =
     container.querySelector("[data-album-mixer-preloader]") ||
@@ -497,6 +509,7 @@ export function setupAlbumMixer(root = document) {
   const nextBtn = container.querySelector("[data-mixer-next]");
   const meterBankEl = container.querySelector("[data-mixer-meter-bank]");
   const markupTrackTitles = getMarkupTrackTitles(container);
+  const albumTitle = getAlbumTitle(container, cassetteTitleEl);
   const preloaderEl = createAlbumMixerPreloader(container);
   let meterFrame = 0;
   const meterState = new Map();
@@ -981,7 +994,7 @@ export function setupAlbumMixer(root = document) {
     stopLightEl?.toggleAttribute("data-active", !isPlaying);
     container.style.setProperty("--pitch-rate", String(pitch || 1));
     if (cassetteTitleEl) {
-      cassetteTitleEl.textContent = song?.title || "No Tape";
+      cassetteTitleEl.textContent = albumTitle || song?.title || "No Tape";
     }
     if (cassetteSideEl) {
       cassetteSideEl.textContent = currentMeta?.cueLabel || song?.side || "-";
