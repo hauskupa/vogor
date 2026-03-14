@@ -601,7 +601,8 @@ export function setupAlbumMixer(root = document) {
 
     audio.preload = "auto";
 
-    if (isAudioReady(audio)) {
+    if (track._isReady || isAudioReady(audio)) {
+      track._isReady = true;
       return Promise.resolve({ ok: true, cached: true });
     }
 
@@ -619,7 +620,9 @@ export function setupAlbumMixer(root = document) {
           if (settled) return;
           settled = true;
           cleanup();
-          track._readyPromise = null;
+          track._isReady = Boolean(result?.ok);
+          track._preloadAttempted = true;
+          track._loadRequested = false;
           resolve(result);
         };
 
@@ -637,10 +640,13 @@ export function setupAlbumMixer(root = document) {
       });
     }
 
-    if (audio.readyState < 3) {
+    if (!track._loadRequested && audio.readyState < 3) {
+      track._loadRequested = true;
       try {
         audio.load();
-      } catch {}
+      } catch {
+        track._loadRequested = false;
+      }
     }
 
     return track._readyPromise;
