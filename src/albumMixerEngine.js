@@ -36,10 +36,6 @@ export function createAlbumMixerEngine({ songs = [] } = {}) {
   let currentPitch = 1;
   let endedSongId = null;
   let endCheckTimer = null;
-  let bufferingTimer = null;
-  let bufferingTrackIds = new Set();
-  let isRecoveringBuffer = false;
-  let recoveryTime = 0;
 
   function emit(type, detail = {}) {
     eventTarget.dispatchEvent(new CustomEvent(type, { detail }));
@@ -49,13 +45,6 @@ export function createAlbumMixerEngine({ songs = [] } = {}) {
     if (endCheckTimer) {
       window.clearTimeout(endCheckTimer);
       endCheckTimer = null;
-    }
-  }
-
-  function clearBufferingTimer() {
-    if (bufferingTimer) {
-      window.clearTimeout(bufferingTimer);
-      bufferingTimer = null;
     }
   }
 
@@ -86,93 +75,6 @@ export function createAlbumMixerEngine({ songs = [] } = {}) {
       }
     }
     return false;
-  }
-
-  function clearTrackBuffering(trackId) {
-    if (!trackId) return;
-    if (!bufferingTrackIds.has(trackId)) return;
-    bufferingTrackIds.delete(trackId);
-  }
-
-  function clearBufferingState() {
-    clearBufferingTimer();
-    bufferingTrackIds.clear();
-    isRecoveringBuffer = false;
-    recoveryTime = 0;
-    emit("bufferingchange", { isBuffering: false, songId: currentSongId });
-  }
-
-  async function tryRecoverFromBuffering() {
-    if (!isRecoveringBuffer || !currentSongId) return;
-
-    const tracks = getCurrentTracks();
-    if (!tracks.length) {
-      clearBufferingState();
-      return;
-    }
-
-    const allReady = tracks.every((track) => {
-      const { audio } = track;
-      if (!audio) return true;
-      if (isTrackNearEnd(track, 0.2)) return true;
-      return audio.readyState >= 3 && hasBufferedAhead(audio, 0.25);
-    });
-
-    if (!allReady) {
-      bufferingTimer = window.setTimeout(() => {
-        tryRecoverFromBuffering().catch(() => {});
-      }, 220);
-      return;
-    }
-
-    clearBufferingTimer();
-
-    const resumeAt = Math.max(
-      0,
-      Math.min(
-        recoveryTime,
-        ...tracks
-          .map((track) => {
-            const duration = track.audio?.duration;
-            return Number.isFinite(duration) && duration > 0 ? Math.max(0, duration - 0.2) : recoveryTime;
-          })
-      )
-    );
-
-    await Promise.allSettled(
-      tracks.map(async (track) => {
-        if (!track.audio) return;
-        track.audio.currentTime = resumeAt;
-        track.audio.playbackRate = currentPitch;
-        await track.audio.play();
-      })
-    );
-
-    isRecoveringBuffer = false;
-    recoveryTime = 0;
-    startTimeLoop();
-    startResyncLoop();
-    emit("bufferingchange", { isBuffering: false, songId: currentSongId });
-  }
-
-  function beginBufferRecovery(trackId) {
-    if (!currentSongId || !isPlaying) return;
-
-    bufferingTrackIds.add(trackId);
-
-    if (isRecoveringBuffer) return;
-    isRecoveringBuffer = true;
-    recoveryTime = getCurrentTracks()[0]?.audio.currentTime || 0;
-    stopTimeLoop();
-    stopResyncLoop();
-    getCurrentTracks().forEach((track) => {
-      track.audio.pause();
-      resetTrackNudge(track);
-    });
-    emit("bufferingchange", { isBuffering: true, songId: currentSongId });
-    bufferingTimer = window.setTimeout(() => {
-      tryRecoverFromBuffering().catch(() => {});
-    }, 220);
   }
 
   function handleTrackEnded(songId) {
@@ -222,11 +124,9 @@ export function createAlbumMixerEngine({ songs = [] } = {}) {
     });
     audio.addEventListener("waiting", () => {
       audio.dataset.tm4Buffering = "true";
-      beginBufferRecovery(track.id);
     });
     audio.addEventListener("stalled", () => {
       audio.dataset.tm4Buffering = "true";
-      beginBufferRecovery(track.id);
     });
     audio.addEventListener("seeking", () => {
       audio.dataset.tm4Buffering = "true";
@@ -235,13 +135,6 @@ export function createAlbumMixerEngine({ songs = [] } = {}) {
       audio.addEventListener(eventName, () => {
         if (hasBufferedAhead(audio, 0.2) || audio.readyState >= 3) {
           delete audio.dataset.tm4Buffering;
-          clearTrackBuffering(track.id);
-          if (isRecoveringBuffer) {
-            clearBufferingTimer();
-            bufferingTimer = window.setTimeout(() => {
-              tryRecoverFromBuffering().catch(() => {});
-            }, 120);
-          }
         }
       });
     });
@@ -482,7 +375,6 @@ export function createAlbumMixerEngine({ songs = [] } = {}) {
     if (!song) return;
     playRequestId += 1;
     clearEndCheck();
-    clearBufferingState();
     song.tracks.forEach((track) => {
       track.audio.pause();
       track.audio.currentTime = 0;
@@ -498,7 +390,6 @@ export function createAlbumMixerEngine({ songs = [] } = {}) {
     const shouldResume = autoplay || isPlaying;
     endedSongId = null;
     clearEndCheck();
-    clearBufferingState();
 
     if (currentSongId && currentSongId !== songId) {
       stopSong(getCurrentSong());
@@ -519,7 +410,6 @@ export function createAlbumMixerEngine({ songs = [] } = {}) {
     const requestId = ++playRequestId;
     endedSongId = null;
     clearEndCheck();
-    clearBufferingState();
 
     if (!currentSongId) {
       const firstSong = songs[0];
@@ -576,7 +466,6 @@ export function createAlbumMixerEngine({ songs = [] } = {}) {
     playRequestId += 1;
     endedSongId = null;
     clearEndCheck();
-    clearBufferingState();
     getCurrentTracks().forEach((track) => {
       track.audio.pause();
     });
@@ -590,7 +479,6 @@ export function createAlbumMixerEngine({ songs = [] } = {}) {
     playRequestId += 1;
     endedSongId = null;
     clearEndCheck();
-    clearBufferingState();
     stopSong(getCurrentSong());
     isPlaying = false;
     stopTimeLoop();
