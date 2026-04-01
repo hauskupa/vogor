@@ -1,7 +1,7 @@
 import { createAlbumMixerEngine } from "./albumMixerEngine.js";
 import { albumMixerSongs } from "./albumMixerSongs.js";
 
-const AUDIO_PROXY_URL = "https://vogorrecords.com/audio-proxy";
+const AUDIO_PROXY_URL = "https://audio-proxy.stafraennhakon.workers.dev";
 
 function normalizeAudioUrl(url) {
   if (!url) return "";
