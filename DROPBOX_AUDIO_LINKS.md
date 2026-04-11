@@ -2,6 +2,10 @@
 
 Use this file as the single source of truth for test audio URLs used by the 4-track album mixer.
 
+Also track:
+- `side`: which cassette side the song belongs to (`A` or `B`)
+- `sideIndex`: playback order on that side (`1`, `2`, `3`, ...)
+
 Expected song stem slots:
 - `1`
 - `2`
@@ -9,6 +13,10 @@ Expected song stem slots:
 - `4`
 
 Map those slots however you want per song. The visible labels in the UI can still be `Drums`, `Bass`, `Acoustic`, `Vox`, or anything else.
+
+Example:
+- `side`: A
+- `sideIndex`: 2
 
 ## Songs
 
