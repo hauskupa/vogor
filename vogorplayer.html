@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="is">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Vogor spilarinn — prufa</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="/vogor/dist/vogorPlayer.css">
+  <style>
+    /* Aðeins fyrir prufusíðuna — Webflow sér um þetta í alvörunni */
+    body { background: #121110; margin: 0; padding: 24px; }
+  </style>
+</head>
+<body>
+
+<!-- ==========================================================
+     HÉÐAN Í WEBFLOW: afritaðu blokkina hér að neðan í Embed.
+     data-folder má breyta beint í Webflow (engin bygging þarf).
+     ========================================================== -->
+
+<div data-vogor-player data-folder="/Mixes">
+
+  <h1 class="vp-head">Vogor<b>spilarinn</b></h1>
+
+  <!-- Ótengt ástand -->
+  <div class="vp-panel" data-vp="loginPanel" style="display:none">
+    <p>Skráðu þig inn með Dropbox til að lesa lögin beint úr deildu möppunni.
+       Þú þarft bara að gera þetta einu sinni á hverju tæki.</p>
+    <button class="vp-btn" data-vp="connect">Tengjast Dropbox</button>
+    <div class="vp-err" data-vp="loginErr"></div>
+  </div>
+
+  <!-- Tengt ástand -->
+  <div class="vp-panel" data-vp="folderPanel" style="display:none">
+    <p class="vp-acct" data-vp="acct"></p>
+    <label class="vp-label" for="vp-folder">Mappa (t.d. /Mixes eða vefslóð úr Dropbox)</label>
+    <input type="text" id="vp-folder" data-vp="folder" placeholder="/Mixes">
+    <button class="vp-btn" data-vp="loadFolder">Sækja lög</button>
+    <button class="vp-btn is-ghost" data-vp="browseBtn">Velja möppu...</button>
+    <button class="vp-btn is-ghost" data-vp="logout">Aftengja</button>
+    <div class="vp-browser" data-vp="browser">
+      <div class="vp-bpath" data-vp="bpath"></div>
+      <div data-vp="bitems"></div>
+      <div class="vp-bitem is-use" data-vp="buse"></div>
+    </div>
+    <div class="vp-err" data-vp="err"></div>
+  </div>
+
+  <!-- Spilari -->
+  <div class="vp-player" data-vp="player">
+    <div class="vp-now">
+      <span class="vp-now-num" data-vp="nowNum">--</span>
+      <span class="vp-now-name" data-vp="nowName"></span>
+    </div>
+    <div class="vp-controls">
+      <button class="vp-ctrl" data-vp="prev" title="Fyrra lag" aria-label="Fyrra lag">⏮</button>
+      <button class="vp-ctrl is-play" data-vp="playpause" title="Spila / pása" aria-label="Spila eða pása">▶</button>
+      <button class="vp-ctrl" data-vp="next" title="Næsta lag" aria-label="Næsta lag">⏭</button>
+      <div class="vp-seekwrap">
+        <span class="vp-time" data-vp="cur">0:00</span>
+        <input type="range" data-vp="seek" min="0" max="100" value="0" step="0.1" aria-label="Staðsetning í lagi">
+        <span class="vp-time" data-vp="tot">0:00</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Listi -->
+  <div class="vp-listhead" data-vp="listhead">
+    <span>Dragðu til að raða</span>
+    <button class="vp-btn is-ghost" data-vp="copy">Afrita röðina</button>
+  </div>
+  <ul data-vp="list"></ul>
+
+  <div class="vp-toast" data-vp="toast">Röðin afrituð!</div>
+  <audio data-vp="audio" preload="metadata"></audio>
+
+</div>
+
+<!-- ========== HINGAÐ ========== -->
+
+<script src="/vogor/dist/main.js"></script>
+</body>
+</html>

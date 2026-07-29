@@ -4,6 +4,7 @@ import { setupPlayer } from "./player.js";
 import { setupAlbumMixer } from "./albumMixer.js";
 import { setupMultitrackPlayer } from "./multitrackplayer.js";
 import { setupAsleepArtwork } from "./asleep.js";
+import { setupVogorPlayer } from "./vogorPlayer.js";
 
 document.addEventListener("DOMContentLoaded", () => {
   // Mixer
@@ -27,6 +28,12 @@ document.addEventListener("DOMContentLoaded", () => {
   // Album mixer
   if (document.querySelector("[data-album-mixer]")) {
     setupAlbumMixer();
+  }
+
+  // Vogor spilarinn (Dropbox)
+  if (document.querySelector("[data-vogor-player]")) {
+    console.log("Found [data-vogor-player], initializing Vogor player...");
+    setupVogorPlayer();
   }
 
   // Multitrack + Asleep artwork
