@@ -2,6 +2,15 @@ function clamp(value, min, max) {
   return Math.min(max, Math.max(min, value));
 }
 
+// Unity-markið situr á 0.7, þ.e. þar sem borðið sýnir 7.0 — eins og á
+// alvöru borði þar sem strikið er ofarlega í ferlinum og nokkur dB eftir
+// fyrir ofan. Í sjálfgefinni stöðu skila stemin því mixinu óbreyttu.
+const UNITY_FADER = 0.7;
+
+function faderGain(position) {
+  return clamp(position, 0, 1) / UNITY_FADER;
+}
+
 function createTapeCurve(amount = 0) {
   const samples = 2048;
   const curve = new Float32Array(samples);
@@ -50,8 +59,11 @@ export function createAlbumMixerEngine({ songs = [] } = {}) {
   const masterGain = audioContext ? audioContext.createGain() : null;
   const songMap = new Map();
 
+  // Staðan á sleðanum er geymd sér; hnútinn ber unity-leiðrétta styrkinn.
+  let masterPosition = UNITY_FADER;
+
   if (masterGain) {
-    masterGain.gain.value = 0.7;
+    masterGain.gain.value = faderGain(masterPosition);
     masterGain.connect(audioContext.destination);
   }
 
@@ -213,7 +225,7 @@ export function createAlbumMixerEngine({ songs = [] } = {}) {
     saturatorNode.oversample = "2x";
     makeupNode.gain.value = 1;
     panNode.pan.value = 0;
-    faderNode.gain.value = 0.7; // verður að passa við fader: 0.7 hér að neðan
+    faderNode.gain.value = faderGain(UNITY_FADER);
     analyserNode.fftSize = 256;
     analyserNode.smoothingTimeConstant = 0.82;
 
@@ -611,7 +623,7 @@ export function createAlbumMixerEngine({ songs = [] } = {}) {
 
     if (key === "fader") {
       track.fader = clamp(value, 0, 1);
-      track.nodes?.faderNode.gain.setValueAtTime(track.fader, audioContext.currentTime);
+      track.nodes?.faderNode.gain.setValueAtTime(faderGain(track.fader), audioContext.currentTime);
     }
 
     emit("trackchange", {
@@ -633,7 +645,7 @@ export function createAlbumMixerEngine({ songs = [] } = {}) {
       isPlaying,
       currentTime: first?.audio.currentTime || 0,
       duration: first?.audio.duration || 0,
-      masterVolume: masterGain?.gain.value ?? 1,
+      masterVolume: masterPosition,
       pitch: currentPitch,
       song,
     };
