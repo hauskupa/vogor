@@ -257,12 +257,25 @@ export function createAlbumMixerEngine({ songs = [] } = {}) {
     return builtTrack;
   }
 
-  songs.forEach((song) => {
-    songMap.set(song.id, {
-      ...song,
-      tracks: song.tracks.map((track, index) => buildTrack(track, index, song.id)),
-    });
-  });
+  // Rásirnar eru smíðaðar við fyrsta val á laginu, ekki allar við init.
+  // Annars myndi öll platan — 5 rásir sinnum 8 lög — byrja að sækjast í einu
+  // og fyrsta lagið svelta í samkeppni um tengingarnar.
+  const songDefs = new Map(songs.map((song) => [song.id, song]));
+
+  function ensureSongBuilt(songId) {
+    const built = songMap.get(songId);
+    if (built) return built;
+
+    const def = songDefs.get(songId);
+    if (!def) return null;
+
+    const nextSong = {
+      ...def,
+      tracks: def.tracks.map((track, index) => buildTrack(track, index, def.id)),
+    };
+    songMap.set(def.id, nextSong);
+    return nextSong;
+  }
 
   function getCurrentSong() {
     return currentSongId ? songMap.get(currentSongId) || null : null;
@@ -410,7 +423,7 @@ export function createAlbumMixerEngine({ songs = [] } = {}) {
   }
 
   async function loadSong(songId, { autoplay = false } = {}) {
-    const nextSong = songMap.get(songId);
+    const nextSong = ensureSongBuilt(songId);
     if (!nextSong) return null;
 
     const shouldResume = autoplay || isPlaying;
@@ -626,6 +639,7 @@ export function createAlbumMixerEngine({ songs = [] } = {}) {
     addEventListener: (...args) => eventTarget.addEventListener(...args),
     removeEventListener: (...args) => eventTarget.removeEventListener(...args),
     getSongs: () => songs.map((song) => ({ ...song })),
+    ensureSong: (songId) => ensureSongBuilt(songId),
     getState,
     loadSong,
     play,

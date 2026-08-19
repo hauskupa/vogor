@@ -1,3 +1,7 @@
 node_modules/
 /dist/version.txt
 .claude/
+
+# Útgáfuskjöl — óútgefin plata, pressulisti, promo-plan.
+# Repo-ið er opinbert (jsDelivr gh/) og `npm run deploy` keyrir `git add -A`.
+releases/

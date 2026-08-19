@@ -1,21 +1,44 @@
 #!/usr/bin/env node
 
 /**
- * purge.js – Purge jsDelivr CDN cache for vogor@latest
+ * purge.js – Purge jsDelivr CDN cache for the files Webflow actually loads.
+ *
+ * Síðurnar hlaða `@main`, ekki `@latest`. Þetta eru sitthvor cache-færslan hjá
+ * jsDelivr, svo purge á `@latest` snerti aldrei það sem gestir fá. Purge-API-ið
+ * vill líka staka skrá — mappa gerir ekkert.
  */
 
-import https from "https";
+import { readdirSync } from "fs";
 
-const url = "https://purge.jsdelivr.net/gh/hauskupa/vogor@latest/dist/";
+const USER = "hauskupa";
+const REPO = "vogor";
+const REF = "main";
 
-console.log(`Purging CDN cache: ${url}`);
+const files = readdirSync("dist").filter(
+  (file) => file.endsWith(".js") || file.endsWith(".css")
+);
 
-https.get(url, (res) => {
-  if (res.statusCode === 200) {
-    console.log("✓ CDN cache purged successfully");
-  } else {
-    console.warn(`Warning: CDN returned status ${res.statusCode}`);
-  }
-}).on("error", (err) => {
-  console.error("Error purging CDN:", err.message);
+if (!files.length) {
+  console.warn("Ekkert í dist/ til að purge-a. Keyrðu `npm run build` fyrst.");
+  process.exit(0);
+}
+
+const results = await Promise.all(
+  files.map(async (file) => {
+    const url = `https://purge.jsdelivr.net/gh/${USER}/${REPO}@${REF}/dist/${file}`;
+    try {
+      const response = await fetch(url);
+      return { file, ok: response.ok, status: response.status };
+    } catch (error) {
+      return { file, ok: false, status: error.message };
+    }
+  })
+);
+
+results.forEach(({ file, ok, status }) => {
+  console.log(`${ok ? "✓" : "✗"} ${file}${ok ? "" : `  (${status})`}`);
 });
+
+const failed = results.filter((result) => !result.ok);
+console.log(`\n${results.length - failed.length}/${results.length} purge-að á @${REF}`);
+if (failed.length) process.exitCode = 1;

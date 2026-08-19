@@ -1,5 +1,6 @@
 import { createAlbumMixerEngine } from "./albumMixerEngine.js";
 import { albumMixerSongs } from "./albumMixerSongs.js";
+import { readSongsFromDom, MAX_CHANNELS } from "./albumMixerData.js";
 
 const AUDIO_PROXY_URL = "https://audio-proxy.stafraennhakon.workers.dev";
 
@@ -482,32 +483,60 @@ function cloneTrackStripTemplate(container) {
   return strip instanceof HTMLElement ? strip : null;
 }
 
-function getSongs() {
-  return albumMixerSongs
+function normalizeSongs(rawSongs) {
+  return rawSongs
     .map((song, index) => ({
       ...song,
       side: song.side || "A",
       sideIndex: Number.isFinite(song.sideIndex) ? song.sideIndex : index + 1,
       tracks: (song.tracks || [])
+        .slice(0, MAX_CHANNELS)
         .map((track, index) => ({
           id: track.id || `track-${index + 1}`,
           title: track.title || `Track ${index + 1}`,
+          // Aðeins sett þegar gögnin gefa raunverulegt heiti. Tómt hér þýðir
+          // að merkingar úr Webflow-markupinu ráða áfram (sjá renderTrackControls).
+          label: String(track.label || "").trim(),
+          short: String(track.short || "").trim(),
+          role: track.role === "aux" ? "aux" : "main",
           url: normalizeAudioUrl(track.url || ""),
         }))
         .filter((track) => track.url),
     }))
-    .filter((song) => song.id && song.tracks.length === 4);
+    .filter((song) => song.id && song.tracks.length >= 1);
+}
+
+// Webflow CMS ræður ef [data-mixer-songs] er á síðunni. Annars fellur
+// spilarinn aftur á innbyggða listann svo eldri síður haldi sér óbreyttar.
+function getSongs(container) {
+  const fromDom = readSongsFromDom(container);
+  if (fromDom?.length) {
+    const songs = normalizeSongs(fromDom);
+    if (songs.length) {
+      const counts = new Set(songs.map((song) => song.tracks.length));
+      if (counts.size > 1) {
+        console.warn(
+          "album-mixer: lögin eru ekki með sama rásafjölda",
+          Object.fromEntries(songs.map((song) => [song.id, song.tracks.length]))
+        );
+      }
+      return { songs, source: "webflow" };
+    }
+  }
+
+  return { songs: normalizeSongs(albumMixerSongs), source: "bundled" };
 }
 
 export function setupAlbumMixer(root = document) {
   const container = root.querySelector("[data-album-mixer]");
   if (!container) return null;
 
-  const songs = getSongs();
+  const { songs, source } = getSongs(container);
   if (!songs.length) {
-    console.warn("album-mixer: no valid 4-track songs found");
+    console.warn("album-mixer: engin gild lög fundust");
     return null;
   }
+  console.log(`album-mixer: ${songs.length} lög úr ${source}`);
 
   const engine = createAlbumMixerEngine({ songs });
 
@@ -698,9 +727,17 @@ export function setupAlbumMixer(root = document) {
     return track._readyPromise;
   }
 
+  // Lögin í `songs` bera engin audio-element — þau verða til inni í engine við
+  // fyrsta val. Sæktu því alltaf smíðaða lagið, annars er preload þögult núllverk.
+  function resolveBuiltSong(song) {
+    if (!song?.id) return song || null;
+    return engine.ensureSong(song.id) || song;
+  }
+
   function preloadSongAudio(song) {
-    if (!song?.tracks?.length) return Promise.resolve([]);
-    return Promise.all(song.tracks.map((track) => preloadTrackAudio(track)));
+    const built = resolveBuiltSong(song);
+    if (!built?.tracks?.length) return Promise.resolve([]);
+    return Promise.all(built.tracks.map((track) => preloadTrackAudio(track)));
   }
 
   function preloadUiSounds() {
@@ -708,16 +745,17 @@ export function setupAlbumMixer(root = document) {
   }
 
   async function showPreloaderUntilReady(song, { timeout = 3500, minShow = 900 } = {}) {
-    if (!song?.tracks?.length) return;
+    const built = resolveBuiltSong(song);
+    if (!built?.tracks?.length) return;
 
-    const tracks = song.tracks.filter((track) => track?.audio);
+    const tracks = built.tracks.filter((track) => track?.audio);
     if (!tracks.length || tracks.every((track) => isAudioReady(track.audio))) return;
 
     const started = performance.now();
     preloaderEl.setAttribute("aria-hidden", "false");
 
     await Promise.race([
-      preloadSongAudio(song),
+      preloadSongAudio(built),
       new Promise((resolve) => window.setTimeout(resolve, timeout)),
     ]);
 
@@ -847,18 +885,44 @@ export function setupAlbumMixer(root = document) {
 
     titleEl && (titleEl.textContent = song.title);
 
+    // Layoutið býr í Webflow, svo rásafjöldinn er gefinn áfram sem CSS-breyta
+    // og hægt er að stilla gridið á repeat(var(--tm4-channels), 1fr).
+    const mainChannelCount = song.tracks.filter((track) => track.role !== "aux").length;
+    container.style.setProperty("--tm4-channels", String(song.tracks.length));
+    container.style.setProperty("--tm4-main-channels", String(mainChannelCount));
+    container.dataset.channelCount = String(song.tracks.length);
+    let auxDividerPlaced = false;
+
     song.tracks.forEach((track, trackIndex) => {
       const trackSlotId = getTrackSlotId(trackIndex);
+      const isAux = track.role === "aux";
+
+      if (isAux && !auxDividerPlaced) {
+        const divider = document.createElement("div");
+        divider.className = "tm4-aux-divider";
+        divider.setAttribute("aria-hidden", "true");
+        tracksEl.appendChild(divider);
+        auxDividerPlaced = true;
+      }
+
       const strip = cloneTrackStripTemplate(container) || document.createElement("section");
       if (!strip.classList.contains("tm4-strip")) {
         strip.className = "tm4-strip";
       }
+      strip.classList.toggle("tm4-strip--aux", isAux);
+      strip.dataset.trackRole = isAux ? "aux" : "main";
 
-      const resolvedTrackTitle = markupTrackTitles[trackIndex] || getTrackTitle(track, trackIndex);
+      // Heiti úr CMS vinnur. Markup-heitin eru áfram notuð fyrir eldri síður
+      // þar sem gögnin koma úr innbyggða listanum og bera engin heiti.
+      const resolvedTrackTitle =
+        track.label || markupTrackTitles[trackIndex] || getTrackTitle(track, trackIndex);
 
+      // Þegar stutt merking er gefin fer hún efst og fulla heitið neðst, svo
+      // stafirnir lesist þvert yfir borðið. Annars stendur sama heitið á báðum.
       const title = strip.querySelector("[data-track-title]") || document.createElement("div");
       title.className = "tm4-strip-title";
-      title.textContent = resolvedTrackTitle;
+      title.classList.toggle("tm4-strip-title--short", Boolean(track.short));
+      title.textContent = track.short || resolvedTrackTitle;
 
       const trackLabel = strip.querySelector("[data-track-label]") || document.createElement("div");
       trackLabel.className = "tm4-strip-title";
