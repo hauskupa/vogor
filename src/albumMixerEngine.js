@@ -6,7 +6,9 @@ function createTapeCurve(amount = 0) {
   const samples = 2048;
   const curve = new Float32Array(samples);
   const drive = clamp(amount, 0, 1);
-  const k = 4 + drive * 24;
+  // Enginn grunnur: amount 0 skilar beinni línu. Fastur grunnur hér gerði
+  // hnappinn í botni jafn brenglaðan og í toppi.
+  const k = drive * 24;
 
   for (let i = 0; i < samples; i += 1) {
     const x = (i / (samples - 1)) * 2 - 1;
@@ -36,7 +38,7 @@ function applyTrackColor(nodes, audioContext, gain = 0) {
   nodes.compressorNode.knee.setValueAtTime(knee, audioContext.currentTime);
   nodes.makeupNode.gain.setValueAtTime(outputTrim, audioContext.currentTime);
   nodes.toneNode.frequency.setValueAtTime(toneFrequency, audioContext.currentTime);
-  nodes.saturatorNode.curve = createTapeCurve(0.015 + drive * 0.16);
+  nodes.saturatorNode.curve = createTapeCurve(drive * 0.35);
 }
 
 export function createAlbumMixerEngine({ songs = [] } = {}) {
@@ -205,7 +207,7 @@ export function createAlbumMixerEngine({ songs = [] } = {}) {
     toneNode.type = "lowpass";
     toneNode.frequency.value = 17500;
     toneNode.Q.value = 0.0001;
-    saturatorNode.curve = createTapeCurve(0.015);
+    saturatorNode.curve = createTapeCurve(0);
     saturatorNode.oversample = "2x";
     makeupNode.gain.value = 1;
     panNode.pan.value = 0;

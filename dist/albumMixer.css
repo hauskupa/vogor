@@ -309,52 +309,9 @@
   display: none !important;
 }
 
-/* ---------------------------------------------------------------
-   AUX / RETURN rás
-   Layoutið sjálft býr í Webflow. Hér er bara það sem aðgreinir
-   aukarásina frá aðalrásunum fjórum.
-   JS setur --tm4-channels og --tm4-main-channels á [data-album-mixer].
-   --------------------------------------------------------------- */
-[data-album-mixer] .tm4-aux-divider {
-  flex: 0 0 auto;
-  align-self: stretch;
-  width: 2px;
-  min-height: 100%;
-  margin: 0 0.75rem;
-  background: linear-gradient(
-    to bottom,
-    rgba(255, 255, 255, 0),
-    rgba(255, 255, 255, 0.22) 15%,
-    rgba(255, 255, 255, 0.22) 85%,
-    rgba(255, 255, 255, 0)
-  );
-  border-radius: 1px;
-}
+/* AUX-rásin fær .tm4-strip--aux og data-track-role="aux" sem hook, en engan
+   eiginn stíl — hún á að líta eins út og hinar fjórar. */
 
-[data-album-mixer] .tm4-strip--aux {
-  position: relative;
-}
-
-[data-album-mixer] .tm4-strip--aux::after {
-  content: "AUX";
-  position: absolute;
-  top: 0.35rem;
-  right: 0.45rem;
-  font-size: 0.55rem;
-  letter-spacing: 0.14em;
-  line-height: 1;
-  padding: 0.2rem 0.3rem;
-  border: 1px solid rgba(236, 29, 37, 0.55);
-  border-radius: 2px;
-  color: #ec1d25;
-  pointer-events: none;
-}
-
-[data-album-mixer] .tm4-strip--aux .tm4-fader-cap {
-  background: #ec1d25;
-}
-
-/* Stutt rásarmerking (data-stem-N-short) — stafurinn efst á strimlinum */
 [data-album-mixer] .tm4-strip-title--short {
   font-size: 1.35rem;
   font-weight: 700;

@@ -891,19 +891,10 @@ export function setupAlbumMixer(root = document) {
     container.style.setProperty("--tm4-channels", String(song.tracks.length));
     container.style.setProperty("--tm4-main-channels", String(mainChannelCount));
     container.dataset.channelCount = String(song.tracks.length);
-    let auxDividerPlaced = false;
 
     song.tracks.forEach((track, trackIndex) => {
       const trackSlotId = getTrackSlotId(trackIndex);
       const isAux = track.role === "aux";
-
-      if (isAux && !auxDividerPlaced) {
-        const divider = document.createElement("div");
-        divider.className = "tm4-aux-divider";
-        divider.setAttribute("aria-hidden", "true");
-        tracksEl.appendChild(divider);
-        auxDividerPlaced = true;
-      }
 
       const strip = cloneTrackStripTemplate(container) || document.createElement("section");
       if (!strip.classList.contains("tm4-strip")) {
