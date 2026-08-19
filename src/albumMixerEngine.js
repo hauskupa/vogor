@@ -27,7 +27,9 @@ function applyTrackColor(nodes, audioContext, gain = 0) {
   const outputTrim = 1 / (1 + drive * 0.2);
   const toneFrequency = 17500 - drive * 1200;
   const threshold = -18 - drive * 3;
-  const ratio = 1.35 + drive * 1.1;
+  // Hlutfall 1 er hrein framhjáhlaup, svo núllstaðan þjappar ekki neitt.
+  // Toppurinn lendir þar sem hann var (2.45).
+  const ratio = 1 + drive * 1.45;
   const knee = 22 - drive * 2;
 
   // Keep the neutral position close to clean and make coloration ramp in gradually.
@@ -195,7 +197,7 @@ export function createAlbumMixerEngine({ songs = [] } = {}) {
     colorInNode.gain.value = 1;
     compressorNode.threshold.value = -18;
     compressorNode.knee.value = 22;
-    compressorNode.ratio.value = 1.35;
+    compressorNode.ratio.value = 1;
     compressorNode.attack.value = 0.01;
     compressorNode.release.value = 0.08;
     eqLowNode.type = "lowshelf";
@@ -211,7 +213,7 @@ export function createAlbumMixerEngine({ songs = [] } = {}) {
     saturatorNode.oversample = "2x";
     makeupNode.gain.value = 1;
     panNode.pan.value = 0;
-    faderNode.gain.value = 1;
+    faderNode.gain.value = 0.7; // verður að passa við fader: 0.7 hér að neðan
     analyserNode.fftSize = 256;
     analyserNode.smoothingTimeConstant = 0.82;
 
