@@ -179,3 +179,33 @@ mánuðum saman þurfa stemin stöðugar slóðir — R2, Bunny eða sambærileg
 er valið. Nafir með 5 rásum verður 40 media elements í einu. Það er svipað og
 gamla platan gerir nú þegar (36), en rétta lagfæringin er að smíða rásir per lag
 við val í stað þess að gera það allt fyrirfram.
+
+---
+
+## jsDelivr og `@main` — lesist fyrir næsta deploy
+
+Síðurnar hlaða `@main`, sem er grein en ekki tag. jsDelivr heldur upplausn
+greinar í nokkrar klukkustundir og **purge á skráarslóð hreinsar það ekki**.
+Purge-API-ið svarar `status: finished` með `CF: true, FY: true` og skilar samt
+gömlu skránni. Það er ekki purge sem klikkaði heldur upplausnin sem situr eftir.
+
+Þetta getur bitið ójafnt: 19. ágúst 2026 uppfærðist `albumMixer.css` strax en
+`main.js` sat tveimur commitum á eftir í marga klukkutíma, úr sama commiti.
+
+Til að prófa strax skaltu benda Webflow á SHA-læsta slóð:
+
+```
+https://cdn.jsdelivr.net/gh/hauskupa/vogor@<stutt-sha>/dist/main.js
+```
+
+Hún er alltaf fersk því SHA er óbreytanlegt. **Mundu að skipta til baka í
+`@main`** — annars frýstu síðuna á því commiti og næsti deploy sést aldrei.
+
+Staðfesting á hvor útgáfan er í loftinu:
+
+```bash
+node -e 'const{execSync}=require("child_process");const n=s=>s.replace(/\r\n/g,"\n");
+(async()=>{const t=n(execSync("git show HEAD:dist/main.js").toString());
+const j=n(await(await fetch("https://cdn.jsdelivr.net/gh/hauskupa/vogor@main/dist/main.js?cb="+Date.now())).text());
+console.log(j===t?"@main er nyjast":"@main er a eftir");})()'
+```
