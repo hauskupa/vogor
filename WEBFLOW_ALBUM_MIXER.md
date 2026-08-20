@@ -2,16 +2,15 @@
 
 Hvernig plata er sett í 4-track mixerinn án þess að snerta kóða.
 
-Frá og með þessu les [src/albumMixer.js](src/albumMixer.js) lagalistann úr DOM-inu.
-Webflow CMS er þar með sannleiksgildið fyrir spilarann. Innbyggði listinn í
-[src/albumMixerSongs.js](src/albumMixerSongs.js) er eingöngu varaleið fyrir eldri
-síður og keyrir aðeins ef ekkert `[data-mixer-songs]` finnst.
-
-Í console sérðu hvor leiðin varð ofan á:
+[src/albumMixer.js](src/albumMixer.js) les lagalistann úr DOM-inu. Webflow CMS
+er þar með eina sannleiksgildið — það er enginn innbyggður varalisti lengur.
+Finnist ekkert `[data-mixer-songs]` spilar mixerinn ekkert og skrifar villu í
+console. Það er viljandi: gamli varalistinn þagði yfir vantandi uppsetningu og
+spilaði ranga plötu í staðinn, sem er verri villa en engin spilun.
 
 ```
-album-mixer: 8 lög úr webflow
-album-mixer: 9 lög úr bundled
+album-mixer: 8 lög
+album-mixer: engin lög í DOM-inu. Bættu Collection List með data-mixer-songs …
 ```
 
 ---
@@ -133,6 +132,22 @@ almennu hlutverkin fjögur; Nafir víkur frá þeim viljandi.
 
 Viltu fimm jafna strimla í staðinn? Settu `data-main-channels="5"`, eða
 `data-stem-5-role="main"` á stök lög. Enginn kóði breytist.
+
+### Mælaborðið
+
+Hver rás þarf sinn reit í `[data-mixer-meter-bank]`, merktan eftir
+rásarnúmeri:
+
+```
+data-track-meter="track1"  …  data-track-meter="track5"
+```
+
+Aukarásin má líka heita `data-track-meter="aux"`. Þá fylgir reiturinn
+aukarásinni hvar sem hún lendir, sem skiptir máli þegar plötur hafa ólíkan
+rásafjölda — á plötu með þremur aðalrásum er aux `track4`, ekki `track5`.
+
+Reitur sem passar við enga rás, og rás sem á sér engan reit, skrifa bæði
+viðvörun í console.
 
 ### Layoutið er í Webflow
 

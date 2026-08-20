@@ -1,5 +1,4 @@
 import { createAlbumMixerEngine } from "./albumMixerEngine.js";
-import { albumMixerSongs } from "./albumMixerSongs.js";
 import { readSongsFromDom, MAX_CHANNELS } from "./albumMixerData.js";
 import { exportMixToMp3, canExportHere, downloadBlob } from "./albumMixerExport.js";
 
@@ -510,34 +509,36 @@ function normalizeSongs(rawSongs) {
 // Webflow CMS ræður ef [data-mixer-songs] er á síðunni. Annars fellur
 // spilarinn aftur á innbyggða listann svo eldri síður haldi sér óbreyttar.
 function getSongs(container) {
-  const fromDom = readSongsFromDom(container);
-  if (fromDom?.length) {
-    const songs = normalizeSongs(fromDom);
-    if (songs.length) {
-      const counts = new Set(songs.map((song) => song.tracks.length));
-      if (counts.size > 1) {
-        console.warn(
-          "album-mixer: lögin eru ekki með sama rásafjölda",
-          Object.fromEntries(songs.map((song) => [song.id, song.tracks.length]))
-        );
-      }
-      return { songs, source: "webflow" };
-    }
+  const songs = normalizeSongs(readSongsFromDom(container) || []);
+
+  if (!songs.length) {
+    // Áður var innbyggður varalisti hér. Hann þagði yfir vantandi uppsetningu
+    // og spilaði ranga plötu í staðinn, sem er verri villa en engin spilun.
+    console.error(
+      "album-mixer: engin lög í DOM-inu. Bættu Collection List með " +
+        'data-mixer-songs inni í [data-album-mixer]. Sjá WEBFLOW_ALBUM_MIXER.md'
+    );
+    return [];
   }
 
-  return { songs: normalizeSongs(albumMixerSongs), source: "bundled" };
+  const counts = new Set(songs.map((song) => song.tracks.length));
+  if (counts.size > 1) {
+    console.warn(
+      "album-mixer: lögin eru ekki með sama rásafjölda",
+      Object.fromEntries(songs.map((song) => [song.id, song.tracks.length]))
+    );
+  }
+
+  return songs;
 }
 
 export function setupAlbumMixer(root = document) {
   const container = root.querySelector("[data-album-mixer]");
   if (!container) return null;
 
-  const { songs, source } = getSongs(container);
-  if (!songs.length) {
-    console.warn("album-mixer: engin gild lög fundust");
-    return null;
-  }
-  console.log(`album-mixer: ${songs.length} lög úr ${source}`);
+  const songs = getSongs(container);
+  if (!songs.length) return null;
+  console.log(`album-mixer: ${songs.length} lög`);
 
   const engine = createAlbumMixerEngine({ songs });
 
@@ -567,6 +568,28 @@ export function setupAlbumMixer(root = document) {
   const preloaderEl = createAlbumMixerPreloader(container);
   let meterFrame = 0;
   const meterState = new Map();
+  const meterPanels = new Map();
+
+  // Mælaborðið er handtengt í Webflow. Upphaflega gildið er geymt einu sinni
+  // svo endurmerking við render rugli ekki næstu plötu, og "aux" má nota í
+  // stað rásarnúmers — þá fylgir reiturinn aukarásinni þótt hún færist til
+  // milli platna með ólíkan rásafjölda.
+  function resolveBankMeter(trackSlotId, isAux) {
+    if (!meterBankEl) return null;
+
+    const panels = Array.from(meterBankEl.querySelectorAll("[data-track-meter]"));
+    panels.forEach((panel) => {
+      if (panel.dataset.meterKey === undefined) {
+        panel.dataset.meterKey = panel.getAttribute("data-track-meter") || "";
+      }
+    });
+
+    return (
+      panels.find((panel) => panel.dataset.meterKey === trackSlotId) ||
+      (isAux ? panels.find((panel) => panel.dataset.meterKey === "aux") : null) ||
+      null
+    );
+  }
   const uiSounds = {
     play: new Audio(normalizeAudioUrl("https://www.dropbox.com/scl/fi/sgvhyxbqoc0pakf6il1sq/4track-play.mp3?rlkey=zl6thgu94wmmd00pd5epuuex4&st=rj781cfj&dl=0")),
     pause: new Audio(normalizeAudioUrl("https://www.dropbox.com/scl/fi/tbdvqrzh699clxtz4ui82/4trackstopp.mp3?rlkey=ejma0tqs2r9v0vid6c5n0d9aq&st=0q465h7m&dl=0")),
@@ -881,6 +904,8 @@ export function setupAlbumMixer(root = document) {
 
     const { song } = engine.getState();
     tracksEl.innerHTML = "";
+    // Annars lifa reitir af plötu með fleiri rásum inn í þá næstu.
+    meterPanels.clear();
 
     if (!song) return;
 
@@ -1088,13 +1113,21 @@ export function setupAlbumMixer(root = document) {
         levelValue.textContent = formatConsoleScale(nextValue);
       });
       const meterPanel = ensureMeterPanel(
-        meterBankEl?.querySelector(`[data-track-meter="${trackSlotId}"]`) ||
+        resolveBankMeter(trackSlotId, isAux) ||
           (!meterBankEl &&
             (strip.querySelector(`[data-track-meter="${trackSlotId}"]`) ||
               strip.querySelector("[data-track-meter]"))) ||
           (!meterBankEl ? createMeterPanel(trackSlotId) : null),
         trackSlotId
       );
+      if (meterPanel) {
+        meterPanels.set(trackSlotId, meterPanel);
+      } else if (meterBankEl) {
+        console.warn(
+          `album-mixer: engan mæli að finna fyrir ${trackSlotId}. Settu data-track-meter="${trackSlotId}"` +
+            (isAux ? ' eða "aux"' : "") + " á reitinn í mælaborðinu."
+        );
+      }
       updateMeterPanel(meterPanel, meterState.get(trackSlotId) || 0);
 
       if (!strip.contains(title)) strip.appendChild(title);
@@ -1105,6 +1138,18 @@ export function setupAlbumMixer(root = document) {
 
       tracksEl.appendChild(strip);
     });
+
+    // Reitur sem passar við enga rás er þögul villa annars — hann situr bara
+    // dauður í borðinu eins og aux-reiturinn gerði.
+    if (meterBankEl) {
+      Array.from(meterBankEl.querySelectorAll("[data-track-meter]"))
+        .filter((panel) => !Array.from(meterPanels.values()).includes(panel))
+        .forEach((panel) => {
+          console.warn(
+            `album-mixer: mælireitur "${panel.dataset.meterKey}" passar við enga rás í þessu lagi`
+          );
+        });
+    }
   }
 
   function syncTimeline() {
@@ -1349,7 +1394,7 @@ export function setupAlbumMixer(root = document) {
     const levels = engine.getMeterLevels();
     levels.forEach(({ level }, trackIndex) => {
       const trackSlotId = getTrackSlotId(trackIndex);
-      const panel = container.querySelector(`[data-track-meter="${trackSlotId}"]`);
+      const panel = meterPanels.get(trackSlotId);
       if (!panel) return;
 
       const previous = meterState.get(trackSlotId) || 0;
