@@ -1,6 +1,7 @@
 import { createAlbumMixerEngine } from "./albumMixerEngine.js";
 import { albumMixerSongs } from "./albumMixerSongs.js";
 import { readSongsFromDom, MAX_CHANNELS } from "./albumMixerData.js";
+import { exportMixToMp3, canExportHere, downloadBlob } from "./albumMixerExport.js";
 
 const AUDIO_PROXY_URL = "https://audio-proxy.stafraennhakon.workers.dev";
 
@@ -1178,6 +1179,74 @@ export function setupAlbumMixer(root = document) {
     playCue(uiSounds.stop, { playbackRate: 1, volume: 0.18 });
     engine.stop();
   });
+
+  const exportBtn = container.querySelector("[data-mixer-export]");
+  const exportProgressEl = container.querySelector("[data-mixer-export-progress]");
+  const exportEnabled = String(container.dataset.export || "").toLowerCase() !== "off";
+
+  if (exportBtn && !exportEnabled) {
+    exportBtn.hidden = true;
+  }
+
+  if (exportBtn && exportEnabled) {
+    const PHASE_TEXT = {
+      fetch: "Sæki stem",
+      decode: "Afkóða",
+      render: "Rendra mix",
+      encode: "Kóða MP3",
+      done: "Tilbúið",
+    };
+
+    const setExportStatus = (text) => {
+      if (exportProgressEl) exportProgressEl.textContent = text;
+      exportBtn.dataset.exportStatus = text;
+    };
+
+    exportBtn.addEventListener("click", async () => {
+      if (exportBtn.dataset.exporting === "true") return;
+
+      const { song, masterVolume, pitch } = engine.getState();
+      const tracks = song?.tracks || [];
+      if (!tracks.length) return;
+
+      const duration = tracks[0]?.audio?.duration || 0;
+      const check = canExportHere(duration, tracks.length);
+      if (!check.ok) {
+        setExportStatus(check.reason);
+        return;
+      }
+
+      exportBtn.dataset.exporting = "true";
+      exportBtn.disabled = true;
+
+      try {
+        const blob = await exportMixToMp3({
+          container,
+          song,
+          albumTitle,
+          tracks,
+          masterPosition: masterVolume,
+          pitch,
+          bitrate: 192,
+          onProgress: ({ phase, ratio }) => {
+            const label = PHASE_TEXT[phase] || phase;
+            setExportStatus(`${label} ${Math.round((ratio || 0) * 100)}%`);
+          },
+        });
+
+        const safeTitle = String(song?.title || "mix").replace(/[\\/:*?"<>|]/g, "");
+        const safeAlbum = String(albumTitle || "Vogor").replace(/[\\/:*?"<>|]/g, "");
+        downloadBlob(blob, `Stafraenn Hakon - ${safeAlbum} - ${safeTitle} (my mix).mp3`);
+        setExportStatus("Tilbúið");
+      } catch (error) {
+        console.warn("album-mixer: export failed", error);
+        setExportStatus(error?.message || "Útflutningur brást");
+      } finally {
+        exportBtn.dataset.exporting = "false";
+        exportBtn.disabled = false;
+      }
+    });
+  }
 
   prevBtn?.addEventListener("click", async () => {
     await navigateSong(-1);

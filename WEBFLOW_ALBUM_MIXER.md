@@ -164,6 +164,65 @@ Ný plata = ný Collection eða nýtt `Album`-filter á Collection List. Ekkert
 build, ekkert deploy, engin jsDelivr-purge. Slóðirnar í mixernum eru læstar á
 `@main` svo þær breytast aldrei.
 
+## 5. Útflutningur á mixi (MP3)
+
+Gestir geta sótt sitt eigið mix sem MP3 192. Bættu tveimur elementum inn í
+`[data-album-mixer]` — hnappnum og stað fyrir framvinduna:
+
+```html
+<button data-mixer-export>Export mix</button>
+<output data-mixer-export-progress></output>
+```
+
+**Ekkert birtist fyrr en hnappurinn er á síðunni.** Viltu smíða hann núna en
+kveikja seinna, settu `data-export="off"` á `[data-album-mixer]` og hnappurinn
+felur sig. Fjarlægðu það þegar platan er komin út.
+
+### Hvað gerist
+
+Stemin fimm eru sótt, afkóðuð og rendruð í `OfflineAudioContext` gegnum
+**sömu rásakeðju og lifandi spilunin** — `createChannelChain()` í
+[src/albumMixerEngine.js](src/albumMixerEngine.js) þjónar báðum, svo þær geta
+ekki rekið í sundur. Gain, EQ, pan, fader, master og pitch eru öll tekin úr
+borðinu eins og það stendur.
+
+Útflutta mixið er í raun **nákvæmara en það sem heyrðist**: í rauntíma keyra
+fimm aðskilin media elements og resync-lúppan nuddar `playbackRate` um ±1,25%,
+en offline eru bufferarnir sample-læstir.
+
+### Kóðarinn
+
+`dist/mp3worker.js` er sér skrá, 153 kB, og **sækist ekki fyrr en einhver
+ýtir á hnappinn**. Hún er lame.min.js límd framan við worker-kóðann; module-
+inngangur lamejs er brotinn (`MPEGMode is not defined`) svo forsmíðaða
+skráin er notuð. Hún er sótt og keyrð af blob-slóð því `new Worker()` má ekki
+benda á annað lén.
+
+Slóðin finnst sjálfkrafa við hliðina á `main.js`. Þarf að yfirtaka hana:
+`data-mp3-worker="https://…/mp3worker.js"` á container.
+
+### Tími og minni
+
+Kóðunin tekur um **4,4 sekúndur á hverja mínútu af hljóði** — 17 s á meðallagi
+Nafir, 20 s á Línurnar. Hún keyrir í worker svo síðan frýs ekki og spilun
+heldur áfram á meðan.
+
+Minnið er þrengra. Öll stemin eru afkóðuð samtímis sem Float32:
+
+| lag | 5 stem + render |
+| --- | --- |
+| Fín, 204 s | 432 MB |
+| Línurnar, 278 s | 588 MB |
+
+Borðtölvur ráða við þetta. **iOS gerir það ekki** og fellir flipann þegjandi,
+svo `canExportHere()` neitar á iOS og á tækjum með `deviceMemory <= 2` og
+skrifar ástæðuna í `[data-mixer-export-progress]` í staðinn.
+
+### Skráin
+
+`Stafraenn Hakon - Nafir - <lag> (my mix).mp3` með ID3v2.3 taggi í UTF-16
+(TIT2, TPE1, TALB, TCON, TSSE) svo íslenskir stafir haldi sér.
+
 ---
 
 ## Tvennt sem á eftir að leysa

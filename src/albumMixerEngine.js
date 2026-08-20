@@ -52,6 +52,85 @@ function applyTrackColor(nodes, audioContext, gain = 0) {
   nodes.saturatorNode.curve = createTapeCurve(drive * 0.35);
 }
 
+// Ein rásakeðja. Bæði lifandi spilunin og offline-útflutningurinn smíða hana
+// hér, svo útflutta mixið geti ekki hljómað öðruvísi en það sem heyrðist.
+// Uppspretta rásarinnar er ólík — media element í rauntíma, buffer offline —
+// svo hún tengist utan frá inn í `input`.
+export function createChannelChain(audioContext) {
+  const gainNode = audioContext.createGain();
+  const colorInNode = audioContext.createGain();
+  const compressorNode = audioContext.createDynamicsCompressor();
+  const eqLowNode = audioContext.createBiquadFilter();
+  const eqHighNode = audioContext.createBiquadFilter();
+  const toneNode = audioContext.createBiquadFilter();
+  const saturatorNode = audioContext.createWaveShaper();
+  const makeupNode = audioContext.createGain();
+  const panNode = audioContext.createStereoPanner();
+  const faderNode = audioContext.createGain();
+
+  gainNode.gain.value = 1;
+  colorInNode.gain.value = 1;
+  compressorNode.threshold.value = -18;
+  compressorNode.knee.value = 22;
+  compressorNode.ratio.value = 1;
+  compressorNode.attack.value = 0.01;
+  compressorNode.release.value = 0.08;
+  eqLowNode.type = "lowshelf";
+  eqLowNode.frequency.value = 180;
+  eqLowNode.gain.value = 0;
+  eqHighNode.type = "highshelf";
+  eqHighNode.frequency.value = 3200;
+  eqHighNode.gain.value = 0;
+  toneNode.type = "lowpass";
+  toneNode.frequency.value = 17500;
+  toneNode.Q.value = 0.0001;
+  saturatorNode.curve = createTapeCurve(0);
+  saturatorNode.oversample = "2x";
+  makeupNode.gain.value = 1;
+  panNode.pan.value = 0;
+  faderNode.gain.value = faderGain(UNITY_FADER);
+
+  gainNode.connect(colorInNode);
+  colorInNode.connect(compressorNode);
+  compressorNode.connect(eqLowNode);
+  eqLowNode.connect(eqHighNode);
+  eqHighNode.connect(toneNode);
+  toneNode.connect(saturatorNode);
+  saturatorNode.connect(makeupNode);
+  makeupNode.connect(panNode);
+  panNode.connect(faderNode);
+
+  const nodes = {
+    gainNode,
+    colorInNode,
+    compressorNode,
+    eqLowNode,
+    eqHighNode,
+    toneNode,
+    saturatorNode,
+    makeupNode,
+    panNode,
+    faderNode,
+  };
+
+  return { input: gainNode, output: faderNode, nodes };
+}
+
+// Setur heila rásarstöðu á keðjuna í einu. Offline-útflutningurinn notar þetta
+// til að endurskapa nákvæmlega þær stillingar sem stóðu á borðinu.
+export function applyChannelState(nodes, audioContext, state = {}) {
+  if (!nodes || !audioContext) return;
+
+  const at = audioContext.currentTime;
+  applyTrackColor(nodes, audioContext, clamp(state.gain ?? 0, 0, 2));
+  nodes.eqLowNode.gain.setValueAtTime(clamp(state.eqLow ?? 0, -1, 1) * 12, at);
+  nodes.eqHighNode.gain.setValueAtTime(clamp(state.eqHigh ?? 0, -1, 1) * 12, at);
+  nodes.panNode.pan.setValueAtTime(clamp(state.pan ?? 0, -1, 1), at);
+  nodes.faderNode.gain.setValueAtTime(faderGain(state.fader ?? UNITY_FADER), at);
+}
+
+export { faderGain, UNITY_FADER };
+
 export function createAlbumMixerEngine({ songs = [] } = {}) {
   const AudioContextCtor = window.AudioContext || window.webkitAudioContext;
   const audioContext = AudioContextCtor ? new AudioContextCtor() : null;
@@ -193,54 +272,27 @@ export function createAlbumMixerEngine({ songs = [] } = {}) {
     }
 
     const source = audioContext.createMediaElementSource(audio);
-    const gainNode = audioContext.createGain();
-    const colorInNode = audioContext.createGain();
-    const compressorNode = audioContext.createDynamicsCompressor();
-    const eqLowNode = audioContext.createBiquadFilter();
-    const eqHighNode = audioContext.createBiquadFilter();
-    const toneNode = audioContext.createBiquadFilter();
-    const saturatorNode = audioContext.createWaveShaper();
-    const makeupNode = audioContext.createGain();
-    const panNode = audioContext.createStereoPanner();
-    const faderNode = audioContext.createGain();
     const analyserNode = audioContext.createAnalyser();
-
-    gainNode.gain.value = 1;
-    colorInNode.gain.value = 1;
-    compressorNode.threshold.value = -18;
-    compressorNode.knee.value = 22;
-    compressorNode.ratio.value = 1;
-    compressorNode.attack.value = 0.01;
-    compressorNode.release.value = 0.08;
-    eqLowNode.type = "lowshelf";
-    eqLowNode.frequency.value = 180;
-    eqLowNode.gain.value = 0;
-    eqHighNode.type = "highshelf";
-    eqHighNode.frequency.value = 3200;
-    eqHighNode.gain.value = 0;
-    toneNode.type = "lowpass";
-    toneNode.frequency.value = 17500;
-    toneNode.Q.value = 0.0001;
-    saturatorNode.curve = createTapeCurve(0);
-    saturatorNode.oversample = "2x";
-    makeupNode.gain.value = 1;
-    panNode.pan.value = 0;
-    faderNode.gain.value = faderGain(UNITY_FADER);
     analyserNode.fftSize = 256;
     analyserNode.smoothingTimeConstant = 0.82;
 
-    source.connect(gainNode);
-    gainNode.connect(colorInNode);
-    colorInNode.connect(compressorNode);
-    compressorNode.connect(eqLowNode);
-    eqLowNode.connect(eqHighNode);
-    eqHighNode.connect(toneNode);
-    toneNode.connect(saturatorNode);
-    saturatorNode.connect(makeupNode);
-    makeupNode.connect(panNode);
-    panNode.connect(faderNode);
-    faderNode.connect(masterGain);
-    faderNode.connect(analyserNode);
+    const chain = createChannelChain(audioContext);
+    const {
+      gainNode,
+      colorInNode,
+      compressorNode,
+      eqLowNode,
+      eqHighNode,
+      toneNode,
+      saturatorNode,
+      makeupNode,
+      panNode,
+      faderNode,
+    } = chain.nodes;
+
+    source.connect(chain.input);
+    chain.output.connect(masterGain);
+    chain.output.connect(analyserNode);
 
     const builtTrack = {
       ...track,
@@ -551,11 +603,11 @@ export function createAlbumMixerEngine({ songs = [] } = {}) {
   }
 
   function setMasterVolume(value) {
-    const nextValue = clamp(value, 0, 1);
+    masterPosition = clamp(value, 0, 1);
     if (masterGain) {
-      masterGain.gain.value = nextValue;
+      masterGain.gain.value = faderGain(masterPosition);
     }
-    emit("masterchange", { value: nextValue });
+    emit("masterchange", { value: masterPosition });
   }
 
   function setPitch(value) {
