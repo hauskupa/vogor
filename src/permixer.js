@@ -55,19 +55,30 @@ function slugify(text) {
     .replace(/^-|-$/g, "");
 }
 
-function parseStems(text) {
-  const stems = [];
-  const seen = new Set();
+// Stem koma úr data-pm-stems ("heiti: slóð" á línu) og/eða sér attribute
+// á hverja rás, data-stem-<heiti>="slóð" (t.d. úr referenced item). Tóm
+// gildi eru hunsuð.
+function readStems(el) {
+  const pairs = [];
   const re = /([^\s:,;][^:,;\n]*?)\s*:\s*(https?:\/\/[^\s,;]+)/g;
   let m;
-  while ((m = re.exec(text || ""))) {
-    const name = clean(m[1]);
-    let id = slugify(name) || `stem-${stems.length + 1}`;
+  while ((m = re.exec(el.getAttribute("data-pm-stems") || ""))) {
+    pairs.push([clean(m[1]), m[2]]);
+  }
+  Array.from(el.attributes).forEach((attr) => {
+    const url = clean(attr.value);
+    if (attr.name.startsWith("data-stem-") && /^https?:\/\//.test(url)) {
+      pairs.push([attr.name.slice("data-stem-".length), url]);
+    }
+  });
+
+  const seen = new Set();
+  return pairs.map(([name, url], i) => {
+    let id = slugify(name) || `stem-${i + 1}`;
     while (seen.has(id)) id += "-2";
     seen.add(id);
-    stems.push({ id, name, url: m[2] });
-  }
-  return stems;
+    return { id, name, url };
+  });
 }
 
 function parseTime(token) {
@@ -119,7 +130,7 @@ function readSongs() {
       section.start = times[i] ?? null;
     });
 
-    return { id, title, stems: parseStems(el.getAttribute("data-pm-stems")), sections };
+    return { id, title, stems: readStems(el), sections };
   });
 }
 

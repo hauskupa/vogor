@@ -30,6 +30,18 @@ stíla í Designer.
    <div hidden data-pm-song="[Slug]" data-pm-title="[Name]" data-pm-stems="[Rásir]" data-pm-times="[Kaflatímar]"></div>
    ```
 
+   **Stemin í öðru safni (LiveParts):** í stað Rása-reitsins má setja
+   Reference-reit í kaflasafnið sem vísar á lagið í LiveParts, og eitt
+   `data-stem-<heiti>` á hverja rás, sett inn með + Add Field úr referenced
+   item. Tómar rásir eru hunsaðar; heitið á eftir `data-stem-` ræður hópnum.
+   ```html
+   <div hidden data-pm-song="[Slug]" data-pm-title="[Name]" data-pm-times="[Kaflatímar]"
+     data-stem-drums="[LivePart: Drums]"
+     data-stem-perc="[LivePart: Perc]"
+     data-stem-bass="[LivePart: Bass]"
+     …></div>
+   ```
+
 3. **Kaflahólfin** sem fyrir eru í atriðinu eru lesin óbreytt. Hólf er
    foreldri `[data-chords]`-elementsins og í því eru:
    - fyrirsögn: fyrsta `h1`–`h4`
