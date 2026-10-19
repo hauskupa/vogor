@@ -4,7 +4,7 @@
   "type": "module",
   "scripts": {
     "build": "node build.js",
-    "dev": "npx esbuild src/main.js --bundle --format=iife --target=es2019 --sourcemap --outfile=dist/main.dev.js --watch",
+    "dev": "npx esbuild src/main.js --bundle --format=iife --target=es2019 --sourcemap --loader:.css=text --outfile=dist/main.dev.js --watch",
     "release": "node release.js patch",
     "purge": "node purge.js",
     "deploy": "npm run build && git add -A && git diff --cached --quiet || git commit -m \"Auto deploy\" && git push origin main && npm run purge && npm run release",

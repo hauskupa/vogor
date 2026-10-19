@@ -15,6 +15,8 @@ await build({
   format: "iife",
   target: ["es2019"],
   outfile: "dist/main.js",
+  // permixer.js sprautar CSS-inu sínu inn sjálft
+  loader: { ".css": "text" },
   banner: {
     js: `// Build version: ${v} (${new Date().toISOString()})`,
   },

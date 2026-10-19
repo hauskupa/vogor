@@ -5,12 +5,18 @@ import { setupAlbumMixer } from "./albumMixer.js";
 import { setupMultitrackPlayer } from "./multitrackplayer.js";
 import { setupAsleepArtwork } from "./asleep.js";
 import { setupVogorPlayer } from "./vogorPlayer.js";
+import { setupPermixer } from "./permixer.js";
 
 document.addEventListener("DOMContentLoaded", () => {
   // Mixer
   if (document.querySelector("[data-mixer]")) {
     console.log("Found mixer element, initializing...");
     setupMixer();
+  }
+
+  // Æfingasíðan (permixer með köflum)
+  if (document.querySelector("[data-pm-song]")) {
+    setupPermixer();
   }
 
   // Awake
