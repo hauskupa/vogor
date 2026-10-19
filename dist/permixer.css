@@ -421,8 +421,8 @@ button.pm-section-head:hover .pm-label,
   width: 56px;
 }
 
-.pm .pm-vol,
-.pm .pm-pan {
+.pm input.pm-vol,
+.pm input.pm-pan {
   accent-color: #b5b5b5;
 }
 
