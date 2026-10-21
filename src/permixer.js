@@ -597,7 +597,11 @@ export function setupPermixer() {
     if (!next || next === current) return;
     const wasPlaying = engine.isPlaying(current.id);
     current = next;
-    history.replaceState(null, "", `#${next.id}`);
+    // Full slóð: Webflow setur <base> á síðuna, svo "#lag" eitt og sér
+    // myndi vísa á forsíðuna
+    const url = new URL(location.href);
+    url.hash = next.id;
+    history.replaceState(history.state, "", url.href);
     if (next.stems.length) {
       if (wasPlaying) engine.play(next.id);
       else engine.select(next.id);
