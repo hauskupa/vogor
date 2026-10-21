@@ -526,6 +526,16 @@ button.pm-section-head:hover .pm-label,
   align-self: start;
   max-height: calc(100vh - 48px);
   overflow-y: auto;
+  overflow-x: hidden;
+  /* Pláss fyrir skrunstikuna frá byrjun, svo hún leggist ekki yfir sleðana */
+  scrollbar-gutter: stable;
+  padding-right: 6px;
+  min-width: 0;
+}
+
+.pm-mixer-head > *,
+.pm-strip > * {
+  min-width: 0;
 }
 
 .pm-mixer-head {
