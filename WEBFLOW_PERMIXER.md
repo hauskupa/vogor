@@ -70,6 +70,28 @@ Fyrsta regla sem passar við heiti rásar (lágstafir) ræður:
 | Blástur | trombone, trumpet, sax, horn, brass |
 | Annað | allt annað |
 
+## Tónleikaröð, kynningar og nótur
+
+Með lykli í slóðinni (`/per/jolamixer?k=…`) sækir síðan lagalista bandsins úr
+Google Sheet (`src/permixerSetlist.js`; bakendinn og Sheet-ið eru í private
+hub-repo-inu). Lykillinn er sá sami og á `/per/auglysingar` og vafrinn man hann,
+svo hver sem hefur opnað annan hlekkinn fær hinn líka.
+
+- Vinstri dálkurinn sýnir lögin í tónleikaröð, fjölda og heildarlengd, og
+  „Utan lagalista“ fyrir CMS-lög sem eru ekki á listanum.
+- Lög á listanum sem eru ekki komin í CMS birtast með kynningu og nótum en án
+  mixers. Tengingin er slóð lagsins (`data-pm-song`), svo lag sem er sett í CMS
+  með sömu slóð fær mixerinn sjálfkrafa.
+- Við hvert lag: kynning (sagan á undan laginu), nótur frá æfingum og lengd.
+  Vistað undir nafninu sem er valið í „Ég er“.
+- „Breyta röð“: ↑ ↓ færa lag, × tekur það af listanum, + setur það á. „Vista
+  röð“ vistar fyrir alla.
+- Örvatakkar ← → fara á fyrra og næsta lag í röðinni.
+- Allt skráist í Log-flipann í Sheet-inu, með gamla og nýja gildinu.
+
+Án lykils virkar síðan eins og áður, í röð CMS-listans. Webflow-röðunin á
+listanum skiptir þá bara máli.
+
 ## Á síðunni
 
 - Bilslá: play/pause
