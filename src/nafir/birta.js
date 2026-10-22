@@ -11,6 +11,7 @@ export function birta(rot) {
   var MAL = "vogor-birta-mal";
   var LED = { "Birt": "ok", "Prufa í lagi": "ok", "Tímasett": "bid", "Prufa": "prufa", "Bíður Instagram": "bid", "Sendi": "bid", "Villa": "villa", "Óvíst": "villa", "Útrunnið": "villa" };
   var BIDA = ["Tímasett", "Prufa", "Bíður Instagram"];
+  var MIDLAR = ["Facebook", "Instagram", "Instagram Story", "Facebook Story"];
 
   function q(n) { return rot.querySelector('[data-bt="' + n + '"]'); }
   var key = saekjaG(LYKILL);
@@ -141,7 +142,7 @@ export function birta(rot) {
     var forsk = ny("div", "vbt-forsk");
     var skipta = ny("div", "vbt-skipta");
     var syn = "Instagram";
-    ["Instagram", "Facebook"].forEach(function (m) {
+    ["Instagram", "Facebook", "Story"].forEach(function (m) {
       var t = ny("button", "", m);
       t.type = "button";
       t.addEventListener("click", function () { syn = m; uppfaera(); });
@@ -156,10 +157,11 @@ export function birta(rot) {
     var s = ny("form", "vbt-stjorn");
     var midlar = ny("div", "vbt-midlar");
     var hak = {};
-    ["Facebook", "Instagram"].forEach(function (m) {
+    // Feed er valið sjálfgefið; Stories þarf að haka við
+    MIDLAR.forEach(function (m) {
       var l = ny("label");
       var c = ny("input");
-      c.type = "checkbox"; c.checked = dr[m] !== undefined ? dr[m] : true;
+      c.type = "checkbox"; c.checked = dr[m] !== undefined ? dr[m] : !/ Story$/.test(m);
       hak[m] = c;
       l.appendChild(c);
       l.appendChild(document.createTextNode(m));
@@ -243,7 +245,7 @@ export function birta(rot) {
     });
     k.appendChild(s);
 
-    function valdir() { return ["Facebook", "Instagram"].filter(function (m) { return hak[m].checked; }); }
+    function valdir() { return MIDLAR.filter(function (m) { return hak[m].checked; }); }
 
     function uppfaera() {
       Array.prototype.forEach.call(skipta.children, function (b) { b.setAttribute("aria-pressed", String(b.textContent === syn)); });
@@ -257,10 +259,15 @@ export function birta(rot) {
       if (mynd.value && !t.t) v.push("Slóðin þarf að enda á .jpg, .png eða .mp4 (Dropbox-hlekkur á skrána sjálfa, ekki möppu).");
       if (ig && t.t === "mynd" && !/^jpe?g$/.test(t.e)) v.push("Instagram tekur bara JPG-myndir.");
       if (ig && /instagram\.com|ffm\.to|https?:\/\//.test(txt.value)) v.push("Hlekkir virka ekki í texta á Instagram; skrifaðu „hlekkur í bio“.");
+      var story = hak["Instagram Story"].checked || hak["Facebook Story"].checked;
+      if (story && !mynd.value) v.push("Story þarf mynd eða myndband.");
+      if (hak["Instagram Story"].checked && t.t === "mynd" && !/^jpe?g$/.test(t.e)) v.push("Instagram Story tekur bara JPG-myndir.");
+      if (story) v.push("Textinn fer ekki með í Story; hann þarf að vera í myndinni sjálfri (9:16).");
       adv.textContent = v.join(" ");
 
       // Eftirmyndin
       simi.textContent = "";
+      if (syn === "Story") { simi.appendChild(storyForsk(t)); return; }
       var fb = syn === "Facebook";
       var box = ny("div", "vbt-sima" + (fb ? " vbt-sima--fb" : ""));
       var h = ny("div", "vbt-sima-haus");
@@ -282,6 +289,21 @@ export function birta(rot) {
       if (mynd.value || !fb) box.appendChild(m);
       if (!fb) { box.appendChild(ny("div", "vbt-sima-takkar", "♡ ◯ ➤")); box.appendChild(textabox); }
       simi.appendChild(box);
+    }
+
+    // Story: myndin fyllir 9:16 skjá, nafnið ofan á, enginn texti
+    function storyForsk(t) {
+      var box = ny("div", "vbt-sima vbt-sima--story");
+      var m = ny("div", "vbt-sima-mynd");
+      if (t.t === "mynd") { var img = ny("img"); img.src = hrar(mynd.value); img.alt = ""; m.appendChild(img); }
+      else if (t.t === "myndband") { var vid = ny("video"); vid.src = hrar(mynd.value); vid.muted = true; vid.controls = true; vid.preload = "metadata"; m.appendChild(vid); }
+      else m.textContent = "Engin mynd";
+      box.appendChild(m);
+      var h = ny("div", "vbt-sima-haus");
+      h.appendChild(ny("i"));
+      h.appendChild(ny("span", "", "stafraennhakon"));
+      box.appendChild(h);
+      return box;
     }
 
     function senda(erPrufa) {

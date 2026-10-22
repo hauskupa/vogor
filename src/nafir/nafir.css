@@ -167,7 +167,7 @@
   .vbt .vbt-btn--ljos:hover { background: #ffffff59; }
   .vbt-link { background: none; border: 0; padding: 0; font: inherit; color: inherit; text-decoration: underline; cursor: pointer; }
 
-  .vbt-rod li { display: grid; grid-template-columns: .75rem 7.5rem 5.5rem minmax(0, 1fr) auto; gap: .25rem .9rem; align-items: center; padding: .55rem 0; border-bottom: 1px solid #2e2e2e40; }
+  .vbt-rod li { display: grid; grid-template-columns: .75rem 7.5rem 8rem minmax(0, 1fr) auto; gap: .25rem .9rem; align-items: center; padding: .55rem 0; border-bottom: 1px solid #2e2e2e40; }
   .vbt-rod .vbt-timi { font-family: "Courier Prime", Courier, monospace; font-size: .9375rem; }
   .vbt-rod .vbt-heiti { font-weight: 600; min-width: 0; }
   .vbt-rod .vbt-heiti small { display: block; font-weight: 400; font-size: .8125rem; overflow-wrap: anywhere; }
@@ -211,6 +211,9 @@
   .vbt-sima-texti { padding: .55rem .7rem .7rem; white-space: pre-wrap; overflow-wrap: anywhere; }
   .vbt-sima-texti b { margin-right: .3rem; }
   .vbt-sima-texti span.vbt-meira { color: #737373; }
+  .vbt-sima--story { position: relative; max-width: 15rem; background: #111; }
+  .vbt-sima--story .vbt-sima-mynd { aspect-ratio: 9 / 16; background: #222; color: #aaa; }
+  .vbt-sima--story .vbt-sima-haus { position: absolute; top: 0; left: 0; right: 0; color: #fff; background: linear-gradient(#0008, transparent); }
   .vbt-sima-takkar { padding: .45rem .7rem 0; font-size: 1.05rem; letter-spacing: .4rem; }
 
   @media (max-width: 767px) {
