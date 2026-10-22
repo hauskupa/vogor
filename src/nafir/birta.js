@@ -2,7 +2,7 @@
 // Skrifar í biðröðina (flipann Birtingar); Nafir Meta birtir. Sjá LESTU.md, Birtingar.
 import { MANUDIR, ny, hrar, geyma, saekjaG, post, skraTegund as tegund } from "./sameiginlegt.js";
 
-const MARKUP = "<div class=\"vbt\">\n  <div class=\"vbt-head\">\n    <div class=\"vst-dymo vst-dymo--red\">|NAFIR|BIRTA|</div>\n    <div class=\"vst-count\"><span class=\"vst-counter\" data-bt=\"naesta\">--</span><span data-bt=\"naesta-texti\">ekkert í biðröð</span></div>\n  </div>\n\n  <form class=\"vbt-gate\" data-bt=\"gate\" hidden>\n    <p>Leyniorð stjórnsíðunnar:</p>\n    <input type=\"password\" data-bt=\"lykill\" autocomplete=\"current-password\">\n    <button class=\"vbt-btn\" type=\"submit\">Opna</button>\n    <p class=\"vbt-msg\" data-bt=\"gate-villa\"></p>\n  </form>\n\n  <p class=\"vst-status\" data-bt=\"hledur\"><span class=\"vst-led vst-led--wait\"></span>Sæki</p>\n\n  <div class=\"vbt-app\" data-bt=\"app\" hidden>\n    <section>\n      <div class=\"vst-dymo\">|BIDROD|</div>\n      <ul class=\"vbt-rod\" data-bt=\"rod\"></ul>\n      <p class=\"vbt-small\">Nafir Meta skoðar biðröðina á 5 mínútna fresti, svo færsla fer út í síðasta lagi 5 mínútum eftir tímann. Prufa birtir ekkert: Facebook fær óbirta færslu sem sést bara í Business Suite, og Instagram sannreynir bara myndina og textann.</p>\n    </section>\n\n    <section>\n      <div class=\"vst-dymo\">|FAERSLUR|</div>\n      <p class=\"vbt-small vbt-hint\">Textunum er breytt á <a data-bt=\"yfirlit\" href=\"/nafir/stada\" target=\"_blank\" rel=\"noopener\">yfirliti bandsins</a>. Hér velurðu hvaða texti fer á hvorn miðil, og textann má laga fyrir þessa birtingu án þess að breyta færslunni.</p>\n      <div class=\"vbt-listi\" data-bt=\"faerslur\"></div>\n    </section>\n\n    <p class=\"vbt-small\">Sótt <span data-bt=\"sott\"></span>. <button class=\"vbt-link\" type=\"button\" data-bt=\"uppfaera\">Uppfæra</button> · <button class=\"vbt-link\" type=\"button\" data-bt=\"utskra\">Skrá út</button></p>\n  </div>\n</div>";
+const MARKUP = "<div class=\"vbt\">\n  <div class=\"vbt-head\">\n    <div class=\"vst-dymo vst-dymo--red\">|NAFIR|BIRTA|</div>\n    <div class=\"vst-count\"><span class=\"vst-counter\" data-bt=\"naesta\">--</span><span data-bt=\"naesta-texti\">ekkert í biðröð</span></div>\n  </div>\n\n  <form class=\"vbt-gate\" data-bt=\"gate\" hidden>\n    <p>Lykilorð (eða opnaðu hlekkinn sem Óli sendi þér):</p>\n    <input type=\"password\" data-bt=\"lykill\" autocomplete=\"current-password\">\n    <button class=\"vbt-btn\" type=\"submit\">Opna</button>\n    <p class=\"vbt-msg\" data-bt=\"gate-villa\"></p>\n  </form>\n\n  <p class=\"vst-status\" data-bt=\"hledur\"><span class=\"vst-led vst-led--wait\"></span>Sæki</p>\n\n  <div class=\"vbt-app\" data-bt=\"app\" hidden>\n    <section>\n      <div class=\"vst-dymo\">|BIDROD|</div>\n      <ul class=\"vbt-rod\" data-bt=\"rod\"></ul>\n      <p class=\"vbt-small\">Nafir Meta skoðar biðröðina á 5 mínútna fresti, svo færsla fer út í síðasta lagi 5 mínútum eftir tímann. Prufa birtir ekkert: Facebook fær óbirta færslu sem sést bara í Business Suite, og Instagram sannreynir bara myndina og textann.</p>\n    </section>\n\n    <section>\n      <div class=\"vst-dymo\">|FAERSLUR|</div>\n      <p class=\"vbt-small vbt-hint\">Textunum er breytt á <a data-bt=\"yfirlit\" href=\"/nafir/stada\" target=\"_blank\" rel=\"noopener\">yfirliti bandsins</a>. Hér velurðu hvaða texti fer á hvorn miðil, og textann má laga fyrir þessa birtingu án þess að breyta færslunni.</p>\n      <div class=\"vbt-listi\" data-bt=\"faerslur\"></div>\n    </section>\n\n    <p class=\"vbt-small\">Sótt <span data-bt=\"sott\"></span>. <button class=\"vbt-link\" type=\"button\" data-bt=\"uppfaera\">Uppfæra</button> · <button class=\"vbt-link\" type=\"button\" data-bt=\"utskra\">Skrá út</button></p>\n  </div>\n</div>";
 
 export function birta(rot) {
   rot.innerHTML = MARKUP;
@@ -15,6 +15,15 @@ export function birta(rot) {
 
   function q(n) { return rot.querySelector('[data-bt="' + n + '"]'); }
   var key = saekjaG(LYKILL);
+  // Persónulegi hlekkurinn úr flipanum Aðgangur: ?l=<lykill>. Lykillinn er geymdur
+  // í vafranum og tekinn úr slóðinni, svo hann sjáist ekki ef slóðinni er deilt
+  var ur = new URLSearchParams(location.search);
+  if (ur.get("l")) {
+    key = ur.get("l").trim();
+    geyma(LYKILL, key);
+    ur.delete("l");
+    try { history.replaceState(null, "", location.pathname + (ur.toString() ? "?" + ur : "") + location.hash); } catch (e) {}
+  }
 
   function kalla(action, data) {
     var body = Object.assign({ action: action, key: key }, data || {});
@@ -101,7 +110,8 @@ export function birta(rot) {
         a.href = b.nidurstada; a.target = "_blank"; a.rel = "noopener";
         sma.appendChild(a);
       } else {
-        sma.textContent = b.stada === "Tímasett" ? "Fer út eftir " + eftir(b.timi) : b.stada + (b.nidurstada ? ": " + b.nidurstada : "");
+        sma.textContent = (b.stada === "Tímasett" ? "Fer út eftir " + eftir(b.timi) : b.stada + (b.nidurstada ? ": " + b.nidurstada : ""))
+          + (b.hver && b.hver !== gogn.eg ? " · " + b.hver : "");
       }
       h.appendChild(sma);
       li.appendChild(h);
@@ -113,7 +123,7 @@ export function birta(rot) {
     var naest = bida.filter(function (b) { return !b.prufa; })[0];
     q("naesta").textContent = naest ? teljaraTexti(naest.timi) : "--";
     q("naesta-texti").textContent = naest ? "í næstu birtingu" : "ekkert í biðröð";
-    q("sott").textContent = gogn.nu;
+    q("sott").textContent = gogn.nu + (gogn.eg ? ", innskráð(ur): " + gogn.eg : "");
   }
 
   function haettaTakki(b) {
