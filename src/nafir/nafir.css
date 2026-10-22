@@ -2,7 +2,7 @@
    Sprautað inn af src/nafir/index.js. Grunnurinn (beige tækið, Dymo-miðar,
    ljós, teljarar) heitir vst-* og er sameiginlegur. */
   /* Sami grunnur og /nafir: beige tækið, dökkir skjáir, Dymo-miðar */
-  body { background-color: #d0c3aa; }
+  body.nafir-beige { background-color: #d0c3aa; }
 
   .vst { color: var(--black-800, #2e2e2e); font-family: "Open Sans", sans-serif; font-size: 1rem; font-weight: 400; line-height: 1.5; padding: 0 1rem 5rem; display: grid; gap: 2rem; }
   .vst [hidden] { display: none !important; }
@@ -218,3 +218,124 @@
     .vbt-rod li { grid-template-columns: .75rem 1fr auto; }
     .vbt-rod .vbt-heiti { grid-column: 2 / -1; }
   }
+
+  /* ---------- Pressusíðan (.vpp) ---------- */
+  /* Sami grunnur og /nafir: beige tækið, dökkir skjáir, Dymo-miðar */
+
+  .vpp { color: var(--black-800, #2e2e2e); font-family: "Open Sans", sans-serif; font-size: 1rem; font-weight: 400; line-height: 1.6; padding: 0 1rem 5rem; display: grid; gap: 3rem; }
+  .vpp [hidden], [data-promo-state][hidden] { display: none !important; }
+  /* Tvö mál: enska nema data-mal="is" sé á .vpp. Meðan beðið er eftir máli
+     viðtakandans er textinn falinn svo enskan blikki ekki á undan íslenskunni */
+  .vpp:not([data-mal="is"]) [data-mal="is"], .vpp[data-mal="is"] [data-mal="en"] { display: none !important; }
+  .vpp[data-mal-bidur] [data-mal] { visibility: hidden; }
+
+  .vpp-head-right { display: flex; align-items: center; gap: .75rem; }
+  .vpp-mal { display: flex; border-radius: 4px; overflow: hidden; border: 1px solid #3d3c3c; }
+  .vpp-mal button { appearance: none; border: 0; margin: 0; background: transparent; color: #3d3c3c; font: inherit; font-size: .75rem; font-weight: 800; letter-spacing: .15em; text-indent: .15em; padding: .25rem .6rem; cursor: pointer; }
+  .vpp-mal button[aria-pressed="true"] { background: #3d3c3c; color: #fff; }
+  .vpp-mal button:focus-visible { outline: 2px solid var(--vogor-red, #75161c); outline-offset: 2px; }
+  .vpp p, .vpp h1, .vpp ol, .vpp ul, .vpp dl, .vpp dd { margin: 0; }
+  .vpp a { color: inherit; }
+
+  .vpp-head { display: flex; justify-content: space-between; align-items: center; gap: 1rem; flex-wrap: wrap; }
+  .vpp-dymo { font-family: Dymo, Arial, sans-serif; font-size: 1.625rem; line-height: 1.4; font-weight: 400; color: var(--black-800, #2e2e2e); user-select: none; margin-bottom: .75rem; }
+  .vpp-head .vpp-dymo { margin-bottom: 0; }
+  .vpp-dymo--red { color: var(--vogor-red, #75161c); font-size: 2rem; }
+  .vpp-counter { display: inline-flex; align-items: center; justify-content: center; background: #3d3c3c; color: #fff; border-radius: 4px; padding: .25rem .75rem; font-weight: 800; letter-spacing: .3em; text-indent: .3em; font-size: .875rem; }
+  .vpp-counter--code { letter-spacing: .15em; text-indent: .15em; margin-left: .25rem; }
+
+  .vpp-top { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 2.5rem; align-items: start; }
+  .vpp-screen { background-color: #494747; background-image: linear-gradient(#ffffff14, #ffffff05 10%, #0000000a); border-radius: .5rem; padding: clamp(.75rem, 3vw, 1.75rem); box-shadow: inset 0 1px #ffffff1f, 0 1px 2px #0003; }
+  .vpp-screen img { display: block; width: 100%; height: auto; border-radius: 2px; }
+
+  .vpp-info { display: grid; gap: 1.25rem; }
+  .vpp-artist { text-transform: uppercase; letter-spacing: .2em; font-weight: 700; font-size: .875rem; }
+  .vpp-title { font-size: clamp(3rem, 8vw, 4.5rem); line-height: 1; font-weight: 800; letter-spacing: -.02em; margin-top: -.75rem; }
+
+  .vpp-meta { display: grid; gap: .35rem; font-family: "Courier Prime", Courier, monospace; }
+  .vpp-meta > div { display: flex; gap: 1rem; border-bottom: 1px solid #2e2e2e40; padding-bottom: .35rem; }
+  .vpp-meta dt { flex: 0 0 6.5rem; font-family: "Open Sans", sans-serif; text-transform: uppercase; font-size: .625rem; font-weight: 700; letter-spacing: .15em; align-self: center; }
+
+  .vpp-personal { display: grid; gap: .75rem; padding-top: .5rem; }
+  .vpp-personal > div { display: grid; gap: .75rem; }
+  .vpp-status { display: flex; align-items: center; gap: .6rem; text-transform: uppercase; font-size: .75rem; font-weight: 700; letter-spacing: .12em; }
+  .vpp-led { flex: 0 0 auto; width: .75rem; height: .75rem; border-radius: 50%; border: 1px solid #2e2e2e80; background: #6b665c; }
+  .vpp-led--ok { background: var(--play-green, #18e91c); box-shadow: 0 0 8px var(--play-green, #18e91c); }
+  .vpp-led--stop { background: var(--stopp-red, #fc0000); box-shadow: 0 0 8px #fc000080; }
+  .vpp-led--wait { background: #f2b632; animation: vpp-blink 1s steps(2, start) infinite; }
+  @keyframes vpp-blink { to { visibility: hidden; } }
+  @media (prefers-reduced-motion: reduce) { .vpp-led--wait { animation: none; } }
+
+  .vpp-keys { display: flex; flex-wrap: wrap; gap: .75rem; }
+  .vpp a.vpp-key { flex: 1 1 8rem; display: flex; align-items: center; justify-content: center; min-height: 3rem; padding: .5rem 1rem; background-color: #494848; color: #fff; border-radius: .25rem; box-shadow: 2px 2px 11px #5f5f5fed; text-decoration: none; text-transform: uppercase; font-size: .8125rem; font-weight: 700; letter-spacing: .15em; transition: transform .08s, box-shadow .08s; }
+  .vpp a.vpp-key:hover { background-color: #3d3c3c; }
+  .vpp a.vpp-key:active { transform: translateY(1px); box-shadow: 1px 1px 5px #5f5f5fed; }
+  .vpp a:focus-visible { outline: 2px solid var(--vogor-red, #75161c); outline-offset: 2px; }
+  .vpp-note, .vpp-small { font-size: .875rem; }
+
+  .vpp-prose { display: grid; gap: 1rem; max-width: 42rem; }
+  .vpp-quote { margin: 0; padding-left: 1rem; border-left: 2px solid #2e2e2e40; font-style: italic; }
+  .vpp-quote footer { margin-top: .5rem; font-style: normal; font-family: "Courier Prime", Courier, monospace; font-size: .85em; }
+  .vpp-quote footer::before { content: "— "; }
+  .vpp-quote--kit { font-size: .9375rem; margin-bottom: 2rem; }
+  .vpp-sides { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 2.5rem; align-items: start; }
+  .vpp-tracks, .vpp-credits, .vpp-links { list-style: none; padding: 0; font-family: "Courier Prime", Courier, monospace; }
+  .vpp-tracks { counter-reset: vpp-track calc(var(--start, 1) - 1); }
+  .vpp-tracks[start="5"] { --start: 5; }
+  .vpp-tracks li { counter-increment: vpp-track; border-bottom: 1px solid #2e2e2e40; }
+  /* Hvert lag er details-element: lagalistinn er líka textablaðið */
+  .vpp-tracks summary { display: flex; justify-content: space-between; gap: 1rem; padding: .4rem 0; cursor: pointer; list-style: none; }
+  .vpp-tracks summary::-webkit-details-marker { display: none; }
+  .vpp-tracks summary span:first-child::before { content: counter(vpp-track) ". "; }
+  .vpp-tracks summary span:first-child::after { content: " +"; opacity: .55; }
+  .vpp-tracks details[open] summary span:first-child::after { content: " –"; }
+  .vpp summary:focus-visible { outline: 2px solid var(--vogor-red, #75161c); outline-offset: 2px; }
+  .vpp-lyric { display: grid; gap: .75rem; padding: .25rem 0 1rem 1.75rem; font-family: "Open Sans", sans-serif; font-size: .875rem; }
+  .vpp-hint { margin-top: -2rem; }
+  .vpp-credits li, .vpp-links li { border-bottom: 1px solid #2e2e2e40; padding: .4rem 0; }
+  .vpp-credits li > span, .vpp-links li > span { display: block; font-family: "Open Sans", sans-serif; font-size: .8125rem; opacity: .8; }
+  .vpp-credits + .vpp-small { margin-top: 1rem; }
+  .vpp-links { margin-bottom: 2rem; }
+  .vpp-photo { display: block; width: 100%; height: auto; border-radius: 2px; margin-bottom: .75rem; }
+
+  @media (max-width: 767px) {
+    .vpp { gap: 2.25rem; }
+    .vpp-top, .vpp-sides { grid-template-columns: minmax(0, 1fr); gap: 1.75rem; }
+    .vpp-dymo--red { font-size: 1.5rem; }
+  }
+
+  /* ---------- Stjórnsíðan (.vp): útlit Webflow-síðunnar, enginn beige grunnur ---------- */
+  .vp { max-width: 60rem; margin: 0 auto; display: grid; gap: 1rem; font: inherit; }
+  .vp #vp-app { display: grid; gap: 1rem; }
+  .vp [hidden] { display: none !important; }
+  .vp-card { border: 1px solid rgba(128, 128, 128, .4); border-radius: 8px; padding: 1rem; display: grid; gap: .75rem; }
+  .vp-row { display: flex; flex-wrap: wrap; gap: .75rem; align-items: end; }
+  .vp-between { justify-content: space-between; align-items: center; }
+  .vp label { display: grid; gap: .25rem; font-size: .85em; flex: 1 1 12rem; }
+  .vp input, .vp select, .vp textarea { font: inherit; padding: .5rem; border: 1px solid rgba(128, 128, 128, .6); border-radius: 4px; width: 100%; box-sizing: border-box; background: transparent; color: inherit; }
+  .vp textarea { font-family: ui-monospace, Consolas, monospace; font-size: .85em; }
+  .vp button { font: inherit; padding: .5rem 1rem; border: 1px solid currentColor; border-radius: 4px; background: transparent; color: inherit; cursor: pointer; justify-self: start; }
+  .vp button:disabled { opacity: .5; cursor: default; }
+  .vp-scroll { overflow-x: auto; }
+  .vp table { border-collapse: collapse; width: 100%; font-size: .85em; }
+  .vp th, .vp td { text-align: left; padding: .4rem .6rem; border-bottom: 1px solid rgba(128, 128, 128, .3); white-space: nowrap; }
+  .vp tbody tr { cursor: pointer; }
+  .vp tbody tr:hover { background: rgba(128, 128, 128, .12); }
+  /* Staða línu: hálfgagnsæir litir svo þeir virki á ljósum og dökkum bakgrunni */
+  .vp tbody tr.vp-st-sent { background: rgba(40, 180, 60, .13); }
+  .vp tbody tr.vp-st-svarad { background: rgba(40, 180, 60, .3); }
+  .vp tbody tr.vp-st-skoppadi { background: rgba(220, 40, 40, .15); }
+  .vp tbody tr.vp-st-sleppt { opacity: .45; }
+  .vp tbody tr.vp-st-sent:hover, .vp tbody tr.vp-st-svarad:hover, .vp tbody tr.vp-st-skoppadi:hover { filter: brightness(1.1); }
+  .vp tbody tr.vp-flokkur { cursor: default; }
+  .vp tbody tr.vp-flokkur:hover { background: none; }
+  .vp tr.vp-flokkur th { padding-top: 1rem; font-size: .8em; text-transform: uppercase; letter-spacing: .08em; border-bottom: 2px solid rgba(128, 128, 128, .6); }
+  .vp-status { font-size: .85em; }
+  .vp a { align-self: center; }
+  /* Webflow feitletrar label, og reitirnir erfa það með font: inherit */
+  .vp input, .vp select, .vp textarea { font-weight: 400; }
+  #vp-post textarea#vp-p-meginmal { font-family: inherit; font-size: 1em; line-height: 1.5; }
+  .vp details form { display: grid; gap: .75rem; }
+  .vp summary { cursor: pointer; }
+  /* Fimm fellilistar í einni röð í stað þess að sá síðasti detti niður */
+  #vp-post .vp-row label { flex-basis: 8rem; }

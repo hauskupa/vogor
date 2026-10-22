@@ -4,13 +4,19 @@
 //   <div data-nafir="stada"></div>
 //   <script src="https://cdn.jsdelivr.net/gh/hauskupa/vogor@main/dist/nafir.js"></script>
 //
-// CSS-ið fylgir með og er sprautað inn hér, svo ekkert annað þarf að hlaða.
+// Síður: stada (/nafir/stada), birta (/nafir/birta), stjorn (stjórnsíðan),
+// pressa (/nafir/press, FEST Á COMMIT: @<sha> í stað @main, því miðlar eru
+// með hlekkina). CSS-ið fylgir með og er sprautað inn hér.
 import css from "./nafir.css";
 import { setjaFavicon } from "./sameiginlegt.js";
 import { stada } from "./stada.js";
 import { birta } from "./birta.js";
+import { stjorn } from "./stjorn.js";
+import { pressa } from "./pressa.js";
 
-const SIDUR = { stada: stada, birta: birta };
+const SIDUR = { stada: stada, birta: birta, stjorn: stjorn, pressa: pressa };
+// Síður í Nafir-lúkkinu (beige tækið). Stjórnsíðan heldur útliti Webflow-síðunnar
+const BEIGE = { stada: true, birta: true, pressa: true };
 
 function raesa() {
   const rot = document.querySelectorAll("[data-nafir]");
@@ -23,9 +29,11 @@ function raesa() {
   }
   setjaFavicon();
   rot.forEach(function (el) {
-    const sida = SIDUR[el.getAttribute("data-nafir")];
+    const nafn = el.getAttribute("data-nafir");
+    const sida = SIDUR[nafn];
     if (!sida || el.hasAttribute("data-nafir-raest")) return;
     el.setAttribute("data-nafir-raest", "");
+    if (BEIGE[nafn]) document.body.classList.add("nafir-beige");
     sida(el);
   });
 }
