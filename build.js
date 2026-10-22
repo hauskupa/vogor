@@ -22,6 +22,22 @@ await build({
   },
 });
 
+// Nafir-síðurnar (yfirlit bandsins, birtingar): sér skrá svo main.js stækki
+// ekki fyrir alla gesti. CSS-ið er í skránni og sprautast inn. Sjá src/nafir/index.js
+await build({
+  entryPoints: ["src/nafir/index.js"],
+  bundle: true,
+  minify: true,
+  sourcemap: true,
+  format: "iife",
+  target: ["es2019"],
+  outfile: "dist/nafir.js",
+  loader: { ".css": "text" },
+  banner: {
+    js: `// Nafir build ${v} (${new Date().toISOString()})`,
+  },
+});
+
 // MP3-kóðarinn er 156 kB og á ekkert erindi í main.js — hann sækist bara
 // þegar einhver flytur út. lame.min.js skilgreinir `lamejs` sem global, svo
 // hún er límd framan við worker-kóðann í stað þess að vera import-uð

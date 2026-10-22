@@ -1,0 +1,220 @@
+/* Nafir-síðurnar: yfirlit bandsins (.vst) og birtingarsíðan (.vbt).
+   Sprautað inn af src/nafir/index.js. Grunnurinn (beige tækið, Dymo-miðar,
+   ljós, teljarar) heitir vst-* og er sameiginlegur. */
+  /* Sami grunnur og /nafir: beige tækið, dökkir skjáir, Dymo-miðar */
+  body { background-color: #d0c3aa; }
+
+  .vst { color: var(--black-800, #2e2e2e); font-family: "Open Sans", sans-serif; font-size: 1rem; font-weight: 400; line-height: 1.5; padding: 0 1rem 5rem; display: grid; gap: 2rem; }
+  .vst [hidden] { display: none !important; }
+  .vst p, .vst ul { margin: 0; }
+  .vst ul { list-style: none; padding: 0; }
+  .vst-body { display: grid; gap: 3rem; }
+  .vst-small { font-size: .875rem; }
+
+  .vst-head { display: flex; justify-content: space-between; align-items: center; gap: 1rem 2rem; flex-wrap: wrap; }
+  .vst-dymo { font-family: Dymo, Arial, sans-serif; font-size: 1.625rem; line-height: 1.4; color: var(--black-800, #2e2e2e); user-select: none; margin-bottom: .75rem; }
+  .vst-head .vst-dymo { margin-bottom: 0; }
+  .vst-dymo--red { color: var(--vogor-red, #75161c); font-size: 2rem; }
+  .vst-counts { display: flex; flex-wrap: wrap; gap: .75rem 1.5rem; }
+  .vst-count { display: flex; align-items: center; gap: .6rem; text-transform: uppercase; font-size: .6875rem; font-weight: 700; letter-spacing: .12em; }
+  .vst-counter { display: inline-flex; align-items: center; justify-content: center; min-width: 3rem; background: #3d3c3c; color: #fff; border-radius: 4px; padding: .25rem .6rem; font-weight: 800; font-size: 1rem; letter-spacing: .2em; text-indent: .2em; font-variant-numeric: tabular-nums; }
+
+  .vst-status { display: flex; align-items: center; gap: .6rem; text-transform: uppercase; font-size: .75rem; font-weight: 700; letter-spacing: .12em; margin-bottom: .5rem; }
+  .vst-led { flex: 0 0 auto; display: inline-block; width: .75rem; height: .75rem; border-radius: 50%; border: 1px solid #2e2e2e80; background: #8d877a; }
+  .vst-led--done { background: var(--play-green, #18e91c); box-shadow: 0 0 6px var(--play-green, #18e91c); }
+  .vst-led--work { background: #f2b632; box-shadow: 0 0 6px #f2b63299; }
+  .vst-led--hold { background: var(--vogor-blue, #85a8ac); }
+  .vst-led--late { background: var(--stopp-red, #fc0000); box-shadow: 0 0 6px #fc000080; }
+  .vst-led--wait { background: #f2b632; animation: vst-blink 1s steps(2, start) infinite; }
+  @keyframes vst-blink { to { visibility: hidden; } }
+  @media (prefers-reduced-motion: reduce) { .vst-led--wait { animation: none; } }
+
+  .vst-screen { background-color: #494747; background-image: linear-gradient(#ffffff14, #ffffff05 10%, #0000000a); border-radius: .5rem; padding: 1.25rem 1.5rem 1.5rem; color: #fff; display: grid; gap: .75rem; box-shadow: inset 0 1px #ffffff1f, 0 1px 2px #0003; }
+  .vst-screen-row { display: flex; justify-content: space-between; align-items: baseline; gap: 1rem; }
+  .vst-screen-label { text-transform: uppercase; font-size: .6875rem; font-weight: 700; letter-spacing: .15em; }
+  .vst-screen-value { font-weight: 800; font-size: 1.25rem; letter-spacing: .08em; font-variant-numeric: tabular-nums; }
+  .vst-meter { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 3px; height: 1.25rem; }
+  .vst-meter span { background: #2b2824; border-radius: 1px; }
+  .vst-meter span.on { background: var(--play-green, #18e91c); box-shadow: 0 0 5px #18e91c80; }
+
+  .vst-list li, .vst-group li { display: grid; grid-template-columns: .75rem minmax(0, 1fr) auto 4.5rem; gap: .25rem .9rem; align-items: baseline; padding: .55rem 0; border-bottom: 1px solid #2e2e2e40; }
+  .vst-list li > .vst-led, .vst-group li > .vst-led { align-self: center; }
+  .vst-verk { font-weight: 600; }
+  .vst-verk small { display: block; font-weight: 400; font-size: .8125rem; opacity: .85; }
+  .vst-hver, .vst-frestur { font-family: "Courier Prime", Courier, monospace; font-size: .9375rem; }
+  /* Staða og eigandi verks: tveir fellilistar hlið við hlið */
+  .vst-val { display: grid; grid-template-columns: 7.75rem 7rem; gap: .5rem; align-items: center; }
+  .vst select { width: 100%; min-width: 0; padding: .2rem .25rem; font-family: "Courier Prime", Courier, monospace; font-size: .9375rem; color: inherit; background-color: transparent; border: 1px solid #2e2e2e40; border-radius: 3px; cursor: pointer; }
+  .vst select:hover { border-color: #2e2e2e; background-color: #ffffff40; }
+  .vst select:disabled { opacity: .5; cursor: default; }
+  .vst-hint { margin-bottom: .5rem; }
+  .vst-msg { color: #a30d0d; font-weight: 600; }
+  .vst-msg:empty { display: none; }
+  .vst-frestur { text-align: right; white-space: nowrap; }
+  .vst-seint .vst-frestur { color: #a30d0d; font-weight: 700; }
+  .vst-lokid .vst-verk { font-weight: 400; opacity: .6; text-decoration: line-through; text-decoration-thickness: 1px; }
+  .vst-lokid .vst-val, .vst-lokid .vst-frestur { opacity: .6; }
+
+  .vst-groups { display: grid; gap: .5rem; }
+  .vst-group summary { display: flex; justify-content: space-between; align-items: baseline; gap: 1rem; cursor: pointer; list-style: none; padding: .6rem 0; border-bottom: 2px solid #2e2e2e; text-transform: uppercase; font-size: .8125rem; font-weight: 800; letter-spacing: .12em; }
+  .vst-group summary::-webkit-details-marker { display: none; }
+  .vst-group summary span:last-child { font-family: "Courier Prime", Courier, monospace; font-weight: 400; letter-spacing: 0; }
+  .vst-group summary span:first-child::after { content: " +"; opacity: .55; }
+  .vst-group[open] summary span:first-child::after { content: " –"; }
+  .vst-group ul { margin-bottom: 1rem; }
+
+  .vst-scroll { overflow-x: auto; }
+  .vst-table { border-collapse: collapse; width: 100%; margin-bottom: .75rem; }
+  .vst-table th { text-align: left; text-transform: uppercase; font-size: .625rem; font-weight: 700; letter-spacing: .15em; padding: .4rem .75rem .4rem 0; border-bottom: 2px solid #2e2e2e; white-space: nowrap; }
+  .vst-table td { padding: .5rem .75rem .5rem 0; border-bottom: 1px solid #2e2e2e40; font-family: "Courier Prime", Courier, monospace; font-size: .9375rem; white-space: nowrap; }
+  .vst-table td:first-child { font-family: "Open Sans", sans-serif; font-weight: 600; }
+  .vst-table tr.vst-flokkur th { padding-top: 1.25rem; border-bottom: 1px solid #2e2e2e; }
+  /* Staða pósts: grænt sent, dekkra grænt svarað, rautt skoppaði, fölnað sleppt */
+  .vst-table tr.vst-st-sent td { background: rgba(40, 160, 50, .16); }
+  .vst-table tr.vst-st-svarad td { background: rgba(40, 160, 50, .34); }
+  .vst-table tr.vst-st-skoppadi td { background: rgba(200, 30, 30, .14); }
+  .vst-table tr.vst-st-sleppt td { opacity: .45; text-decoration: line-through; text-decoration-thickness: 1px; }
+  .vst-table td:first-child { padding-left: .5rem; }
+  .vst-table th:first-child { padding-left: .5rem; }
+
+  /* Efni: einn bútur per kort, íslenska og enska hlið við hlið */
+  .vst-efni { display: grid; gap: 1rem; margin: .75rem 0 1.25rem; }
+  .vst-but { border: 1px solid #2e2e2e40; border-radius: .375rem; padding: .9rem 1rem 1rem; background: #ffffff26; display: grid; gap: .6rem; }
+  .vst-but-haus { display: flex; justify-content: space-between; align-items: baseline; gap: .5rem 1rem; flex-wrap: wrap; }
+  .vst-but-heiti { font-weight: 700; }
+  .vst-but-birta { font-family: "Courier Prime", Courier, monospace; font-size: .9375rem; white-space: nowrap; }
+  .vst-but-birta.vst-idag { color: #a30d0d; font-weight: 700; }
+  .vst-but-lidid { opacity: .6; }
+  .vst-but-notur { font-size: .8125rem; opacity: .85; white-space: pre-wrap; }
+  .vst-maltextar { display: grid; grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr)); gap: .75rem; }
+  .vst-maltexti { display: grid; gap: .4rem; align-content: start; }
+  .vst-mal { text-transform: uppercase; font-size: .625rem; font-weight: 700; letter-spacing: .15em; }
+  .vst-texti { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; font-family: inherit; font-size: .875rem; line-height: 1.55; background: #ffffff59; border-radius: .25rem; padding: .6rem .75rem; max-height: 16rem; overflow-y: auto; }
+  .vst-slod { display: flex; align-items: center; gap: .5rem .75rem; flex-wrap: wrap; font-family: "Courier Prime", Courier, monospace; font-size: .9375rem; overflow-wrap: anywhere; }
+  .vst-slod a { color: inherit; }
+  .vst-mynd { display: block; max-width: 12rem; max-height: 8rem; border-radius: .25rem; box-shadow: 0 1px 3px #0004; }
+  .vst .vst-afrita { justify-self: start; display: inline-block; padding: .3rem .8rem; background: #494848; color: #fff; border: 0; border-radius: .25rem; font-family: "Open Sans", sans-serif; font-size: .6875rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; text-decoration: none; cursor: pointer; }
+  .vst .vst-afrita:hover { background: #3d3c3c; }
+  .vst .vst-afrita.vst-afritad { background: #1f7a24; }
+
+  /* Færslur: staða, breyta og ný færsla */
+  .vst-eg { display: flex; align-items: center; gap: .5rem; margin-bottom: .75rem; }
+  .vst-eg select { width: auto; }
+  .vst-but-hlid { display: flex; align-items: center; gap: .5rem .75rem; flex-wrap: wrap; }
+  .vst-but-hlid select { width: auto; }
+  .vst-but-postad { background: rgba(40, 160, 50, .16); }
+  .vst-but-sleppa { opacity: .5; }
+  .vst-but-seint { color: #a30d0d; font-weight: 700; }
+  .vst-but-breytt { font-size: .75rem; opacity: .7; }
+  .vst .vst-but-takki { background: transparent; color: inherit; border: 1px solid #2e2e2e80; }
+  .vst .vst-but-takki:hover { background: #ffffff59; }
+  .vst-form { display: grid; gap: .6rem; }
+  .vst-form label { display: grid; gap: .2rem; font-size: .75rem; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; }
+  .vst-form input, .vst-form textarea { font: inherit; font-size: .9375rem; text-transform: none; letter-spacing: 0; font-weight: 400; color: inherit; background: #ffffff8c; border: 1px solid #2e2e2e40; border-radius: .25rem; padding: .45rem .6rem; width: 100%; box-sizing: border-box; }
+  .vst-form textarea { min-height: 9rem; resize: vertical; line-height: 1.5; }
+  .vst-form textarea.vst-stutt { min-height: 3.5rem; }
+  .vst-form-rod { display: grid; grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr)); gap: .6rem; }
+  .vst-form-takkar { display: flex; gap: .5rem; flex-wrap: wrap; align-items: center; }
+  .vst-form small { font-weight: 400; text-transform: none; letter-spacing: 0; opacity: .8; }
+  .vst-meta-texti { max-width: 24rem; overflow: hidden; text-overflow: ellipsis; }
+  .vst-meta-texti a { color: inherit; }
+  .vst-table td.vst-tala { text-align: right; }
+  .vst-but-meta { display: flex; flex-wrap: wrap; gap: .25rem 1rem; font-family: "Courier Prime", Courier, monospace; font-size: .875rem; }
+  .vst-but-meta a { color: inherit; }
+
+  .vst-foot { display: grid; gap: 1.25rem; }
+  .vst-legend { display: flex; flex-wrap: wrap; gap: .5rem 1.5rem; font-size: .8125rem; }
+  .vst-legend li { display: flex; align-items: center; gap: .5rem; }
+  .vst-keys { display: flex; flex-wrap: wrap; gap: .75rem; }
+  .vst .vst-key { display: inline-flex; align-items: center; justify-content: center; min-height: 3rem; padding: .5rem 1.5rem; background-color: #494848; color: #fff; border: 0; border-radius: .25rem; box-shadow: 2px 2px 11px #5f5f5fed; text-decoration: none; text-transform: uppercase; font-family: inherit; font-size: .8125rem; font-weight: 700; letter-spacing: .15em; cursor: pointer; }
+  .vst .vst-key:hover { background-color: #3d3c3c; }
+  .vst .vst-key:active { transform: translateY(1px); box-shadow: 1px 1px 5px #5f5f5fed; }
+  .vst .vst-key:disabled { opacity: .6; cursor: default; }
+  .vst a:focus-visible, .vst button:focus-visible, .vst summary:focus-visible { outline: 2px solid var(--vogor-red, #75161c); outline-offset: 2px; }
+
+  @media (max-width: 767px) {
+    .vst-dymo--red { font-size: 1.5rem; }
+    .vst-list li, .vst-group li { grid-template-columns: .75rem minmax(0, 1fr) auto; }
+    .vst-val { grid-column: 2 / -1; grid-row: 2; grid-template-columns: repeat(2, minmax(0, 9rem)); margin-top: .15rem; }
+    .vst-frestur { grid-column: 3; grid-row: 1; }
+  }
+
+  /* ---------- Birtingarsíðan ---------- */
+  .vbt { color: #2e2e2e; font-family: "Open Sans", sans-serif; font-size: 1rem; line-height: 1.5; padding: 0 1rem 5rem; display: grid; gap: 2rem; }
+  .vbt [hidden] { display: none !important; }
+  .vbt p, .vbt ul { margin: 0; }
+  .vbt ul { list-style: none; padding: 0; }
+  .vbt a { color: inherit; }
+  .vbt-app { display: grid; gap: 3rem; }
+  .vbt-small { font-size: .875rem; }
+  .vbt-hint { margin-bottom: 1rem; }
+  .vbt-head { display: flex; justify-content: space-between; align-items: center; gap: 1rem 2rem; flex-wrap: wrap; }
+  .vbt-head .vst-dymo { margin-bottom: 0; }
+  .vst-led--ok { background: #18e91c; box-shadow: 0 0 6px #18e91c; }
+  .vst-led--bid { background: #f2b632; box-shadow: 0 0 6px #f2b63299; }
+  .vst-led--villa { background: #fc0000; box-shadow: 0 0 6px #fc000080; }
+  .vst-led--prufa { background: #85a8ac; }
+
+  .vbt-gate { display: flex; flex-wrap: wrap; gap: .75rem; align-items: center; }
+  .vbt-gate input { font: inherit; padding: .4rem .6rem; border: 1px solid #2e2e2e60; border-radius: .25rem; background: #ffffff8c; }
+  .vbt-msg { color: #a30d0d; font-weight: 600; font-size: .875rem; }
+  .vbt-msg:empty { display: none; }
+  .vbt-msg--ok { color: #1f7a24; }
+  .vbt .vbt-btn { display: inline-block; padding: .45rem 1rem; background: #494848; color: #fff; border: 0; border-radius: .25rem; font: inherit; font-size: .75rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; cursor: pointer; }
+  .vbt .vbt-btn:hover { background: #3d3c3c; }
+  .vbt .vbt-btn:disabled { opacity: .5; cursor: default; }
+  .vbt .vbt-btn--ljos { background: transparent; color: inherit; border: 1px solid #2e2e2e80; }
+  .vbt .vbt-btn--ljos:hover { background: #ffffff59; }
+  .vbt-link { background: none; border: 0; padding: 0; font: inherit; color: inherit; text-decoration: underline; cursor: pointer; }
+
+  .vbt-rod li { display: grid; grid-template-columns: .75rem 7.5rem 5.5rem minmax(0, 1fr) auto; gap: .25rem .9rem; align-items: center; padding: .55rem 0; border-bottom: 1px solid #2e2e2e40; }
+  .vbt-rod .vbt-timi { font-family: "Courier Prime", Courier, monospace; font-size: .9375rem; }
+  .vbt-rod .vbt-heiti { font-weight: 600; min-width: 0; }
+  .vbt-rod .vbt-heiti small { display: block; font-weight: 400; font-size: .8125rem; overflow-wrap: anywhere; }
+  .vbt-rod .vbt-buid { opacity: .65; }
+
+  .vbt-listi { display: grid; gap: 1.5rem; }
+  .vbt-kort { border: 1px solid #2e2e2e40; border-radius: .5rem; padding: 1rem; background: #ffffff26; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 1.25rem; }
+  .vbt-kort--postad { background: rgba(40, 160, 50, .12); }
+  .vbt-kort-haus { grid-column: 1 / -1; display: flex; justify-content: space-between; gap: .5rem 1rem; flex-wrap: wrap; align-items: baseline; }
+  .vbt-kort-haus b { font-size: 1.0625rem; }
+  .vbt-merki { font-family: "Courier Prime", Courier, monospace; font-size: .875rem; }
+  .vbt-stjorn { display: grid; gap: .7rem; align-content: start; }
+  .vbt-stjorn label { display: grid; gap: .2rem; font-size: .6875rem; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; }
+  .vbt-stjorn input, .vbt-stjorn select, .vbt-stjorn textarea { font: inherit; font-size: .9375rem; text-transform: none; letter-spacing: 0; font-weight: 400; color: inherit; background: #ffffff8c; border: 1px solid #2e2e2e40; border-radius: .25rem; padding: .4rem .55rem; width: 100%; box-sizing: border-box; }
+  .vbt-stjorn textarea { min-height: 10rem; resize: vertical; line-height: 1.5; }
+  .vbt-tvo { display: grid; grid-template-columns: 1fr 1fr; gap: .6rem; }
+  .vbt-midlar { display: flex; gap: 1.25rem; flex-wrap: wrap; font-size: .9375rem; }
+  .vbt-midlar label { display: flex; flex-direction: row; align-items: center; gap: .4rem; font-size: .9375rem; text-transform: none; letter-spacing: 0; font-weight: 600; }
+  .vbt-midlar input { width: auto; }
+  .vbt-teljari { font-family: "Courier Prime", Courier, monospace; font-size: .8125rem; font-weight: 400; letter-spacing: 0; text-transform: none; opacity: .8; }
+  .vbt-teljari.vbt-of { color: #a30d0d; font-weight: 700; opacity: 1; }
+  .vbt-adv { font-size: .8125rem; color: #8a4b00; font-weight: 600; }
+  .vbt-adv:empty { display: none; }
+  .vbt-takkar { display: flex; gap: .5rem; flex-wrap: wrap; align-items: center; }
+  .vbt-fyrri { display: grid; gap: .3rem; font-size: .8125rem; }
+  .vbt-fyrri li { display: flex; gap: .5rem; align-items: center; flex-wrap: wrap; }
+
+  /* Forskoðun: einfaldar eftirmyndir af færslu á Instagram og Facebook */
+  .vbt-forsk { display: grid; gap: .75rem; align-content: start; }
+  .vbt-skipta { display: flex; gap: .4rem; }
+  .vbt-skipta button { font: inherit; font-size: .6875rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; padding: .25rem .6rem; border: 1px solid #2e2e2e80; border-radius: 1rem; background: transparent; color: inherit; cursor: pointer; }
+  .vbt-skipta button[aria-pressed="true"] { background: #2e2e2e; color: #fff; }
+  .vbt-sima { background: #fff; color: #111; border-radius: .75rem; box-shadow: 0 2px 10px #0003; overflow: hidden; max-width: 22rem; font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; font-size: .8125rem; line-height: 1.35; }
+  .vbt-sima-haus { display: flex; align-items: center; gap: .5rem; padding: .55rem .7rem; font-weight: 600; }
+  .vbt-sima-haus i { width: 1.75rem; height: 1.75rem; border-radius: 50%; background: #75161c; flex: 0 0 auto; }
+  .vbt-sima-haus small { display: block; font-weight: 400; color: #65676b; font-size: .6875rem; }
+  .vbt-sima-mynd { background: #ddd; display: grid; place-items: center; color: #777; aspect-ratio: 4 / 5; overflow: hidden; }
+  .vbt-sima-mynd img, .vbt-sima-mynd video { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .vbt-sima--fb .vbt-sima-mynd { aspect-ratio: auto; min-height: 8rem; }
+  .vbt-sima--fb .vbt-sima-mynd img, .vbt-sima--fb .vbt-sima-mynd video { height: auto; max-height: 26rem; object-fit: contain; }
+  .vbt-sima-texti { padding: .55rem .7rem .7rem; white-space: pre-wrap; overflow-wrap: anywhere; }
+  .vbt-sima-texti b { margin-right: .3rem; }
+  .vbt-sima-texti span.vbt-meira { color: #737373; }
+  .vbt-sima-takkar { padding: .45rem .7rem 0; font-size: 1.05rem; letter-spacing: .4rem; }
+
+  @media (max-width: 767px) {
+    .vbt-kort { grid-template-columns: 1fr; }
+    .vbt-rod li { grid-template-columns: .75rem 1fr auto; }
+    .vbt-rod .vbt-heiti { grid-column: 2 / -1; }
+  }
