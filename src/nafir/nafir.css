@@ -194,6 +194,9 @@
   .vbt-takkar { display: flex; gap: .5rem; flex-wrap: wrap; align-items: center; }
   .vbt-fyrri { display: grid; gap: .3rem; font-size: .8125rem; }
   .vbt-fyrri li { display: flex; gap: .5rem; align-items: center; flex-wrap: wrap; }
+  .vbt-yfirferd { display: grid; gap: .5rem; padding: .75rem; border: 1px dashed #2e2e2e80; border-radius: .375rem; background: #ffffff40; }
+  .vbt .vbt-btn--stadfesta { justify-self: start; background: #1f7a24; }
+  .vbt .vbt-btn--stadfesta:hover { background: #18611c; }
 
   /* Forskoðun: einfaldar eftirmyndir af færslu á Instagram og Facebook */
   .vbt-forsk { display: grid; gap: .75rem; align-content: start; }

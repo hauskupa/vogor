@@ -2,7 +2,7 @@
 // Skrifar í biðröðina (flipann Birtingar); Nafir Meta birtir. Sjá LESTU.md, Birtingar.
 import { MANUDIR, ny, hrar, geyma, saekjaG, post, skraTegund as tegund } from "./sameiginlegt.js";
 
-const MARKUP = "<div class=\"vbt\">\n  <div class=\"vbt-head\">\n    <div class=\"vst-dymo vst-dymo--red\">|NAFIR|BIRTA|</div>\n    <div class=\"vst-count\"><span class=\"vst-counter\" data-bt=\"naesta\">--</span><span data-bt=\"naesta-texti\">ekkert í biðröð</span></div>\n  </div>\n\n  <form class=\"vbt-gate\" data-bt=\"gate\" hidden>\n    <p>Lykilorð (eða opnaðu hlekkinn sem Óli sendi þér):</p>\n    <input type=\"password\" data-bt=\"lykill\" autocomplete=\"current-password\">\n    <button class=\"vbt-btn\" type=\"submit\">Opna</button>\n    <p class=\"vbt-msg\" data-bt=\"gate-villa\"></p>\n  </form>\n\n  <p class=\"vst-status\" data-bt=\"hledur\"><span class=\"vst-led vst-led--wait\"></span>Sæki</p>\n\n  <div class=\"vbt-app\" data-bt=\"app\" hidden>\n    <section>\n      <div class=\"vst-dymo\">|BIDROD|</div>\n      <ul class=\"vbt-rod\" data-bt=\"rod\"></ul>\n      <p class=\"vbt-small\">Nafir Meta skoðar biðröðina á 5 mínútna fresti, svo færsla fer út í síðasta lagi 5 mínútum eftir tímann. Prufa birtir ekkert: Facebook fær óbirta færslu sem sést bara í Business Suite, og Instagram sannreynir bara myndina og textann.</p>\n    </section>\n\n    <section>\n      <div class=\"vst-dymo\">|FAERSLUR|</div>\n      <p class=\"vbt-small vbt-hint\">Textunum er breytt á <a data-bt=\"yfirlit\" href=\"/nafir/stada\" target=\"_blank\" rel=\"noopener\">yfirliti bandsins</a>. Hér velurðu hvaða texti fer á hvorn miðil, og textann má laga fyrir þessa birtingu án þess að breyta færslunni.</p>\n      <div class=\"vbt-listi\" data-bt=\"faerslur\"></div>\n    </section>\n\n    <p class=\"vbt-small\">Sótt <span data-bt=\"sott\"></span>. <button class=\"vbt-link\" type=\"button\" data-bt=\"uppfaera\">Uppfæra</button> · <button class=\"vbt-link\" type=\"button\" data-bt=\"utskra\">Skrá út</button></p>\n  </div>\n</div>";
+const MARKUP = "<div class=\"vbt\">\n  <div class=\"vbt-head\">\n    <div class=\"vst-dymo vst-dymo--red\">|NAFIR|BIRTA|</div>\n    <div class=\"vst-count\"><span class=\"vst-counter\" data-bt=\"naesta\">--</span><span data-bt=\"naesta-texti\">ekkert í biðröð</span></div>\n  </div>\n\n  <form class=\"vbt-gate\" data-bt=\"gate\" hidden>\n    <p>Lykilorð (eða opnaðu hlekkinn sem Óli sendi þér):</p>\n    <input type=\"password\" data-bt=\"lykill\" autocomplete=\"current-password\">\n    <button class=\"vbt-btn\" type=\"submit\">Opna</button>\n    <p class=\"vbt-msg\" data-bt=\"gate-villa\"></p>\n  </form>\n\n  <p class=\"vst-status\" data-bt=\"hledur\"><span class=\"vst-led vst-led--wait\"></span>Sæki</p>\n\n  <div class=\"vbt-app\" data-bt=\"app\" hidden>\n    <section>\n      <div class=\"vst-dymo\">|BIDROD|</div>\n      <ul class=\"vbt-rod\" data-bt=\"rod\"></ul>\n      <p class=\"vbt-small\">Tvö skref: „Senda inn“ lætur Facebook og Instagram yfirfara myndina og textann (ekkert er birt), og „Staðfesta og tímasetja“ opnast þegar yfirferðin hefur staðist. Færslan fer út í síðasta lagi 5 mínútum eftir tímann og það má hætta við hér þangað til.</p>\n    </section>\n\n    <section>\n      <div class=\"vst-dymo\">|FAERSLUR|</div>\n      <p class=\"vbt-small vbt-hint\">Textunum er breytt á <a data-bt=\"yfirlit\" href=\"/nafir/stada\" target=\"_blank\" rel=\"noopener\">yfirliti bandsins</a>. Hér velurðu hvaða texti fer á hvorn miðil, og textann má laga fyrir þessa birtingu án þess að breyta færslunni.</p>\n      <div class=\"vbt-listi\" data-bt=\"faerslur\"></div>\n    </section>\n\n    <p class=\"vbt-small\">Sótt <span data-bt=\"sott\"></span>. <button class=\"vbt-link\" type=\"button\" data-bt=\"uppfaera\">Uppfæra</button> · <button class=\"vbt-link\" type=\"button\" data-bt=\"utskra\">Skrá út</button></p>\n  </div>\n</div>";
 
 export function birta(rot) {
   rot.innerHTML = MARKUP;
@@ -11,6 +11,9 @@ export function birta(rot) {
   var MAL = "vogor-birta-mal";
   var LED = { "Birt": "ok", "Prufa í lagi": "ok", "Tímasett": "bid", "Prufa": "prufa", "Bíður Instagram": "bid", "Sendi": "bid", "Villa": "villa", "Óvíst": "villa", "Útrunnið": "villa" };
   var BIDA = ["Tímasett", "Prufa", "Bíður Instagram"];
+  // Prufa heitir yfirferð á síðunni: „Senda inn“ lætur miðlana yfirfara, „Staðfesta“ tímasetur
+  var STADA_TEXTI = { "Prufa": "Í yfirferð", "Prufa í lagi": "Yfirferð í lagi" };
+  function stadaTexti(b) { return (b.prufa && STADA_TEXTI[b.stada]) || b.stada; }
   var MIDLAR = ["Facebook", "Instagram", "Instagram Story", "Facebook Story"];
 
   function q(n) { return rot.querySelector('[data-bt="' + n + '"]'); }
@@ -65,7 +68,12 @@ export function birta(rot) {
 
   var gogn = {};
   // Það sem er í reitunum á hverju korti lifir af endurteikningu (efni id → reitir)
+  var DROG = "vogor-birta-drog";
   var drog = {};
+  try { drog = JSON.parse(sessionStorage.getItem(DROG) || "{}") || {}; } catch (e) {}
+  function geymaDrog() { try { sessionStorage.setItem(DROG, JSON.stringify(drog)); } catch (e) {} }
+  // Kortin skrá hér fall sem uppfærir yfirferðarkassann þegar biðröðin er sótt aftur
+  var yfirferdir = [];
   // baraRod: uppfæra biðröðina en láta færslukortin vera, svo texti sem er verið að laga glatist ekki
   function saekja(baraRod) {
     return kalla("birtingar").then(function (r) {
@@ -80,6 +88,7 @@ export function birta(rot) {
   }
 
   function teikna() {
+    yfirferdir = [];
     teiknaRod();
     var listi = q("faerslur");
     listi.textContent = "";
@@ -103,14 +112,14 @@ export function birta(rot) {
       li.appendChild(ny("span", "vst-led vst-led--" + (LED[b.stada] || "")));
       li.appendChild(ny("span", "vbt-timi", stuttTimi(b.timi)));
       li.appendChild(ny("span", "", b.midill));
-      var h = ny("span", "vbt-heiti", (b.prufa ? "Prufa: " : "") + (heiti[b.efni] || b.efni));
+      var h = ny("span", "vbt-heiti", (b.prufa ? "Yfirferð: " : "") + (heiti[b.efni] || b.efni));
       var sma = ny("small");
       if (b.stada === "Birt" && b.nidurstada) {
         var a = ny("a", "", "Birt, opna færsluna");
         a.href = b.nidurstada; a.target = "_blank"; a.rel = "noopener";
         sma.appendChild(a);
       } else {
-        sma.textContent = (b.stada === "Tímasett" ? "Fer út eftir " + eftir(b.timi) : b.stada + (b.nidurstada ? ": " + b.nidurstada : ""))
+        sma.textContent = (b.stada === "Tímasett" ? "Fer út eftir " + eftir(b.timi) : stadaTexti(b) + (b.nidurstada ? ": " + b.nidurstada : ""))
           + (b.hver && b.hver !== gogn.eg ? " · " + b.hver : "");
       }
       h.appendChild(sma);
@@ -124,6 +133,7 @@ export function birta(rot) {
     q("naesta").textContent = naest ? teljaraTexti(naest.timi) : "--";
     q("naesta-texti").textContent = naest ? "í næstu birtingu" : "ekkert í biðröð";
     q("sott").textContent = gogn.nu + (gogn.eg ? ", innskráð(ur): " + gogn.eg : "");
+    yfirferdir.forEach(function (f) { f(); });
   }
 
   function haettaTakki(b) {
@@ -226,25 +236,32 @@ export function birta(rot) {
 
     var adv = ny("p", "vbt-adv");
     s.appendChild(adv);
+    // Skref 1: Senda inn (miðlarnir yfirfara, ekkert birt). Skref 2: Staðfesta (tímasetur
+    // nákvæmlega það sem var yfirfarið). Breyting á milli lokar staðfestingunni aftur
     var takkar = ny("div", "vbt-takkar");
-    var timasetja = ny("button", "vbt-btn", "Tímasetja");
-    timasetja.type = "submit";
-    var prufa = ny("button", "vbt-btn vbt-btn--ljos", "Prufa");
-    prufa.type = "button";
-    takkar.appendChild(timasetja); takkar.appendChild(prufa);
+    var sendaInn = ny("button", "vbt-btn", "Senda inn");
+    sendaInn.type = "submit";
+    takkar.appendChild(sendaInn);
     s.appendChild(takkar);
+    var yfirferd = ny("div", "vbt-yfirferd");
+    var yfirListi = ny("ul", "vbt-fyrri");
+    var yfirTexti = ny("p", "vbt-small");
+    var stadfesta = ny("button", "vbt-btn vbt-btn--stadfesta", "Staðfesta");
+    stadfesta.type = "button";
+    yfirferd.appendChild(yfirListi); yfirferd.appendChild(yfirTexti); yfirferd.appendChild(stadfesta);
+    s.appendChild(yfirferd);
     var msg = ny("p", "vbt-msg" + (dr.skilabod ? " vbt-msg--ok" : ""), dr.skilabod || "");
     dr.skilabod = "";
     s.appendChild(msg);
 
     // Fyrri birtingar þessarar færslu
-    var fyrri = gogn.birtingar.filter(function (b) { return b.efni === x.id && b.stada !== "Hætt við"; });
+    var fyrri = gogn.birtingar.filter(function (b) { return b.efni === x.id && !b.prufa && b.stada !== "Hætt við"; });
     if (fyrri.length) {
       var ul = ny("ul", "vbt-fyrri");
       fyrri.forEach(function (b) {
         var li = ny("li");
         li.appendChild(ny("span", "vst-led vst-led--" + (LED[b.stada] || "")));
-        li.appendChild(document.createTextNode((b.prufa ? "Prufa á " : "") + b.midill + ": " + b.stada + (b.stada === "Tímasett" ? " " + stuttTimi(b.timi) : "")));
+        li.appendChild(document.createTextNode(b.midill + ": " + b.stada + (b.stada === "Tímasett" ? " " + stuttTimi(b.timi) : "") + (b.hver ? " · " + b.hver : "")));
         ul.appendChild(li);
       });
       s.appendChild(ul);
@@ -274,6 +291,8 @@ export function birta(rot) {
       if (hak["Instagram Story"].checked && t.t === "mynd" && !/^jpe?g$/.test(t.e)) v.push("Instagram Story tekur bara JPG-myndir.");
       if (story) v.push("Textinn fer ekki með í Story; hann þarf að vera í myndinni sjálfri (9:16).");
       adv.textContent = v.join(" ");
+      geymaDrog();
+      synaYfirferd();
 
       // Eftirmyndin
       simi.textContent = "";
@@ -316,28 +335,66 @@ export function birta(rot) {
       return box;
     }
 
-    function senda(erPrufa) {
+    // Það sem var sent inn: breyting á miðlum, texta eða mynd ógildir yfirferðina
+    function snid() { return JSON.stringify([valdir(), txt.value, mynd.value.trim()]); }
+
+    function synaYfirferd() {
+      var radir = dr.hopur ? gogn.birtingar.filter(function (b) { return b.id.indexOf(dr.hopur + "-") === 0; }) : [];
+      yfirferd.hidden = !radir.length;
+      sendaInn.textContent = radir.length ? "Senda inn aftur" : "Senda inn";
+      if (!radir.length) return;
+      yfirListi.textContent = "";
+      radir.forEach(function (b) {
+        var li = ny("li");
+        li.appendChild(ny("span", "vst-led vst-led--" + (LED[b.stada] || "")));
+        var lok = b.stada !== "Prufa" && b.stada !== "Bíður Instagram";
+        li.appendChild(document.createTextNode(b.midill + ": " + stadaTexti(b) + (lok && b.nidurstada ? " (" + b.nidurstada + ")" : "")));
+        yfirListi.appendChild(li);
+      });
+      var breytt = snid() !== dr.snid;
+      var allt = radir.every(function (b) { return b.stada === "Prufa í lagi"; });
+      var villa = radir.some(function (b) { return ["Villa", "Óvíst", "Útrunnið", "Hætt við"].indexOf(b.stada) !== -1; });
+      stadfesta.hidden = !allt || breytt;
+      stadfesta.textContent = "Staðfesta og tímasetja " + stuttTimi(dagur.value + " " + (klukka.value || "12:00"));
+      yfirTexti.textContent = breytt ? "Þú breyttir færslunni eftir að hún var send inn. Sendu hana inn aftur svo breytingin verði yfirfarin."
+        : villa ? "Yfirferðin stóðst ekki. Lagaðu það sem er að og sendu inn aftur."
+        : allt ? "Allt í lagi. Staðfestu til að tímasetja; það má hætta við í biðröðinni þangað til."
+        : "Facebook og Instagram eru að yfirfara. Það tekur allt að 5 mínútur, myndband stundum lengur. Síðan uppfærist sjálf.";
+    }
+    yfirferdir.push(synaYfirferd);
+
+    s.addEventListener("submit", function (ev) {
+      ev.preventDefault();
       msg.textContent = "";
       msg.classList.remove("vbt-msg--ok");
-      var hnappur = erPrufa ? prufa : timasetja;
-      var midl = valdir();
-      var lysing = midl.join(" og ");
-      if (!erPrufa && !confirm("Tímasetja „" + x.heiti + "“ á " + lysing + " " + stuttTimi(dagur.value + " " + klukka.value) + "?\n\nFærslan fer út sjálfkrafa. Það má hætta við í biðröðinni þangað til.")) return;
-      hnappur.disabled = true;
+      sendaInn.disabled = true;
       kalla("birtingVista", {
-        efni: x.id, midlar: midl, timi: dagur.value + " " + klukka.value,
-        texti: txt.value, mynd: mynd.value.trim(), prufa: erPrufa
+        efni: x.id, midlar: valdir(), timi: dagur.value + " " + klukka.value,
+        texti: txt.value, mynd: mynd.value.trim(), prufa: true
       }).then(function (r) {
-        hnappur.disabled = false;
+        sendaInn.disabled = false;
         if (!r.ok) { msg.textContent = r.villa || "Tókst ekki."; return; }
+        dr.hopur = r.hopur;
+        dr.snid = snid();
+        geymaDrog();
         gogn.birtingar = r.birtingar;
-        dr.skilabod = erPrufa ? "Prufan er komin í biðröðina efst. Niðurstaðan sést þar innan 5 mínútna; ekkert er birt."
-                              : "Tímasett. Færslan sést í biðröðinni efst og má hætta við þar.";
+        teiknaRod();
+      });
+    });
+
+    stadfesta.addEventListener("click", function () {
+      msg.textContent = "";
+      stadfesta.disabled = true;
+      kalla("birtingStadfesta", { hopur: dr.hopur, timi: dagur.value + " " + klukka.value }).then(function (r) {
+        stadfesta.disabled = false;
+        if (!r.ok) { msg.textContent = r.villa || "Tókst ekki."; return; }
+        dr.hopur = null;
+        dr.skilabod = "Tímasett. Færslan sést í biðröðinni efst og má hætta við þar.";
+        geymaDrog();
+        gogn.birtingar = r.birtingar;
         teikna();
       });
-    }
-    s.addEventListener("submit", function (e) { e.preventDefault(); senda(false); });
-    prufa.addEventListener("click", function () { senda(true); });
+    });
 
     if (dr.texti != null) { txt.value = dr.texti; uppfaera(); } else fylla();
     return k;
@@ -353,8 +410,15 @@ export function birta(rot) {
   });
   q("uppfaera").addEventListener("click", function () { saekja(); });
   q("utskra").addEventListener("click", function () { key = ""; geyma(LYKILL, ""); syna("gate"); });
-  // Biðröðin hreyfist: hún er sótt aftur á mínútu fresti meðan síðan er opin
-  setInterval(function () { if (key && !q("app").hidden) saekja(true); }, 60000);
+  // Biðröðin hreyfist: hún er sótt aftur á mínútu fresti meðan síðan er opin, og
+  // á 20 sekúndna fresti meðan einhver færsla er í yfirferð
+  var hringir = 0;
+  setInterval(function () {
+    if (!key || q("app").hidden) return;
+    hringir++;
+    var ibid = gogn.birtingar && gogn.birtingar.some(function (b) { return b.prufa && (b.stada === "Prufa" || b.stada === "Bíður Instagram"); });
+    if (ibid || hringir % 3 === 0) saekja(true);
+  }, 20000);
 
   if (key) { syna("hledur"); saekja(); } else syna("gate");
 }
