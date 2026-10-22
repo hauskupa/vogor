@@ -38,6 +38,17 @@ await build({
   },
 });
 
+// Hleðslan sem embed-in á Nafir-síðunum vísa á (fest á commit). Hún sækir
+// dist/nafir.js á nýjasta commit, því jsDelivr @main getur verið langt á eftir
+await build({
+  entryPoints: ["src/nafir/hledsla.js"],
+  bundle: false,
+  minify: true,
+  format: "iife",
+  target: ["es2019"],
+  outfile: "dist/nafir-hledsla.js",
+});
+
 // MP3-kóðarinn er 156 kB og á ekkert erindi í main.js — hann sækist bara
 // þegar einhver flytur út. lame.min.js skilgreinir `lamejs` sem global, svo
 // hún er límd framan við worker-kóðann í stað þess að vera import-uð

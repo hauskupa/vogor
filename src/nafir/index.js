@@ -1,8 +1,9 @@
 // Nafir-síðurnar á vogorrecords.com. Byggt í dist/nafir.js (npm run build).
 //
-// Embed í Webflow, eins á öllum síðum nema nafnið:
+// Embed í Webflow, eins á öllum síðum nema nafnið. Hleðslan (hledsla.js) er
+// fest á commit og sækir þessa skrá festa á nýjasta commit á main:
 //   <div data-nafir="stada"></div>
-//   <script src="https://cdn.jsdelivr.net/gh/hauskupa/vogor@main/dist/nafir.js"></script>
+//   <script src="https://cdn.jsdelivr.net/gh/hauskupa/vogor@<sha>/dist/nafir-hledsla.js"></script>
 //
 // Síður: stada (/nafir/stada), birta (/nafir/birta), stjorn (stjórnsíðan),
 // pressa (/nafir/press, FEST Á COMMIT: @<sha> í stað @main, því miðlar eru
