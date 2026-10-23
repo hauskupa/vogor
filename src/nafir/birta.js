@@ -213,6 +213,16 @@ export function birta(rot) {
     mal.addEventListener("change", function () { dr.mal = mal.value; geyma(MAL, mal.value); fylla(); });
     txt.addEventListener("input", function () { dr.texti = txt.value; uppfaera(); });
 
+    // Collab: meðhöfundar á Instagram feed og Reels (þeir fá boð og samþykkja í appinu)
+    var collabL = ny("label", "", "Collab á Instagram ");
+    collabL.appendChild(ny("span", "vbt-teljari", "mest 3, aðskilin með kommu"));
+    var collab = ny("input");
+    collab.value = dr.collab || "";
+    collab.placeholder = "t.d. magnus, arnithor";
+    collabL.appendChild(collab);
+    s.appendChild(collabL);
+    collab.addEventListener("input", function () { dr.collab = collab.value; uppfaera(); });
+
     var myndL = ny("label", "", "Mynd eða myndband");
     var mynd = ny("input");
     mynd.value = dr.mynd != null ? dr.mynd : x.slod || "";
@@ -286,6 +296,8 @@ export function birta(rot) {
       if (mynd.value && !t.t) v.push("Slóðin þarf að enda á .jpg, .png eða .mp4 (Dropbox-hlekkur á skrána sjálfa, ekki möppu).");
       if (ig && t.t === "mynd" && !/^jpe?g$/.test(t.e)) v.push("Instagram tekur bara JPG-myndir.");
       if (ig && /instagram\.com|ffm\.to|https?:\/\//.test(txt.value)) v.push("Hlekkir virka ekki í texta á Instagram; skrifaðu „hlekkur í bio“.");
+      collabL.hidden = !ig;
+      if (ig && collabNofn().length > 3) v.push("Instagram leyfir mest 3 í collab.");
       var story = hak["Instagram Story"].checked || hak["Facebook Story"].checked;
       if (story && !mynd.value) v.push("Story þarf mynd eða myndband.");
       if (hak["Instagram Story"].checked && t.t === "mynd" && !/^jpe?g$/.test(t.e)) v.push("Instagram Story tekur bara JPG-myndir.");
@@ -301,7 +313,8 @@ export function birta(rot) {
       var box = ny("div", "vbt-sima" + (fb ? " vbt-sima--fb" : ""));
       var h = ny("div", "vbt-sima-haus");
       h.appendChild(ny("i"));
-      var nafn = ny("span", "", fb ? "Stafrænn Hákon" : "stafraennhakon");
+      var medhof = !fb && ig ? collabNofn() : [];
+      var nafn = ny("span", "", fb ? "Stafrænn Hákon" : "stafraennhakon" + (medhof.length ? " og " + medhof.join(", ") : ""));
       if (fb) nafn.appendChild(ny("small", "", stuttTimi(dagur.value + " " + (klukka.value || "12:00"))));
       h.appendChild(nafn);
       box.appendChild(h);
@@ -336,7 +349,10 @@ export function birta(rot) {
     }
 
     // Það sem var sent inn: breyting á miðlum, texta eða mynd ógildir yfirferðina
-    function snid() { return JSON.stringify([valdir(), txt.value, mynd.value.trim()]); }
+    function collabNofn() {
+      return collab.value.split(/[\s,;]+/).map(function (n) { return n.replace(/^@/, "").trim().toLowerCase(); }).filter(Boolean);
+    }
+    function snid() { return JSON.stringify([valdir(), txt.value, mynd.value.trim(), hak.Instagram.checked ? collabNofn() : []]); }
 
     function synaYfirferd() {
       var radir = dr.hopur ? gogn.birtingar.filter(function (b) { return b.id.indexOf(dr.hopur + "-") === 0; }) : [];
@@ -370,7 +386,8 @@ export function birta(rot) {
       sendaInn.disabled = true;
       kalla("birtingVista", {
         efni: x.id, midlar: valdir(), timi: dagur.value + " " + klukka.value,
-        texti: txt.value, mynd: mynd.value.trim(), prufa: true
+        texti: txt.value, mynd: mynd.value.trim(), prufa: true,
+        collab: hak.Instagram.checked ? collabNofn().join(",") : ""
       }).then(function (r) {
         sendaInn.disabled = false;
         if (!r.ok) { msg.textContent = r.villa || "Tókst ekki."; return; }
