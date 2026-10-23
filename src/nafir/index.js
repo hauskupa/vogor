@@ -28,7 +28,8 @@ function raesa() {
     s.textContent = css;
     document.head.appendChild(s);
   }
-  setjaFavicon();
+  // Hauskúpan er Nafir-tákn; aðrar síður (t.d. Per) halda favicon vefsins
+  if (!document.querySelector('[data-verkefni]:not([data-verkefni="nafir"])')) setjaFavicon();
   rot.forEach(function (el) {
     const nafn = el.getAttribute("data-nafir");
     const sida = SIDUR[nafn];

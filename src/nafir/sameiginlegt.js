@@ -9,9 +9,12 @@ export const API = new URLSearchParams(location.search).has("prufa") ? PRUFA : L
 
 export const MANUDIR = ["jan", "feb", "mar", "apr", "maí", "jún", "júl", "ágú", "sep", "okt", "nóv", "des"];
 
+// Vogor vél (vinnusvaedi/vogor-releases/vel): birtingar fyrir verkefni í Verkefni.js
+export const VEL = "https://script.google.com/macros/s/AKfycbzhu2dxScQqe5HT7wZZpdpOntDxWffkgORO0n7YH9fLs0K39h9g6LVUUXICe6F93iI2/exec";
+
 // text/plain svo vafrinn sendi ekki CORS-forspurn, sem Apps Script svarar ekki
-export function post(beidni) {
-  return fetch(API, { method: "POST", headers: { "Content-Type": "text/plain" }, body: JSON.stringify(beidni) })
+export function post(beidni, slod) {
+  return fetch(slod || API, { method: "POST", headers: { "Content-Type": "text/plain" }, body: JSON.stringify(beidni) })
     .then(function (r) { return r.json(); });
 }
 
