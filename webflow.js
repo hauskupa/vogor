@@ -12,8 +12,9 @@ import { execSync } from "child_process";
 const VEFUR = "https://www.vogorrecords.com/";
 const CDN = "https://cdn.jsdelivr.net/gh/hauskupa/vogor@";
 const CSS = ["styles.css", "albumMixer.css", "vogorPlayer.css"];
-// Allt í dist/ nema Nafir-skrárnar, sem fara í loftið sjálfar
-const SKRAR = ["dist", ":!dist/nafir*", ":!dist/*.map", ":!dist/sidur/*.map"];
+// Allt í dist/ nema Nafir-skrárnar, sem fara í loftið sjálfar, og per-spjald.js,
+// sem er bara fyrir PNG-teikningu í Python
+const SKRAR = ["dist", ":!dist/nafir*", ":!dist/per-spjald.js", ":!dist/*.map", ":!dist/sidur/*.map"];
 
 const git = (c) => execSync("git " + c, { encoding: "utf8" }).trim();
 
