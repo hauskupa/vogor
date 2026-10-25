@@ -1,6 +1,10 @@
 // Birtingarsíðan á /nafir/birta. Embed: <div data-nafir="birta"></div> og dist/nafir.js.
 // Skrifar í biðröðina (flipann Birtingar); Nafir Meta birtir. Sjá LESTU.md, Birtingar.
 import { MANUDIR, ny, hrar, geyma, saekjaG, post, VEL, lesaLykil, skraTegund as tegund } from "./sameiginlegt.js";
+import { dropboxVelja } from "./dropboxVelja.js";
+
+// Mappa verkefnisins í Dropbox; data-dropbox-mappa á rótinni gengur fyrir
+const DROPBOX_MAPPA = { "": "/AUGLYSINGAR/SHAKON", per: "/AUGLYSINGAR/PER" };
 
 import MARKUP from "./birta.html";
 
@@ -32,6 +36,7 @@ export function birta(rot) {
   }
 
   function q(n) { return rot.querySelector('[data-bt="' + n + '"]'); }
+  var dbx = dropboxVelja({ mappa: rot.getAttribute("data-dropbox-mappa") || DROPBOX_MAPPA[VERKEFNI] || "/AUGLYSINGAR" });
   // Persónulegi hlekkurinn úr flipanum Aðgangur: ?l=<lykill>
   var key = lesaLykil("l", LYKILL).lykill;
 
@@ -241,6 +246,42 @@ export function birta(rot) {
     s.appendChild(myndL);
     mynd.addEventListener("input", function () { dr.mynd = mynd.value; });
     mynd.addEventListener("change", uppfaera);
+
+    // Dropbox: velja úr möppu verkefnisins eða hlaða upp; hlekkurinn fer í reitinn
+    var dbxRod = ny("div", "vbt-takkar vbt-dbx-takkar");
+    var dbxVelja = ny("button", "vbt-btn vbt-btn--ljos", "Velja úr Dropbox");
+    dbxVelja.type = "button";
+    var dbxHlada = ny("button", "vbt-btn vbt-btn--ljos", "Hlaða upp");
+    dbxHlada.type = "button";
+    var dbxSkra = ny("input");
+    dbxSkra.type = "file";
+    dbxSkra.accept = ".jpg,.jpeg,.png,.mp4,image/jpeg,image/png,video/mp4";
+    dbxSkra.hidden = true;
+    var dbxStada = ny("span", "vbt-small");
+    dbxRod.append(dbxVelja, dbxHlada, dbxSkra, dbxStada);
+    s.appendChild(dbxRod);
+    function setjaMynd(url) {
+      if (!url) return;
+      mynd.value = url;
+      dr.mynd = url;
+      geymaDrog();
+      uppfaera();
+    }
+    function dbxVilla(e) { dbxStada.textContent = "Dropbox: " + e.message; }
+    dbxVelja.addEventListener("click", function () {
+      dbxStada.textContent = "";
+      dbx.velja().then(setjaMynd, dbxVilla);
+    });
+    dbxHlada.addEventListener("click", function () { dbxSkra.click(); });
+    dbxSkra.addEventListener("change", function () {
+      var f = dbxSkra.files[0];
+      dbxSkra.value = "";
+      if (!f) return;
+      dbxHlada.disabled = dbxVelja.disabled = true;
+      dbx.hlada(f, function (t) { dbxStada.textContent = t; })
+        .then(function (url) { dbxStada.textContent = url ? f.name + " er komin á Dropbox" : ""; setjaMynd(url); }, dbxVilla)
+        .then(function () { dbxHlada.disabled = dbxVelja.disabled = false; });
+    });
 
     var tvo = ny("div", "vbt-tvo");
     var dL = ny("label", "", "Dagur"), dagur = ny("input");

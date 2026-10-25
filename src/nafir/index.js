@@ -10,7 +10,7 @@
 // pressa (/nafir/press, FEST Á COMMIT: @<sha> í stað @main, því miðlar eru
 // með hlekkina). CSS-ið fylgir með og er sprautað inn hér.
 import css from "./nafir.css";
-import { setjaFavicon } from "./sameiginlegt.js";
+import { setjaFavicon, leidir } from "./sameiginlegt.js";
 import { stada } from "./stada.js";
 import { birta } from "./birta.js";
 import { stjorn } from "./stjorn.js";
@@ -18,6 +18,8 @@ import { pressa } from "./pressa.js";
 import { yfirlestur } from "../per/yfirlestur.js";
 
 const SIDUR = { stada: stada, birta: birta, stjorn: stjorn, pressa: pressa, yfirlestur: yfirlestur };
+// Síður með leiðarstikunni efst; pressusíðan er fyrir miðla og fær hana ekki
+const MED_LEIDUM = { stada: true, birta: true, stjorn: true, yfirlestur: true };
 // Síður í Nafir-lúkkinu (beige tækið). Stjórnsíðan heldur útliti Webflow-síðunnar
 const BEIGE = { stada: true, birta: true, pressa: true };
 
@@ -39,6 +41,10 @@ function raesa() {
     el.setAttribute("data-nafir-raest", "");
     if (BEIGE[nafn]) document.body.classList.add("nafir-beige");
     sida(el);
+    if (MED_LEIDUM[nafn]) {
+      const verkefni = el.getAttribute("data-verkefni") === "per" ? "per" : "nafir";
+      (el.querySelector(".yl-innri") || el.firstElementChild || el).prepend(leidir(verkefni));
+    }
   });
 }
 

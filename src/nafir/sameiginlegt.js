@@ -99,3 +99,24 @@ export function setjaFavicon() {
   l.href = FAVICON;
   document.head.appendChild(l);
 }
+
+// Leiðarstikan efst á síðum verkefnisins, svo hægt sé að hoppa á milli án þess
+// að muna slóðirnar. Lyklarnir eru geymdir í vafranum, svo hlekkirnir þurfa þá ekki.
+const LEIDIR = {
+  nafir: [["Yfirlit", "/nafir/stada"], ["Birta", "/nafir/birta"], ["Mixer", "/nafir/4track"]],
+  per: [["Auglýsingar", "/per/auglysingar"], ["Birta", "/per/birta"], ["Æfing", "/per/jolamixer"]],
+};
+
+export function leidir(verkefni) {
+  var listi = LEIDIR[verkefni] || LEIDIR.nafir;
+  var nuna = location.pathname.replace(/\/$/, "");
+  var nav = ny("nav", "vogor-leidir");
+  nav.setAttribute("aria-label", "Síður verkefnisins");
+  listi.forEach(function (l) {
+    var a = ny("a", "", "|" + l[0].toUpperCase().replace(/ /g, "|") + "|");
+    a.href = l[1];
+    if (l[1] === nuna) a.setAttribute("aria-current", "page");
+    nav.appendChild(a);
+  });
+  return nav;
+}
