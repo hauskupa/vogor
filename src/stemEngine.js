@@ -13,6 +13,17 @@
 // Vélin veit ekkert um DOM-ið. Lag er { id, tracks: [{ id, url }] };
 // viðmótið hlustar á atburði: "state" ({ songId, state }: idle | loading |
 // playing | paused), "time" ({ songId, time, duration }) og "ended".
+//
+// Notuð af gamla mixernum (mixer.js), æfingasíðunni (permixer.js), album
+// mixernum (albumMixerEngine.js) og multitrack á /asleep (multitrackplayer.js).
+// Valkostir createStemEngine:
+//   context         AudioContext sem á að nota (annars búinn til við fyrstu notkun)
+//   destination     hnútur sem lögin tengjast í (annars context.destination)
+//   channel         (ctx, track) => { input, output }: rásakeðja á hverja rás.
+//                   Sjálfgefið bara pan. Album mixerinn setur EQ og tape hér.
+//   preservesPitch  false: hraðabreyting (setSpeed) breytir líka tónhæð, eins og teip
+//   unloadPrevious  false: fyrra lag heldur gögnunum þegar skipt er (multitrack)
+//   mixFade         tímafasti í sek. þegar styrk, mute eða solo er breytt
 
 const SYNC_INTERVAL = 200; // ms milli mælinga
 const DEADBAND = 0.006; // rek undir 6 ms er látið kyrrt
@@ -70,13 +81,22 @@ async function prepare(audio, time) {
   return true;
 }
 
-export function createStemEngine() {
+export function createStemEngine({
+  context = null,
+  destination = null,
+  channel = null,
+  preservesPitch = true,
+  unloadPrevious = true,
+  mixFade = FADE,
+} = {}) {
   const AudioCtx = window.AudioContext || window.webkitAudioContext;
   const events = new EventTarget();
   const songs = new Map();
-  let ctx = null;
+  let ctx = context;
   let current = null;
   let syncTimer = null;
+  // Hraði allra rása (setSpeed). Sync-lykkjan nuddar í kringum hann.
+  let speed = 1;
 
   function emit(type, detail) {
     events.dispatchEvent(new CustomEvent(type, { detail }));
@@ -88,9 +108,15 @@ export function createStemEngine() {
     emit("state", { songId: song.id, state });
   }
 
-  // Kallað innan smells: AudioContext má bara ræsa við notandaaðgerð.
+  // Context má búa til hvenær sem er (hann byrjar þá í bið), en bara ræsa
+  // innan smells, svo resumeContext er kallað úr select/play.
   function ensureContext() {
     if (!ctx) ctx = new AudioCtx();
+    return ctx;
+  }
+
+  function resumeContext() {
+    ensureContext();
     if (ctx.state === "suspended") {
       ctx.resume().catch((err) => console.warn("stems: resume failed", err));
     }
@@ -113,9 +139,10 @@ export function createStemEngine() {
           audio: null,
           gain: null,
           panner: null,
+          channel: null,
           volume: t.volume ?? 1,
           pan: t.pan ?? 0,
-          muted: false,
+          muted: t.muted ?? false,
           soloed: false,
           dead: false,
           primed: false,
@@ -136,10 +163,11 @@ export function createStemEngine() {
   // Elementin eru smíðuð við fyrstu notkun lagsins, ekki öll við init;
   // annars færu öll stem allra laga að sækjast í einu.
   function build(song) {
+    ensureContext();
     if (!song.out) {
       song.out = ctx.createGain();
       song.out.gain.value = 0;
-      song.out.connect(ctx.destination);
+      song.out.connect(destination || ctx.destination);
     }
 
     song.tracks.forEach((track) => {
@@ -155,20 +183,30 @@ export function createStemEngine() {
       const audio = new Audio();
       audio.crossOrigin = "anonymous";
       audio.preload = "auto";
+      if (!preservesPitch) {
+        audio.preservesPitch = false;
+        audio.mozPreservesPitch = false;
+        audio.webkitPreservesPitch = false;
+      }
       audio.src = track.url;
 
+      // uppspretta -> rásakeðja -> styrkur (mute/solo) -> lagið
       const source = ctx.createMediaElementSource(audio);
-      track.gain = ctx.createGain();
-      source.connect(track.gain);
-
-      if (ctx.createStereoPanner) {
+      if (channel) {
+        track.channel = channel(ctx, track);
+      } else if (ctx.createStereoPanner) {
         track.panner = ctx.createStereoPanner();
         track.panner.pan.value = track.pan;
-        track.gain.connect(track.panner);
-        track.panner.connect(song.out);
-      } else {
-        track.gain.connect(song.out);
+        track.channel = { input: track.panner, output: track.panner };
       }
+      track.gain = ctx.createGain();
+      if (track.channel) {
+        source.connect(track.channel.input);
+        track.channel.output.connect(track.gain);
+      } else {
+        source.connect(track.gain);
+      }
+      track.gain.connect(song.out);
 
       audio.addEventListener("loadedmetadata", () => {
         song.duration = Math.max(song.duration, audio.duration || 0);
@@ -199,7 +237,7 @@ export function createStemEngine() {
       if (!t.gain) return;
       const value = t.muted || (anySolo && !t.soloed) ? 0 : t.volume;
       if (immediate) t.gain.gain.value = value;
-      else t.gain.gain.setTargetAtTime(value, ctx.currentTime, FADE);
+      else t.gain.gain.setTargetAtTime(value, ctx.currentTime, mixFade);
     });
   }
 
@@ -231,9 +269,20 @@ export function createStemEngine() {
   function select(songId) {
     const song = songs.get(songId);
     if (!song) return null;
-    ensureContext();
-    if (current && current !== song) unload(current);
+    resumeContext();
+    if (current && current !== song) {
+      if (unloadPrevious) unload(current);
+      else stop(current);
+    }
     current = song;
+    build(song);
+    return song;
+  }
+
+  // Byrjar að sækja lag án þess að velja það, t.d. næsta lag á plötunni
+  function load(songId) {
+    const song = songs.get(songId);
+    if (!song) return null;
     build(song);
     return song;
   }
@@ -287,7 +336,7 @@ export function createStemEngine() {
     // sync-lykkjan.
     startable.forEach((t) => {
       t.drift = null;
-      t.audio.playbackRate = 1;
+      t.audio.playbackRate = speed;
     });
     await Promise.all(
       startable.map((t) =>
@@ -324,22 +373,31 @@ export function createStemEngine() {
     }, 60);
   }
 
-  function unload(song) {
+  // Stoppar lagið og setur það á byrjun, en heldur gögnunum
+  function stop(song) {
     song.token += 1;
     song.playing = false;
     song.starting = false;
     song.position = 0;
-    stopSync();
+    if (current === song) stopSync();
     if (song.out) song.out.gain.value = 0;
     setState(song, "idle");
     emitTime(song, 0);
-
     song.tracks.forEach((t) => {
       if (!t.audio) return;
       t.audio.pause();
+      t.drift = null;
+    });
+  }
+
+  // Stoppar lagið og sleppir gögnunum, svo minnið fyllist ekki af stemum
+  function unload(song) {
+    stop(song);
+    song.tracks.forEach((t) => {
+      if (!t.audio) return;
       t.audio.removeAttribute("src");
       t.audio.load();
-      t.drift = null;
+      t.primed = false;
     });
   }
 
@@ -413,9 +471,8 @@ export function createStemEngine() {
       t.drift = t.drift === null ? raw : t.drift + EMA_ALPHA * (raw - t.drift);
 
       const rate =
-        Math.abs(t.drift) < DEADBAND
-          ? 1
-          : 1 - clamp(t.drift * CORRECT_GAIN, -MAX_NUDGE, MAX_NUDGE);
+        speed *
+        (Math.abs(t.drift) < DEADBAND ? 1 : 1 - clamp(t.drift * CORRECT_GAIN, -MAX_NUDGE, MAX_NUDGE));
 
       if (Math.abs(t.audio.playbackRate - rate) > 0.0005) {
         t.audio.playbackRate = rate;
@@ -450,16 +507,38 @@ export function createStemEngine() {
     applyMix(song);
   }
 
+  // Á meðan lag er ekki í spilun tekur næsta ræsing hraðann upp
+  function setSpeed(value) {
+    speed = clamp(value, 0.5, 2);
+    if (!current) return;
+    liveTracks(current).forEach((t) => {
+      t.drift = null;
+      t.audio.playbackRate = speed;
+    });
+  }
+
   return {
-    on: (type, fn) => events.addEventListener(type, (e) => fn(e.detail)),
+    // Skilar falli sem hættir að hlusta
+    on: (type, fn) => {
+      const handler = (e) => fn(e.detail);
+      events.addEventListener(type, handler);
+      return () => events.removeEventListener(type, handler);
+    },
     define,
     select,
+    load,
     play,
     pause,
+    stop: (songId = current?.id) => {
+      const song = songs.get(songId);
+      if (song) stop(song);
+    },
     seek,
+    setSpeed,
     setTrack,
     resetMix,
     getSong: (songId) => songs.get(songId) || null,
+    getCurrentId: () => current?.id ?? null,
     getTime: (songId = current?.id) => {
       const song = songs.get(songId);
       if (!song) return 0;

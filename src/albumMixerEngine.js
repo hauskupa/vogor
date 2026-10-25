@@ -1,3 +1,5 @@
+import { createStemEngine } from "./stemEngine.js";
+
 function clamp(value, min, max) {
   return Math.min(max, Math.max(min, value));
 }
@@ -131,551 +133,277 @@ export function applyChannelState(nodes, audioContext, state = {}) {
 
 export { faderGain, UNITY_FADER };
 
+
+// Vélin á bak við album mixerinn (albumMixer.js). Spilunin sjálf og
+// samstilling rásanna er í stemEngine.js, sama vél og æfingasíðan notar:
+// allar rásir bíða hver eftir annarri áður en þær fara af stað, rek er mælt
+// gegn miðgildi rásanna og leiðrétt mjúklega, og ef ein rás hikstar stoppa
+// allar og ræsast aftur saman. Hér bætist við það sem er sérstakt fyrir
+// borðið: rásakeðjan (EQ, tape, pan, fader), mælar, master og pitch.
+//
+// Viðmótið talar við þetta eins og áður: loadSong, play, pause, stop, seek,
+// setTrack* o.s.frv., og hlustar á songchange, timeupdate, playstatechange,
+// songended, pitchchange, masterchange og trackchange.
 export function createAlbumMixerEngine({ songs = [] } = {}) {
   const AudioContextCtor = window.AudioContext || window.webkitAudioContext;
-  const audioContext = AudioContextCtor ? new AudioContextCtor() : null;
+  const audioContext = new AudioContextCtor();
   const eventTarget = new EventTarget();
-  const masterGain = audioContext ? audioContext.createGain() : null;
-  const songMap = new Map();
+  const masterGain = audioContext.createGain();
 
   // Staðan á sleðanum er geymd sér; hnútinn ber unity-leiðrétta styrkinn.
   let masterPosition = UNITY_FADER;
-
-  if (masterGain) {
-    masterGain.gain.value = faderGain(masterPosition);
-    masterGain.connect(audioContext.destination);
-  }
+  masterGain.gain.value = faderGain(masterPosition);
+  masterGain.connect(audioContext.destination);
 
   let currentSongId = null;
-  let isPlaying = false;
-  let timeTimer = null;
-  let resyncTimer = null;
-  let playRequestId = 0;
   let currentPitch = 1;
-  let endedSongId = null;
-  let endCheckTimer = null;
+
+  const stems = createStemEngine({
+    context: audioContext,
+    destination: masterGain,
+    // Pitch-hnappurinn hægir á teipinu og lækkar tóninn, eins og á alvöru tæki
+    preservesPitch: false,
+    // Sama rásakeðja og útflutningurinn notar, auk mælis
+    channel: (ctx, stemTrack) => {
+      const chain = createChannelChain(ctx);
+      const analyserNode = ctx.createAnalyser();
+      analyserNode.fftSize = 256;
+      analyserNode.smoothingTimeConstant = 0.82;
+      chain.output.connect(analyserNode);
+      applyTrackColor(chain.nodes, ctx, 0);
+      stemTrack.nodes = { ...chain.nodes, analyserNode };
+      return chain;
+    },
+  });
 
   function emit(type, detail = {}) {
     eventTarget.dispatchEvent(new CustomEvent(type, { detail }));
   }
 
-  function clearEndCheck() {
-    if (endCheckTimer) {
-      window.clearTimeout(endCheckTimer);
-      endCheckTimer = null;
-    }
-  }
-
-  function getTrackRemaining(track) {
-    const audio = track?.audio;
-    if (!audio || !Number.isFinite(audio.duration) || audio.duration <= 0) {
-      return Number.POSITIVE_INFINITY;
-    }
-    return Math.max(0, audio.duration - (audio.currentTime || 0));
-  }
-
-  function isTrackNearEnd(track, tolerance = 0.18) {
-    const audio = track?.audio;
-    if (!audio) return true;
-    if (audio.ended) return true;
-    if (!Number.isFinite(audio.duration) || audio.duration <= 0) return false;
-    return audio.currentTime >= Math.max(0, audio.duration - tolerance);
-  }
-
-  function hasBufferedAhead(audio, minimumAhead = 0.35) {
-    if (!audio) return false;
-    const { buffered, currentTime } = audio;
-    for (let i = 0; i < buffered.length; i += 1) {
-      const start = buffered.start(i);
-      const end = buffered.end(i);
-      if (currentTime >= start && currentTime <= end) {
-        return end - currentTime >= minimumAhead;
-      }
-    }
-    return false;
-  }
-
-  function handleTrackEnded(songId) {
-    if (!songId || currentSongId !== songId || endedSongId === songId) return;
-
-    const tracks = getCurrentTracks();
-    if (!tracks.length) return;
-
-    const allEnded = tracks.every((track) => isTrackNearEnd(track, 0.14));
-    const longestRemaining = tracks.reduce(
-      (max, track) => Math.max(max, getTrackRemaining(track)),
-      0
-    );
-
-    if (!allEnded || longestRemaining > 0.2) return;
-
-    clearEndCheck();
-    endCheckTimer = window.setTimeout(() => {
-      endCheckTimer = null;
-
-      const freshTracks = getCurrentTracks();
-      if (!freshTracks.length || currentSongId !== songId || endedSongId === songId) {
-        return;
-      }
-
-      const stillEnded = freshTracks.every((track) => isTrackNearEnd(track, 0.12));
-      if (!stillEnded) return;
-
-      endedSongId = songId;
-      isPlaying = false;
-      stopTimeLoop();
-      stopResyncLoop();
-      emit("playstatechange", { isPlaying, songId: currentSongId });
-      emit("songended", { songId: currentSongId, song: getCurrentSong() });
-    }, 120);
-  }
-
-  function buildTrack(track, index, songId) {
-    const audio = new Audio(track.url);
-    audio.crossOrigin = "anonymous";
-    audio.preload = "auto";
-    audio.preservesPitch = false;
-    audio.mozPreservesPitch = false;
-    audio.webkitPreservesPitch = false;
-    audio.addEventListener("ended", () => {
-      handleTrackEnded(songId);
-    });
-    audio.addEventListener("waiting", () => {
-      audio.dataset.tm4Buffering = "true";
-    });
-    audio.addEventListener("stalled", () => {
-      audio.dataset.tm4Buffering = "true";
-    });
-    audio.addEventListener("seeking", () => {
-      audio.dataset.tm4Buffering = "true";
-    });
-    ["canplaythrough", "playing", "seeked", "timeupdate"].forEach((eventName) => {
-      audio.addEventListener(eventName, () => {
-        if (hasBufferedAhead(audio, 0.2) || audio.readyState >= 3) {
-          delete audio.dataset.tm4Buffering;
-        }
-      });
-    });
-
-    if (!audioContext || !masterGain) {
-      return {
-        ...track,
-        audio,
-        index,
-        gain: 0,
-        eqLow: 0,
-        eqHigh: 0,
-        pan: 0,
-        fader: 0.7,
-        nodes: null,
-      };
-    }
-
-    const source = audioContext.createMediaElementSource(audio);
-    const analyserNode = audioContext.createAnalyser();
-    analyserNode.fftSize = 256;
-    analyserNode.smoothingTimeConstant = 0.82;
-
-    const chain = createChannelChain(audioContext);
-    const {
-      gainNode,
-      colorInNode,
-      compressorNode,
-      eqLowNode,
-      eqHighNode,
-      toneNode,
-      saturatorNode,
-      makeupNode,
-      panNode,
-      faderNode,
-    } = chain.nodes;
-
-    source.connect(chain.input);
-    chain.output.connect(masterGain);
-    chain.output.connect(analyserNode);
-
-    const builtTrack = {
-      ...track,
-      audio,
-      index,
-      gain: 0,
-      eqLow: 0,
-      eqHigh: 0,
-      pan: 0,
-      fader: 0.7,
-      nodes: {
-        source,
-        gainNode,
-        colorInNode,
-        compressorNode,
-        eqLowNode,
-        eqHighNode,
-        toneNode,
-        saturatorNode,
-        makeupNode,
-        panNode,
-        faderNode,
-        analyserNode,
-      },
-      _driftEMA: undefined,
-      _nudgeTimeout: null,
-    };
-
-    applyTrackColor(builtTrack.nodes, audioContext, 0);
-    return builtTrack;
-  }
-
-  // Rásirnar eru smíðaðar við fyrsta val á laginu, ekki allar við init.
-  // Annars myndi öll platan — 5 rásir sinnum 8 lög — byrja að sækjast í einu
+  // Rásirnar eru smíðaðar við fyrstu notkun lagsins, ekki allar við init.
+  // Annars myndi öll platan, 5 rásir sinnum 8 lög, byrja að sækjast í einu
   // og fyrsta lagið svelta í samkeppni um tengingarnar.
   const songDefs = new Map(songs.map((song) => [song.id, song]));
+  const builtSongs = new Map();
 
-  function ensureSongBuilt(songId) {
-    const built = songMap.get(songId);
-    if (built) return built;
-
+  // Lagið eins og viðmótið sér það: gögnin úr CMS, staða hnappanna á hverri
+  // rás, og audio-elementið og hnútarnir úr stemEngine.
+  function ensureSong(songId) {
+    if (builtSongs.has(songId)) return builtSongs.get(songId);
     const def = songDefs.get(songId);
     if (!def) return null;
 
-    const nextSong = {
+    stems.define({ id: def.id, tracks: def.tracks.map((t) => ({ id: t.id, url: t.url })) });
+    const stemSong = stems.load(def.id);
+    const song = {
       ...def,
-      tracks: def.tracks.map((track, index) => buildTrack(track, index, def.id)),
+      tracks: def.tracks.map((track, index) => {
+        const stemTrack = stemSong.tracks.find((t) => t.id === track.id);
+        return {
+          ...track,
+          index,
+          gain: 0,
+          eqLow: 0,
+          eqHigh: 0,
+          pan: 0,
+          fader: UNITY_FADER,
+          audio: stemTrack?.audio || null,
+          nodes: stemTrack?.nodes || null,
+        };
+      }),
     };
-    songMap.set(def.id, nextSong);
-    return nextSong;
+    builtSongs.set(def.id, song);
+    return song;
   }
 
   function getCurrentSong() {
-    return currentSongId ? songMap.get(currentSongId) || null : null;
+    return currentSongId ? builtSongs.get(currentSongId) || null : null;
   }
 
   function getCurrentTracks() {
     return getCurrentSong()?.tracks || [];
   }
 
+  function isPlaying() {
+    return currentSongId ? stems.isPlaying(currentSongId) : false;
+  }
+
   function emitTimeUpdate() {
-    const first = getCurrentTracks()[0];
     emit("timeupdate", {
       songId: currentSongId,
-      currentTime: first?.audio.currentTime || 0,
-      duration: first?.audio.duration || 0,
+      currentTime: stems.getTime(currentSongId),
+      duration: stems.getSong(currentSongId)?.duration || 0,
     });
   }
 
-  function startTimeLoop() {
-    stopTimeLoop();
-    timeTimer = window.setInterval(() => {
-      emitTimeUpdate();
-    }, 200);
-  }
+  stems.on("state", ({ songId }) => {
+    if (songId === currentSongId) emit("playstatechange", { isPlaying: isPlaying(), songId });
+  });
+  stems.on("time", ({ songId, time, duration }) => {
+    if (songId === currentSongId) emit("timeupdate", { songId, currentTime: time, duration });
+  });
+  stems.on("ended", ({ songId }) => {
+    if (songId === currentSongId) emit("songended", { songId, song: getCurrentSong() });
+  });
 
-  function stopTimeLoop() {
-    if (timeTimer) {
-      window.clearInterval(timeTimer);
-      timeTimer = null;
-    }
-  }
+  // -----------------------------------------------------------
+  // Forhleðsla
+  // -----------------------------------------------------------
 
-  function resetTrackNudge(track) {
-    if (track?._nudgeTimeout) {
-      window.clearTimeout(track._nudgeTimeout);
-      track._nudgeTimeout = null;
-    }
-    if (track?.audio) {
-      track.audio.playbackRate = currentPitch;
-    }
-    track._driftEMA = undefined;
-  }
-
-  function stopResyncLoop() {
-    if (resyncTimer) {
-      window.clearInterval(resyncTimer);
-      resyncTimer = null;
-    }
-    getCurrentTracks().forEach(resetTrackNudge);
-  }
-
-  function resyncCurrentSong() {
-    const tracks = getCurrentTracks();
-    const masterTrack = tracks[0];
-    const master = masterTrack?.audio;
-    if (!master || master.paused) return;
-    if (master.dataset.tm4Buffering === "true" && !hasBufferedAhead(master, 0.2)) return;
-
-    const masterTime = master.currentTime;
-    const EMA_ALPHA = 0.25;
-    const SMALL_TOL = 0.04;
-    const SEEK_TOL = 0.25;
-    const NUDGE_RATE = 0.0125;
-    const NUDGE_DURATION = 420;
-    const EDGE_GUARD = 0.75;
-    const masterRemaining = getTrackRemaining(masterTrack);
-
-    if (masterTime < 0.35 || masterRemaining < EDGE_GUARD) {
-      tracks.slice(1).forEach(resetTrackNudge);
-      return;
-    }
-
-    tracks.slice(1).forEach((track) => {
-      const audio = track.audio;
-      if (!audio || audio.paused) return;
-      if (audio.dataset.tm4Buffering === "true" && !hasBufferedAhead(audio, 0.2)) {
-        resetTrackNudge(track);
-        return;
-      }
-      if (getTrackRemaining(track) < EDGE_GUARD) {
-        resetTrackNudge(track);
-        return;
-      }
-
-      let measured = audio.currentTime - masterTime;
-      if (!Number.isFinite(measured)) measured = 0;
-
-      track._driftEMA =
-        typeof track._driftEMA === "number"
-          ? EMA_ALPHA * measured + (1 - EMA_ALPHA) * track._driftEMA
-          : measured;
-
-      const drift = track._driftEMA;
-
-      if (Math.abs(drift) <= SMALL_TOL) {
-        resetTrackNudge(track);
-        return;
-      }
-
-      if (Math.abs(drift) >= SEEK_TOL) {
-        audio.currentTime = masterTime;
-        resetTrackNudge(track);
-        return;
-      }
-
-      const direction = drift > 0 ? 1 : -1;
-      audio.playbackRate = currentPitch - direction * NUDGE_RATE;
-
-      if (track._nudgeTimeout) {
-        window.clearTimeout(track._nudgeTimeout);
-      }
-
-      track._nudgeTimeout = window.setTimeout(() => {
-        audio.playbackRate = currentPitch;
-        track._nudgeTimeout = null;
-      }, NUDGE_DURATION);
+  function whenReady(audio, timeout) {
+    if (!audio || audio.readyState >= 3) return Promise.resolve();
+    return new Promise((resolve) => {
+      const done = () => {
+        clearTimeout(timer);
+        audio.removeEventListener("canplaythrough", done);
+        audio.removeEventListener("error", done);
+        resolve();
+      };
+      const timer = setTimeout(done, timeout);
+      audio.addEventListener("canplaythrough", done);
+      audio.addEventListener("error", done);
     });
   }
 
-  function startResyncLoop() {
-    stopResyncLoop();
-    if (!currentSongId) return;
-    resyncTimer = window.setInterval(() => {
-      resyncCurrentSong();
-    }, 900);
+  // Byrjar að sækja lagið og bíður þar til allar rásir geta spilað, eða
+  // `timeout` ms. Skilar true ef allt varð tilbúið.
+  async function preload(songId, timeout = 3500) {
+    const song = ensureSong(songId);
+    if (!song) return false;
+    stems.load(songId);
+    await Promise.all(song.tracks.map((t) => whenReady(t.audio, timeout)));
+    return isReady(songId);
   }
 
-  async function ensureContext() {
-    if (!audioContext) return;
-    if (audioContext.state === "suspended") {
-      await audioContext.resume();
-    }
+  function isReady(songId) {
+    const song = builtSongs.get(songId);
+    return Boolean(song?.tracks.length && song.tracks.every((t) => t.audio && t.audio.readyState >= 3));
   }
 
-  function stopSong(song) {
-    if (!song) return;
-    playRequestId += 1;
-    clearEndCheck();
-    song.tracks.forEach((track) => {
-      track.audio.pause();
-      track.audio.currentTime = 0;
-      delete track.audio.dataset.tm4Buffering;
-      resetTrackNudge(track);
-    });
-  }
+  // -----------------------------------------------------------
+  // Spilun
+  // -----------------------------------------------------------
 
   async function loadSong(songId, { autoplay = false } = {}) {
-    const nextSong = ensureSongBuilt(songId);
-    if (!nextSong) return null;
+    const song = ensureSong(songId);
+    if (!song) return null;
 
-    const shouldResume = autoplay || isPlaying;
-    endedSongId = null;
-    clearEndCheck();
-
-    if (currentSongId && currentSongId !== songId) {
-      stopSong(getCurrentSong());
+    const resume = autoplay || isPlaying();
+    if (currentSongId !== songId) {
+      currentSongId = songId;
+      // Fyrra lagið stoppar og sleppir gögnunum
+      stems.select(songId);
+      emit("songchange", { songId, song });
+      emitTimeUpdate();
     }
 
-    currentSongId = songId;
-    emit("songchange", { songId, song: nextSong });
-    emitTimeUpdate();
+    if (resume) await play();
+    return song;
+  }
 
-    if (shouldResume) {
-      await play();
-    }
-
-    return nextSong;
+  // Leysist þegar spilun er hafin (eða notandinn hætti við). Hafnar ef engin
+  // rás gat farið af stað.
+  function untilStarted(songId) {
+    return new Promise((resolve, reject) => {
+      const check = () => {
+        const state = stems.getSong(songId)?.state;
+        if (state === "playing" || state === "paused") return resolve(), true;
+        if (state === "idle") return reject(new Error(`album-mixer: no tracks started for song ${songId}`)), true;
+        return false;
+      };
+      if (check()) return;
+      const off = stems.on("state", (d) => {
+        if (d.songId === songId && check()) off();
+      });
+    });
   }
 
   async function play() {
-    const requestId = ++playRequestId;
-    endedSongId = null;
-    clearEndCheck();
-
     if (!currentSongId) {
       const firstSong = songs[0];
       if (!firstSong) return;
       await loadSong(firstSong.id);
     }
-
-    const tracks = getCurrentTracks();
-    if (!tracks.length) return;
-
-    await ensureContext();
-
-    const startAt = tracks[0].audio.currentTime || 0;
-    const results = await Promise.allSettled(
-      tracks.map(async (track) => {
-        if (Math.abs(track.audio.currentTime - startAt) > 0.05) {
-          track.audio.currentTime = startAt;
-        }
-        track.audio.playbackRate = currentPitch;
-        await track.audio.play();
-        return track.id;
-      })
-    );
-
-    if (requestId !== playRequestId) return;
-
-    results.forEach((result, index) => {
-      if (result.status !== "rejected") return;
-
-      const reasonName = result.reason?.name || null;
-      if (reasonName === "AbortError") return;
-
-      console.warn("album-mixer: track play failed", {
-        trackId: tracks[index]?.id || null,
-        songId: currentSongId,
-        error: reasonName,
-        message: result.reason?.message || String(result.reason),
-      });
-    });
-
-    const anyStarted = results.some((result) => result.status === "fulfilled");
-    if (!anyStarted) {
-      throw new Error(`album-mixer: no tracks started for song ${currentSongId}`);
-    }
-
-    isPlaying = true;
-    startTimeLoop();
-    startResyncLoop();
-    emit("playstatechange", { isPlaying, songId: currentSongId });
-    emitTimeUpdate();
+    const songId = currentSongId;
+    if (stems.isPlaying(songId)) return;
+    // play() fer af stað hér, innan smellsins (iOS leyfir það bara þar)
+    stems.play(songId);
+    if (audioContext.state === "suspended") audioContext.resume().catch(() => {});
+    await untilStarted(songId);
   }
 
   function pause() {
-    playRequestId += 1;
-    endedSongId = null;
-    clearEndCheck();
-    getCurrentTracks().forEach((track) => {
-      track.audio.pause();
-    });
-    isPlaying = false;
-    stopTimeLoop();
-    stopResyncLoop();
-    emit("playstatechange", { isPlaying, songId: currentSongId });
+    if (currentSongId) stems.pause(currentSongId);
   }
 
   function stop() {
-    playRequestId += 1;
-    endedSongId = null;
-    clearEndCheck();
-    stopSong(getCurrentSong());
-    isPlaying = false;
-    stopTimeLoop();
-    stopResyncLoop();
-    emit("playstatechange", { isPlaying, songId: currentSongId });
+    if (!currentSongId) return;
+    stems.stop(currentSongId);
     emitTimeUpdate();
   }
 
   function seek(time) {
-    const safeTime = Math.max(0, time || 0);
-    getCurrentTracks().forEach((track) => {
-      track.audio.currentTime = safeTime;
-    });
-    emitTimeUpdate();
+    if (!currentSongId) return;
+    stems.seek(Math.max(0, time || 0), currentSongId);
   }
 
   function setMasterVolume(value) {
     masterPosition = clamp(value, 0, 1);
-    if (masterGain) {
-      masterGain.gain.value = faderGain(masterPosition);
-    }
+    masterGain.gain.value = faderGain(masterPosition);
     emit("masterchange", { value: masterPosition });
   }
 
   function setPitch(value) {
     currentPitch = clamp(value, 0.75, 1.25);
-    getCurrentTracks().forEach((track) => {
-      if (!track._nudgeTimeout) {
-        track.audio.playbackRate = currentPitch;
-      }
-    });
+    stems.setSpeed(currentPitch);
     emit("pitchchange", { value: currentPitch, songId: currentSongId });
   }
+
+  // -----------------------------------------------------------
+  // Mælar og rásir
+  // -----------------------------------------------------------
 
   function getMeterLevels() {
     return getCurrentTracks().map((track) => {
       const analyserNode = track.nodes?.analyserNode;
-      if (!analyserNode) {
-        return {
-          trackId: track.id,
-          level: 0,
-        };
-      }
+      if (!analyserNode) return { trackId: track.id, level: 0 };
 
       const data = new Uint8Array(analyserNode.frequencyBinCount);
       analyserNode.getByteTimeDomainData(data);
-
       let sumSquares = 0;
       for (let i = 0; i < data.length; i += 1) {
         const centered = (data[i] - 128) / 128;
         sumSquares += centered * centered;
       }
-
       const rms = Math.sqrt(sumSquares / data.length);
-      return {
-        trackId: track.id,
-        level: clamp(rms * 2.8, 0, 1),
-      };
+      return { trackId: track.id, level: clamp(rms * 2.8, 0, 1) };
     });
   }
 
   function updateTrackValue(trackId, key, value) {
     const track = getCurrentTracks().find((item) => item.id === trackId);
     if (!track) return;
+    const at = audioContext.currentTime;
 
     if (key === "gain") {
       track.gain = clamp(value, 0, 2);
-      if (track.nodes && audioContext) {
-        applyTrackColor(track.nodes, audioContext, track.gain);
-      }
+      if (track.nodes) applyTrackColor(track.nodes, audioContext, track.gain);
     }
-
     if (key === "pan") {
       track.pan = clamp(value, -1, 1);
-      track.nodes?.panNode.pan.setValueAtTime(track.pan, audioContext.currentTime);
+      track.nodes?.panNode.pan.setValueAtTime(track.pan, at);
     }
-
     if (key === "eqLow") {
       track.eqLow = clamp(value, -1, 1);
-      track.nodes?.eqLowNode.gain.setValueAtTime(track.eqLow * 12, audioContext.currentTime);
+      track.nodes?.eqLowNode.gain.setValueAtTime(track.eqLow * 12, at);
     }
-
     if (key === "eqHigh") {
       track.eqHigh = clamp(value, -1, 1);
-      track.nodes?.eqHighNode.gain.setValueAtTime(track.eqHigh * 12, audioContext.currentTime);
+      track.nodes?.eqHighNode.gain.setValueAtTime(track.eqHigh * 12, at);
     }
-
     if (key === "fader") {
       track.fader = clamp(value, 0, 1);
-      track.nodes?.faderNode.gain.setValueAtTime(faderGain(track.fader), audioContext.currentTime);
+      track.nodes?.faderNode.gain.setValueAtTime(faderGain(track.fader), at);
     }
 
     emit("trackchange", {
@@ -690,16 +418,17 @@ export function createAlbumMixerEngine({ songs = [] } = {}) {
   }
 
   function getState() {
-    const song = getCurrentSong();
-    const first = song?.tracks[0];
+    const stemSong = currentSongId ? stems.getSong(currentSongId) : null;
     return {
       currentSongId,
-      isPlaying,
-      currentTime: first?.audio.currentTime || 0,
-      duration: first?.audio.duration || 0,
+      isPlaying: isPlaying(),
+      // Í spilun en að bíða eftir gögnum (byrjun, spólun eða hik)
+      buffering: stemSong?.state === "loading",
+      currentTime: currentSongId ? stems.getTime(currentSongId) : 0,
+      duration: stemSong?.duration || 0,
       masterVolume: masterPosition,
       pitch: currentPitch,
-      song,
+      song: getCurrentSong(),
     };
   }
 
@@ -707,7 +436,9 @@ export function createAlbumMixerEngine({ songs = [] } = {}) {
     addEventListener: (...args) => eventTarget.addEventListener(...args),
     removeEventListener: (...args) => eventTarget.removeEventListener(...args),
     getSongs: () => songs.map((song) => ({ ...song })),
-    ensureSong: (songId) => ensureSongBuilt(songId),
+    ensureSong,
+    preload,
+    isReady,
     getState,
     loadSong,
     play,

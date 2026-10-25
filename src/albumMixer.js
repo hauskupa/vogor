@@ -694,74 +694,10 @@ export function setupAlbumMixer(root = document) {
     });
   }
 
-  function preloadTrackAudio(track) {
-    const audio = track?.audio;
-    if (!audio) return Promise.resolve({ ok: false, missing: true });
-
-    audio.preload = "auto";
-
-    if (track._isReady || isAudioReady(audio)) {
-      track._isReady = true;
-      return Promise.resolve({ ok: true, cached: true });
-    }
-
-    if (!track._readyPromise) {
-      track._readyPromise = new Promise((resolve) => {
-        let settled = false;
-
-        const cleanup = () => {
-          audio.removeEventListener("canplaythrough", onReady);
-          audio.removeEventListener("loadedmetadata", onReady);
-          audio.removeEventListener("error", onError);
-        };
-
-        const done = (result) => {
-          if (settled) return;
-          settled = true;
-          cleanup();
-          track._isReady = Boolean(result?.ok);
-          track._preloadAttempted = true;
-          track._loadRequested = false;
-          resolve(result);
-        };
-
-        const onReady = () => done({ ok: true });
-        const onError = (error) => {
-          console.warn("album-mixer: preload error", audio.src, error);
-          done({ ok: false, error: true });
-        };
-
-        audio.addEventListener("canplaythrough", onReady, { passive: true });
-        audio.addEventListener("loadedmetadata", onReady, { passive: true });
-        audio.addEventListener("error", onError, { passive: true });
-
-        window.setTimeout(() => done({ ok: false, timeout: true }), 3500);
-      });
-    }
-
-    if (!track._loadRequested && audio.readyState < 3) {
-      track._loadRequested = true;
-      try {
-        audio.load();
-      } catch {
-        track._loadRequested = false;
-      }
-    }
-
-    return track._readyPromise;
-  }
-
-  // Lögin í `songs` bera engin audio-element — þau verða til inni í engine við
-  // fyrsta val. Sæktu því alltaf smíðaða lagið, annars er preload þögult núllverk.
-  function resolveBuiltSong(song) {
-    if (!song?.id) return song || null;
-    return engine.ensureSong(song.id) || song;
-  }
-
-  function preloadSongAudio(song) {
-    const built = resolveBuiltSong(song);
-    if (!built?.tracks?.length) return Promise.resolve([]);
-    return Promise.all(built.tracks.map((track) => preloadTrackAudio(track)));
+  // Vélin sér um rásirnar: hún veit hvort þær eru í raun tilbúnar, líka eftir
+  // að lag var afhlaðið og valið aftur
+  function preloadSongAudio(song, timeout) {
+    return song?.id ? engine.preload(song.id, timeout) : Promise.resolve(false);
   }
 
   function preloadUiSounds() {
@@ -769,19 +705,13 @@ export function setupAlbumMixer(root = document) {
   }
 
   async function showPreloaderUntilReady(song, { timeout = 3500, minShow = 900 } = {}) {
-    const built = resolveBuiltSong(song);
-    if (!built?.tracks?.length) return;
-
-    const tracks = built.tracks.filter((track) => track?.audio);
-    if (!tracks.length || tracks.every((track) => isAudioReady(track.audio))) return;
+    if (!song?.id) return;
+    if (engine.isReady(song.id)) return;
 
     const started = performance.now();
     preloaderEl.setAttribute("aria-hidden", "false");
 
-    await Promise.race([
-      preloadSongAudio(built),
-      new Promise((resolve) => window.setTimeout(resolve, timeout)),
-    ]);
+    await preloadSongAudio(song, timeout);
 
     const elapsed = performance.now() - started;
     if (elapsed < minShow) {
@@ -804,7 +734,7 @@ export function setupAlbumMixer(root = document) {
 
     await engine.loadSong(firstSong.id);
     await Promise.race([
-      Promise.all([preloadSongAudio(firstSong), preloadUiSounds()]),
+      Promise.all([preloadSongAudio(firstSong, 4500), preloadUiSounds()]),
       new Promise((resolve) => window.setTimeout(resolve, 4500)),
     ]);
 
@@ -1181,9 +1111,11 @@ export function setupAlbumMixer(root = document) {
   }
 
   function syncTransportState() {
-    const { isPlaying, pitch, song } = engine.getState();
+    const { isPlaying, buffering, pitch, song } = engine.getState();
     const currentMeta = sideMeta.byId.get(song?.id || "");
     container.classList.toggle("is-playing", Boolean(isPlaying));
+    // Í spilun en að bíða eftir gögnum; Webflow getur stílað það
+    container.classList.toggle("is-buffering", Boolean(buffering));
     cassetteEl?.classList.toggle("is-playing", Boolean(isPlaying));
     playLightEl?.toggleAttribute("data-active", Boolean(isPlaying));
     stopLightEl?.toggleAttribute("data-active", !isPlaying);
@@ -1369,8 +1301,16 @@ export function setupAlbumMixer(root = document) {
     warmSongAudio(currentSong);
   });
 
+  // Næsta lag byrjar að sækjast 30 sek fyrir lok, svo það sé tilbúið þegar
+  // þetta klárast
+  let warmedNextFor = null;
   engine.addEventListener("timeupdate", () => {
     syncTimeline();
+    const { currentSongId, currentTime, duration, isPlaying } = engine.getState();
+    if (!isPlaying || !duration || duration - currentTime > 30 || warmedNextFor === currentSongId) return;
+    warmedNextFor = currentSongId;
+    const next = getAdjacentSong(1);
+    if (next && next.id !== currentSongId) warmSongAudio(next);
   });
 
   engine.addEventListener("playstatechange", () => {

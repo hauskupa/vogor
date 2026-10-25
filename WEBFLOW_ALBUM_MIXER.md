@@ -173,6 +173,25 @@ sest á milli.
 Það er líka `data-channel-count="5"` á container ef þú vilt stílsetja eftir
 fjölda í Webflow.
 
+## Spilunin
+
+Spilunin og samstilling rásanna er í [src/stemEngine.js](src/stemEngine.js),
+sömu vél og æfingasíðan (/per/jolamixer), gamli mixerinn og /asleep nota.
+[src/albumMixerEngine.js](src/albumMixerEngine.js) bætir við rásakeðjunni,
+mælunum, master og pitch.
+
+- Allar rásir bíða hver eftir annarri áður en þær fara af stað, líka eftir
+  spólun og þegar næsta lag tekur við. Á hægu neti þýðir það stutta bið í
+  stað þess að rásirnar fari af stað hver á sínum tíma.
+- Rek er mælt gegn miðgildi rásanna og leiðrétt með örlítilli hraðabreytingu.
+  Ef ein rás hikstar stoppa allar og ræsast aftur saman.
+- Næsta lag byrjar að hlaðast 30 sekúndum fyrir lok lagsins sem er í spilun.
+- Á meðan spilun bíður eftir gögnum fær `[data-album-mixer]` klasann
+  `is-buffering` (auk `is-playing`), svo hægt er að sýna það í Webflow.
+
+Mælingar í Chrome á 1,6 Mbit/s neti (október 2026): eftir spólun voru rásirnar
+í gömlu vélinni allt að 680 ms hver frá annarri, í þeirri nýju innan 3 ms.
+
 ## 4. Að skipta um plötu
 
 Ný plata = ný Collection eða nýtt `Album`-filter á Collection List. Ekkert
@@ -201,8 +220,8 @@ ekki rekið í sundur. Gain, EQ, pan, fader, master og pitch eru öll tekin úr
 borðinu eins og það stendur.
 
 Útflutta mixið er í raun **nákvæmara en það sem heyrðist**: í rauntíma keyra
-fimm aðskilin media elements og resync-lúppan nuddar `playbackRate` um ±1,25%,
-en offline eru bufferarnir sample-læstir.
+fimm aðskilin media elements sem stemEngine heldur innan nokkurra ms hvert
+frá öðru, en offline eru bufferarnir sample-læstir.
 
 ### Kóðarinn
 
