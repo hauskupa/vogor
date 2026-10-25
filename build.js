@@ -1,6 +1,6 @@
 // npm run build: byggir dist/. npm run dev: sama, og byggir aftur við hverja breytingu.
 import * as esbuild from "esbuild";
-import { mkdirSync, rmSync, readdirSync, copyFileSync, readFileSync, writeFileSync } from "fs";
+import { mkdirSync, unlinkSync, readdirSync, copyFileSync, readFileSync, writeFileSync } from "fs";
 
 const VAKA = process.argv.includes("--watch");
 
@@ -17,9 +17,10 @@ const GRUNNUR = {
   logLevel: "warning",
 };
 
-// Gamlar chunk-skrár mega ekki safnast upp í dist/sidur
-rmSync("dist/sidur", { recursive: true, force: true });
-mkdirSync("dist", { recursive: true });
+// Gamlar chunk-skrár mega ekki safnast upp í dist/sidur. Skrá fyrir skrá, því
+// rmSync á möppuna skilar án villu en eyðir engu á Windows-vélinni (slóð með Ó)
+mkdirSync("dist/sidur", { recursive: true });
+for (const f of readdirSync("dist/sidur")) unlinkSync(`dist/sidur/${f}`);
 
 const VERK = [
   // Hleðslan sem Webflow setur inn site-wide. Sjá src/main.js
