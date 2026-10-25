@@ -61,7 +61,7 @@ Get value from → field*.
 Listinn er alltaf `display: none` — hann er gögn, ekki útlit. Þú þarft ekki að
 fela hann handvirkt.
 
-Fullbúið dæmi til að afrita: [albummixer-nafir.html](albummixer-nafir.html).
+Fullbúið dæmi til að afrita: `vogor-releases/nafir/web/mixer/albummixer-nafir.html` í hub-repo-inu (vinnusvaedi). Það er ekki hér því hlekkirnir á stemin eiga ekki að vera í opnu repo-i.
 
 ### Attribute á `[data-album-mixer]`
 
@@ -243,7 +243,7 @@ skrifar ástæðuna í `[data-mixer-export-progress]` í staðinn.
 ## Tvennt sem á eftir að leysa
 
 **Dropbox-slóðirnar eru til bráðabirgða.** Test-stemin í
-[DROPBOX_AUDIO_LINKS.md](DROPBOX_AUDIO_LINKS.md) eru `dropbox.com/scl/fi/…?st=…`
+`DROPBOX_AUDIO_LINKS.md` (í `vogor-releases/nafir/web/mixer/` í hub-repo-inu) eru `dropbox.com/scl/fi/…?st=…`
 og fara gegnum `audio-proxy.stafraennhakon.workers.dev`. `st`-parameterinn er
 skammlífur token. Fyrir spilara sem á að standa á vogorrecords.com/nafir
 mánuðum saman þurfa stemin stöðugar slóðir — R2, Bunny eða sambærilegt.

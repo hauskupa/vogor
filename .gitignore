@@ -5,3 +5,10 @@ node_modules/
 # Útgáfuskjöl — óútgefin plata, pressulisti, promo-plan.
 # Repo-ið er opinbert (jsDelivr gh/) og `npm run deploy` keyrir `git add -A`.
 releases/
+
+# Hlekkir á stem óútgefinna laga. Þeir búa í hub-repo-inu
+# (vinnusvaedi/vogor-releases/nafir/web/mixer), aldrei hér.
+*.csv
+DROPBOX_AUDIO_LINKS.md
+nafir-webflow-embed.html
+albummixer-*.html
