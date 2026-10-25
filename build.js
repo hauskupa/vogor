@@ -79,19 +79,4 @@ for (const f of readdirSync("src")) {
   }
 }
 
-// Info bara fyrir þig í terminal
-const USER = "hauskupa";
-const REPO = "vogor";
-const REF = "main";
-
-console.log("\nUse in Webflow (set once, keep forever):");
-for (const f of readdirSync("dist")) {
-  if (f.endsWith(".css")) {
-    console.log(
-      `<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/${USER}/${REPO}@${REF}/dist/${f}">`
-    );
-  }
-}
-console.log(
-  `<script src="https://cdn.jsdelivr.net/gh/${USER}/${REPO}@${REF}/dist/main.js" defer></script>`
-);
+console.log("Búið. Eftir commit og push: npm run webflow");

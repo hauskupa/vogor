@@ -101,6 +101,6 @@ listanum skiptir þá bara máli.
 
 ## Deploy
 
-`main.js` er sett inn site-wide í Site settings → Custom code → Footer code,
-SHA-læst (`…/hauskupa/vogor@<sha>/dist/main.js`). Eftir push: skipta um SHA
-þar og publish-a.
+`main.js` er sett inn site-wide í Site settings → Custom code, læst á commit.
+Eftir push: `npm run webflow` prentar línurnar sem á að líma inn. Sjá
+WEBFLOW_ALBUM_MIXER.md, „Að setja nýja útgáfu í loftið“.

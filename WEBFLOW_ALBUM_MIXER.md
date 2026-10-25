@@ -176,8 +176,7 @@ fjölda í Webflow.
 ## 4. Að skipta um plötu
 
 Ný plata = ný Collection eða nýtt `Album`-filter á Collection List. Ekkert
-build, ekkert deploy, engin jsDelivr-purge. Slóðirnar í mixernum eru læstar á
-`@main` svo þær breytast aldrei.
+build og engin breyting á kóðanum.
 
 ## 5. Útflutningur á mixi (MP3)
 
@@ -256,30 +255,20 @@ við val í stað þess að gera það allt fyrirfram.
 
 ---
 
-## jsDelivr og `@main` — lesist fyrir næsta deploy
+## Að setja nýja útgáfu í loftið
 
-Síðurnar hlaða `@main`, sem er grein en ekki tag. jsDelivr heldur upplausn
-greinar í nokkrar klukkustundir og **purge á skráarslóð hreinsar það ekki**.
-Purge-API-ið svarar `status: finished` með `CF: true, FY: true` og skilar samt
-gömlu skránni. Það er ekki purge sem klikkaði heldur upplausnin sem situr eftir.
-
-Þetta getur bitið ójafnt: 19. ágúst 2026 uppfærðist `albumMixer.css` strax en
-`main.js` sat tveimur commitum á eftir í marga klukkutíma, úr sama commiti.
-
-Til að prófa strax skaltu benda Webflow á SHA-læsta slóð:
+`main.js` og CSS-ið eru læst á commit í Site settings → Custom code
+(`…/hauskupa/vogor@<sha>/dist/main.js`), öll á sama commit. Eftir build,
+commit og push:
 
 ```
-https://cdn.jsdelivr.net/gh/hauskupa/vogor@<stutt-sha>/dist/main.js
+npm run webflow
 ```
 
-Hún er alltaf fersk því SHA er óbreytanlegt. **Mundu að skipta til baka í
-`@main`** — annars frýstu síðuna á því commiti og næsti deploy sést aldrei.
+Það segir hvort eitthvað hefur breyst síðan útgáfan sem er á vefnum, og
+prentar línurnar sem á að líma í staðinn. Svo vista og publish-a.
 
-Staðfesting á hvor útgáfan er í loftinu:
-
-```bash
-node -e 'const{execSync}=require("child_process");const n=s=>s.replace(/\r\n/g,"\n");
-(async()=>{const t=n(execSync("git show HEAD:dist/main.js").toString());
-const j=n(await(await fetch("https://cdn.jsdelivr.net/gh/hauskupa/vogor@main/dist/main.js?cb="+Date.now())).text());
-console.log(j===t?"@main er nyjast":"@main er a eftir");})()'
-```
+Af hverju ekki `@main`: jsDelivr heldur upplausn greinar í nokkrar
+klukkustundir og purge hreinsar það ekki. 19. ágúst 2026 uppfærðist
+`albumMixer.css` strax en `main.js` sat tveimur commitum á eftir í marga
+klukkutíma. SHA er óbreytanlegt og því alltaf rétt.
