@@ -16,10 +16,9 @@ export function setupPlayer() {
     return;
   }
 
-  // LRC slóð – local í dist
-  const lrcUrl =
-    document.body.dataset.lrc ||
-    "https://cdn.jsdelivr.net/gh/hauskupa/vogor@main/dist/sodkaffi.lrc";
+  // Textinn er í dist/ á sama commit og þessi kóði (dist/sidur/), nema
+  // síðan vísi annað með data-lrc á body
+  const lrcUrl = document.body.dataset.lrc || new URL("../sodkaffi.lrc", import.meta.url).href;
 
   audio.autoplay = false;
   audio.preload = "none";
