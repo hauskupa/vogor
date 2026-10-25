@@ -12,7 +12,7 @@
 const LEYFD_LEN = new Set(["www.dropbox.com", "dl.dropbox.com", "dl.dropboxusercontent.com"]);
 // Dropbox áframsendir á uc…dl.dropboxusercontent.com
 const LEYFT_EFTIR_AFRAMSENDINGU = /(^|\.)(dropbox\.com|dropboxusercontent\.com)$/;
-const HAUSAR_AFRAM = ["Content-Type", "Content-Length", "Content-Range", "Accept-Ranges", "ETag", "Last-Modified", "Cache-Control"];
+const HAUSAR_AFRAM = ["Content-Type", "Content-Length", "Content-Range", "Accept-Ranges", "ETag", "Last-Modified"];
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
@@ -52,8 +52,15 @@ export default {
     const range = request.headers.get("Range");
     if (range) hausar.set("Range", range);
 
-    // Alltaf GET: Dropbox svarar HEAD með JSON í stað hausa skrárinnar
-    const svar = await fetch(slod.toString(), { headers: hausar, redirect: "follow" });
+    // Alltaf GET: Dropbox svarar HEAD með JSON í stað hausa skrárinnar.
+    // Heilar skrár geymast klukkutíma í skyndiminni Cloudflare, bútar ekki
+    const svar = await fetch(slod.toString(), {
+      headers: hausar,
+      redirect: "follow",
+      cf: range
+        ? { cacheEverything: false }
+        : { cacheEverything: true, cacheTtlByStatus: { "200-299": 3600, "400-499": 1, "500-599": 0 } },
+    });
 
     if (!LEYFT_EFTIR_AFRAMSENDINGU.test(new URL(svar.url).hostname)) return texti("Unexpected redirect", 502);
     // HTML þýðir að hlekkurinn er dauður eða skráin ekki deilt
@@ -64,6 +71,7 @@ export default {
       const v = svar.headers.get(h);
       if (v) ut.set(h, v);
     }
+    ut.set("Cache-Control", range ? "public, max-age=0, s-maxage=0" : "public, max-age=3600, s-maxage=3600");
     if (request.method === "HEAD") {
       await svar.body?.cancel();
       return new Response(null, { status: svar.status, headers: ut });

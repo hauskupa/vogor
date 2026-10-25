@@ -2,3 +2,5 @@ name = "audio-proxy"
 main = "src/index.js"
 compatibility_date = "2026-10-01"
 workers_dev = true
+# stafraennhakon@gmail.com (ekki shakon-reikningurinn)
+account_id = "49e59b8c10eb9510ac5be1e968dbeb8c"

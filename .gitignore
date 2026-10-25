@@ -12,3 +12,6 @@ releases/
 DROPBOX_AUDIO_LINKS.md
 nafir-webflow-embed.html
 albummixer-*.html
+
+# Skyndiminni wrangler (Cloudflare)
+.wrangler/
