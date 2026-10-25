@@ -1,0 +1,161 @@
+<div class="vp" id="vp-admin">
+  <form class="vp-card" id="vp-gate" hidden>
+    <label>Leyniorð
+      <input type="password" id="vp-key" autocomplete="current-password" required>
+    </label>
+    <button type="submit">Opna</button>
+  </form>
+
+  <div id="vp-app" hidden>
+    <!-- Póstar: markhópurinn og pitch-póstarnir, úr Póstar-flipanum í Sheet-inu -->
+    <div class="vp-card">
+      <div class="vp-row vp-between">
+        <strong id="vp-postar-samtals">Sæki pósta...</strong>
+        <button type="button" id="vp-post-nyr">Nýr viðtakandi</button>
+      </div>
+      <div class="vp-scroll">
+        <table id="vp-postar">
+          <thead>
+            <tr>
+              <th>Miðill</th><th>Staða</th><th>Hver</th><th>Leið</th><th>Sent</th>
+              <th>Opnað</th><th>Hlustað</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <small>Smelltu á línu til að opna póstinn.</small>
+    </div>
+
+    <form class="vp-card" id="vp-post" hidden>
+      <div class="vp-row vp-between">
+        <strong id="vp-post-titill"></strong>
+        <button type="button" id="vp-p-loka">Loka</button>
+      </div>
+      <div class="vp-row">
+        <label>Miðill
+          <input type="text" id="vp-p-midill" required>
+        </label>
+        <label>Tengiliður
+          <input type="text" id="vp-p-tengilidur">
+        </label>
+        <label>Netfang eða slóð
+          <input type="text" id="vp-p-netfang">
+        </label>
+        <label>Flokkur
+          <select id="vp-p-flokkur"></select>
+        </label>
+      </div>
+      <div class="vp-row">
+        <label>Leið
+          <select id="vp-p-leid">
+            <option>Póstur</option>
+            <option>Facebook</option>
+            <option>Eyðublað</option>
+            <option>Annað</option>
+          </select>
+        </label>
+        <label>Senda frá
+          <select id="vp-p-fra">
+            <option value="">–</option>
+            <option>vogorrecords@vogorrecords.com</option>
+            <option>shakon@shakon.com</option>
+            <option>Eigið netfang</option>
+          </select>
+        </label>
+        <label>Hver sendir
+          <select id="vp-p-hver"></select>
+        </label>
+        <label>Mál
+          <select id="vp-p-mal">
+            <option value="en">English</option>
+            <option value="is">Íslenska</option>
+          </select>
+        </label>
+        <label>Staða
+          <select id="vp-p-stada"></select>
+        </label>
+      </div>
+      <label>Efni
+        <input type="text" id="vp-p-efni">
+      </label>
+      <label>Meginmál
+        <textarea id="vp-p-meginmal" rows="18"></textarea>
+      </label>
+      <small>[BLOKK] og [PRESSUHLEKKUR] víkja fyrir hlekkjum viðtakandans um leið og hann fær kóða. Það sem stendur hér er það sem fer út.</small>
+      <label>Nótur
+        <textarea id="vp-p-notur" rows="2"></textarea>
+      </label>
+      <div class="vp-row">
+        <button type="submit" id="vp-p-vista">Vista</button>
+        <button type="button" id="vp-p-gefa">Gefa kóða</button>
+        <button type="button" id="vp-p-opna">Opna í póstforriti</button>
+        <button type="button" id="vp-p-eml">Sækja sem drög (.eml)</button>
+        <button type="button" id="vp-p-afrita-efni">Afrita efni</button>
+        <button type="button" id="vp-p-afrita-meginmal">Afrita meginmál</button>
+        <button type="button" id="vp-p-sent">Merkja sent</button>
+        <a id="vp-p-forskodun" target="_blank" rel="noopener">Forskoða síðuna</a>
+      </div>
+      <span class="vp-status" id="vp-p-status" role="status"></span>
+    </form>
+
+    <!-- Eldri leiðin: kóði án pósts. Póstar fá kóða í ritlinum hér fyrir ofan -->
+    <details class="vp-card">
+      <summary>Gefa kóða án pósts</summary>
+      <form id="vp-gefa">
+        <div class="vp-row">
+          <label>Viðtakandi
+            <input type="text" id="vp-nafn" placeholder="A Closer Listen" required>
+          </label>
+          <label>Netfang (valfrjálst)
+            <input type="email" id="vp-netfang" placeholder="info@acloserlisten.com">
+          </label>
+          <label>Mál
+            <select id="vp-mal">
+              <option value="en">English</option>
+              <option value="is">Íslenska</option>
+            </select>
+          </label>
+        </div>
+        <button type="submit" id="vp-gefa-btn">Gefa kóða</button>
+        <span class="vp-status" id="vp-status" role="status"></span>
+      </form>
+    </details>
+
+    <div class="vp-card" id="vp-nidurstada" hidden>
+      <strong id="vp-titill"></strong>
+      <textarea id="vp-blokk" rows="9" readonly></textarea>
+      <div class="vp-row">
+        <button type="button" id="vp-afrita-blokk">Afrita blokk</button>
+        <button type="button" id="vp-afrita-hlekk">Afrita pressuhlekk</button>
+        <a id="vp-forskodun" target="_blank" rel="noopener">Forskoða síðuna</a>
+      </div>
+    </div>
+
+    <div class="vp-card">
+      <div class="vp-row vp-between">
+        <strong id="vp-samtals">Sæki stöðu...</strong>
+        <button type="button" id="vp-uppfaera">Uppfæra</button>
+      </div>
+      <div class="vp-scroll">
+        <table id="vp-tafla">
+          <thead>
+            <tr>
+              <th>Viðtakandi</th><th>Kóði</th><th>Úthlutað</th><th>Opnað síðast</th>
+              <th>Opnanir</th><th>Hlusta</th><th>Sækja</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <small>Smelltu á línu til að sjá blokkina aftur. „Sækja“ er smellur á niðurhalshnappinn á pressusíðunni.</small>
+    </div>
+
+    <details class="vp-card">
+      <summary>Flytja inn kóða frá Bandcamp</summary>
+      <p>Límdu innihald export-skrárinnar (CSV) hér. Kóðar sem eru þegar til eru ekki tvíteknir.</p>
+      <textarea id="vp-innflutningur" rows="6"></textarea>
+      <button type="button" id="vp-flytja-btn">Flytja inn</button>
+    </details>
+  </div>
+</div>

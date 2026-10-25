@@ -9,63 +9,29 @@
 // opnað annan hlekkinn fær lagalistann á hinni síðunni líka. Án lykils virkar
 // æfingasíðan eins og áður, í röð CMS-listans.
 
+import { geymt, geyma, lesaLykil, kalla } from "./adgangur.js";
+
 const API =
   "https://script.google.com/macros/s/AKfycbzQ-oaSyVQpcWQO2UkB0BkZToo-RlIdZR2Ap3iYBsb7BnAH4wkpNlWotDb_b9rdFHnG/exec";
 const KEY_STORE = "per-yfirlestur-lykill";
 const WHO_STORE = "per-yfirlestur-hver";
 
-function stored(name) {
-  try {
-    return localStorage.getItem(name) || "";
-  } catch {
-    return "";
-  }
-}
-
-function store(name, value) {
-  try {
-    localStorage.setItem(name, value);
-  } catch {
-    // Einkagluggi eða lokað fyrir geymslu: virkar áfram, man bara ekki
-  }
-}
-
-// Lykill úr slóðinni gengur fyrir þeim geymda. Hann er tekinn úr slóðinni
-// strax svo hann fari ekki með ef slóðinni er deilt.
+// Lykill úr slóðinni (?k=) gengur fyrir þeim geymda og er tekinn úr henni
 export function readKey() {
-  const url = new URL(location.href);
-  const fromUrl = url.searchParams.get("k");
-  if (fromUrl) {
-    url.searchParams.delete("k");
-    try {
-      // Full slóð, því <base> á síðunni myndi annars breyta afstæðri slóð
-      history.replaceState(history.state, "", url.href);
-    } catch {
-      // Lykillinn situr þá eftir í slóðinni; skiptir ekki máli fyrir virknina
-    }
-    return { key: fromUrl, fresh: true };
-  }
-  return { key: stored(KEY_STORE), fresh: false };
-}
-
-export function rememberKey(key) {
-  store(KEY_STORE, key);
+  const { lykill, nyr } = lesaLykil("k", KEY_STORE);
+  return { key: lykill, fresh: nyr };
 }
 
 export const who = {
-  get: () => stored(WHO_STORE),
-  set: (name) => store(WHO_STORE, name),
+  get: () => geymt(WHO_STORE),
+  set: (name) => geyma(WHO_STORE, name),
 };
 
 export async function call(key, request) {
-  const res = await fetch(API, {
-    method: "POST",
-    // text/plain sleppur CORS-forspurn, sem Apps Script svarar ekki
-    headers: { "Content-Type": "text/plain" },
-    body: JSON.stringify({ ...request, k: key }),
-  });
-  const data = await res.json();
+  const data = await kalla(API, { ...request, k: key });
   if (data.rangurLykill) {
+    // Ógildur lykill má ekki sitja eftir í vafranum
+    geyma(KEY_STORE, "");
     const err = new Error("Hlekkurinn gildir ekki.");
     err.badKey = true;
     throw err;

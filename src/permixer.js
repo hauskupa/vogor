@@ -15,7 +15,7 @@
 // Sheet-i bandsins (permixerSetlist.js). Án hans gildir röð CMS-listans.
 
 import { createStemEngine } from "./stemEngine.js";
-import { readKey, rememberKey, who, call, lengthSeconds, shortStamp } from "./permixerSetlist.js";
+import { readKey, who, call, lengthSeconds, shortStamp } from "./permixerSetlist.js";
 import css from "./permixer.css";
 
 const NOTES = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
@@ -653,7 +653,6 @@ export function setupPermixer() {
     try {
       const r = await call(key, { action: "lagalisti" });
       if (!r.ok) throw new Error(r.villa);
-      rememberKey(key);
       setlist = { key, names: r.nofn };
       applySetlist(r.log);
       // Án #lags í slóðinni byrjar síðan á fyrsta lagi kvöldsins. Stemin
@@ -699,7 +698,7 @@ export function setupPermixer() {
       if (current.id === id) renderPer();
       renderNav();
     } catch (err) {
-      if (current.id === id) renderPerState(`Tókst ekki að vista: ${err.message === "Failed to fetch" ? "ekkert samband." : err.message}`);
+      if (current.id === id) renderPerState(`Tókst ekki að vista. ${err.message}`);
     }
   }
 
@@ -737,7 +736,7 @@ export function setupPermixer() {
       if (!drafts.has(current.id)) renderPer();
       if (r.arekstur) orderStatus(r.villa);
     } catch (err) {
-      orderStatus(`Tókst ekki að vista: ${err.message === "Failed to fetch" ? "ekkert samband." : err.message}`);
+      orderStatus(`Tókst ekki að vista. ${err.message}`);
     }
   }
 

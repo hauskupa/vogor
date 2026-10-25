@@ -29,7 +29,8 @@ await build({
   format: "iife",
   target: ["es2019"],
   outfile: "dist/nafir.js",
-  loader: { ".css": "text" },
+  // HTML síðnanna er í src/nafir/*.html og fer inn sem texti
+  loader: { ".css": "text", ".html": "text" },
 });
 
 // Hleðslan sem embed-in á Nafir-síðunum vísa á (fest á commit). Hún sækir

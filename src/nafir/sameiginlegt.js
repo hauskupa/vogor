@@ -1,5 +1,8 @@
 // Sameiginlegt fyrir Nafir-síðurnar: bakendinn, smiðir, afritun, Dropbox og favicon.
 import { FAVICON } from "./favicon.js";
+import { kalla } from "../adgangur.js";
+
+export { geyma, geymt as saekjaG, lesaLykil, EKKERT_SAMBAND } from "../adgangur.js";
 
 // Apps Script-bakendinn (vinnusvaedi/vogor-releases/promo/appscript). ?prufa=1
 // aftan á slóðinni talar við prufu-deploymentið í stað þess lifandi
@@ -12,10 +15,9 @@ export const MANUDIR = ["jan", "feb", "mar", "apr", "maí", "jún", "júl", "ág
 // Vogor vél (vinnusvaedi/vogor-releases/vel): birtingar fyrir verkefni í Verkefni.js
 export const VEL = "https://script.google.com/macros/s/AKfycbzhu2dxScQqe5HT7wZZpdpOntDxWffkgORO0n7YH9fLs0K39h9g6LVUUXICe6F93iI2/exec";
 
-// text/plain svo vafrinn sendi ekki CORS-forspurn, sem Apps Script svarar ekki
+// Kall á promo-bakendann, eða aðra slóð (t.d. VEL). Sjá adgangur.js
 export function post(beidni, slod) {
-  return fetch(slod || API, { method: "POST", headers: { "Content-Type": "text/plain" }, body: JSON.stringify(beidni) })
-    .then(function (r) { return r.json(); });
+  return kalla(slod || API, beidni);
 }
 
 export function ny(tag, cls, texti) {
@@ -33,13 +35,12 @@ export function hlekkur(slod, cls, texti) {
   return a;
 }
 
-// localStorage getur kastað (einkagluggi, lokað fyrir vefgögn)
-export function geyma(k, v) { try { v ? localStorage.setItem(k, v) : localStorage.removeItem(k); } catch (e) {} }
-export function saekjaG(k) { try { return localStorage.getItem(k) || ""; } catch (e) { return ""; } }
 
 // Afritar texta á klemmuspjaldið. execCommand er varaleið fyrir vafra sem
 // leyfa ekki clipboard-API
 export function afrita(texti, takki) {
+  // Upprunalegi textinn, svo hann komi aftur þótt smellt sé tvisvar í röð
+  if (!takki.hasAttribute("data-merki")) takki.setAttribute("data-merki", takki.textContent);
   function tokst() {
     takki.textContent = "Afritað";
     takki.classList.add("vst-afritad");

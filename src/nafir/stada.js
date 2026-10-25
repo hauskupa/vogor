@@ -1,8 +1,8 @@
 // Yfirlit bandsins á /nafir/stada. Embed: <div data-nafir="stada"></div> og dist/nafir.js.
 // Gögnin koma úr Sheet-inu "Nafir promo" (vinnusvaedi/vogor-releases/promo, LESTU.md).
-import { MANUDIR, post, ny, afritaTakki, hlekkur, hrar } from "./sameiginlegt.js";
+import { MANUDIR, post, ny, afritaTakki, hlekkur, hrar, geyma, saekjaG, lesaLykil } from "./sameiginlegt.js";
 
-const MARKUP = "<div class=\"vst\">\n  <div class=\"vst-head\">\n    <div class=\"vst-dymo vst-dymo--red\">|NAFIR|YFIRLIT|</div>\n    <div class=\"vst-counts\">\n      <div class=\"vst-count\"><span class=\"vst-counter\" data-st=\"dagar-preorder\">--</span><span data-st=\"texti-preorder\">dagar í pre-order</span></div>\n      <div class=\"vst-count\"><span class=\"vst-counter\" data-st=\"dagar-utgafa\">--</span><span data-st=\"texti-utgafa\">dagar í útgáfu</span></div>\n    </div>\n  </div>\n\n  <p class=\"vst-status\" data-st-state=\"loading\"><span class=\"vst-led vst-led--wait\"></span>Sæki stöðuna</p>\n\n  <div data-st-state=\"invalid\" hidden>\n    <p class=\"vst-status\"><span class=\"vst-led vst-led--late\"></span>Hlekk vantar</p>\n    <p>Þessi síða opnast með hlekknum sem Óli sendi á bandið. Biddu hann um hlekkinn ef þú finnur hann ekki.</p>\n  </div>\n\n  <div data-st-state=\"error\" hidden>\n    <p class=\"vst-status\"><span class=\"vst-led vst-led--late\"></span>Náði ekki í stöðuna</p>\n    <p data-st=\"villa\">Prófaðu að endurhlaða síðuna.</p>\n  </div>\n\n  <div class=\"vst-body\" data-st-state=\"ok\" hidden>\n    <section class=\"vst-screen\">\n      <div class=\"vst-screen-row\">\n        <span class=\"vst-screen-label\">Verk lokið</span>\n        <span class=\"vst-screen-value\" data-st=\"hlutfall\"></span>\n      </div>\n      <div class=\"vst-meter\" data-st=\"maelir\" role=\"img\"></div>\n    </section>\n\n    <section>\n      <div class=\"vst-dymo\">|NÆST|Á|DAGSKRÁ|</div>\n      <p class=\"vst-small vst-hint\">Breyttu stöðu verks eða hver á það með fellilistunum. Breytingin vistast strax.</p>\n      <p class=\"vst-small vst-msg\" data-st=\"skilabod\" role=\"status\"></p>\n      <ul class=\"vst-list\" data-st=\"naest\"></ul>\n    </section>\n\n    <section data-st=\"meta-kafli\" hidden>\n      <div class=\"vst-dymo\">|FACEBOOK|INSTAGRAM|</div>\n      <div class=\"vst-counts vst-hint\" data-st=\"fylgjendur\"></div>\n      <div class=\"vst-scroll\">\n        <table class=\"vst-table\">\n          <thead><tr><th>Birt</th><th>Miðill</th><th>Tegund</th><th>Texti</th><th>Ná</th><th>Áhorf</th><th>Viðbrögð</th></tr></thead>\n          <tbody data-st=\"meta\"></tbody>\n        </table>\n      </div>\n      <p class=\"vst-small\">Sótt af síðunni og Instagram á 6 tíma fresti, síðast <span data-st=\"meta-sott\"></span>. Ná er hve margir sáu færsluna, viðbrögð eru líkar, ummæli, deilingar og vistanir. Stories lifa í sólarhring og sjást hér ef þær náðust.</p>\n    </section>\n\n    <section data-st=\"efni-kafli\" hidden>\n      <div class=\"vst-dymo\">|EFNI|</div>\n      <p class=\"vst-small vst-hint\">Textar, hlekkir og myndir til að deila. Smelltu á hnapp til að afrita. Færslur á samfélagsmiðla má laga hér og merkja þegar þær eru farnar út. Bio og lagatextar eru lagaðir hjá Óla.</p>\n      <label class=\"vst-small vst-eg\">Hver ert þú? <select data-st=\"eg\"></select></label>\n      <div class=\"vst-groups\" data-st=\"efni\"></div>\n    </section>\n\n    <section>\n      <div class=\"vst-dymo\">|ÖLL|VERKEFNI|</div>\n      <div class=\"vst-groups\" data-st=\"hopar\"></div>\n    </section>\n\n    <section>\n      <div class=\"vst-dymo\">|PRESSA|</div>\n      <div class=\"vst-scroll\">\n        <table class=\"vst-table\">\n          <thead><tr><th>Miðill</th><th>Staða</th><th>Hver</th><th>Sent</th><th>Opnaði síðuna</th><th>Hlustaði</th><th>Sótti</th></tr></thead>\n          <tbody data-st=\"pressa\"></tbody>\n        </table>\n      </div>\n      <p class=\"vst-small\">Markhópurinn: miðlar sem við ætlum að senda á og þeir sem hafa þegar fengið póst. Opnun, hlustun og niðurhal sjást hjá þeim sem fengu persónulegan hlekk á pressusíðuna.</p>\n    </section>\n\n    <section class=\"vst-foot\">\n      <ul class=\"vst-legend\">\n        <li><span class=\"vst-led vst-led--done\"></span>Lokið</li>\n        <li><span class=\"vst-led vst-led--work\"></span>Í vinnslu</li>\n        <li><span class=\"vst-led vst-led--hold\"></span>Bíður</li>\n        <li><span class=\"vst-led\"></span>Óbyrjað</li>\n        <li><span class=\"vst-led vst-led--late\"></span>Komið fram yfir frest</li>\n      </ul>\n      <div class=\"vst-keys\">\n        <a class=\"vst-key\" data-st=\"stream\" target=\"_blank\" rel=\"noopener\">Hlusta á plötuna</a>\n        <button class=\"vst-key\" type=\"button\" data-st=\"uppfaera\">Uppfæra</button>\n      </div>\n      <p class=\"vst-small\">Sótt <span data-st=\"uppfaert\"></span>. Frestum, heitum og nýjum verkum er breytt í Sheet-inu hjá Óla.</p>\n    </section>\n  </div>\n</div>";
+import MARKUP from "./stada.html";
 
 export function stada(rot) {
   rot.innerHTML = MARKUP;
@@ -22,8 +22,8 @@ export function stada(rot) {
     });
   }
 
-  var b = new URLSearchParams(location.search).get("b") || "";
-  if (!b) { try { b = localStorage.getItem(LYKILL) || ""; } catch (e) {} }
+  // Hlekkur bandsins: ?b=<lykill>
+  var b = lesaLykil("b", LYKILL).lykill;
 
   // "2026-10-30" -> Date á miðnætti að staðartíma; annað (t.d. "nóv") -> null
   function dags(s) {
@@ -94,7 +94,7 @@ export function stada(rot) {
         v.stada = r.stada;
       })
       .catch(function (err) {
-        q("skilabod").textContent = "Tókst ekki að vista: " + (err.message === "Failed to fetch" ? "ekkert samband." : err.message);
+        q("skilabod").textContent = "Tókst ekki að vista. " + err.message;
       })
       // Sama verk getur sést á tveimur stöðum og staðan hreyfir mælinn; teikna allt aftur
       .then(function () { teikna(gogn); });
@@ -240,7 +240,7 @@ export function stada(rot) {
   function kalla(beidni) {
     beidni.b = b;
     return post(beidni)
-      .catch(function (err) { return { ok: false, villa: err.message === "Failed to fetch" ? "Ekkert samband." : err.message }; });
+      .catch(function (err) { return { ok: false, villa: err.message }; });
   }
 
   function eg() { return q("eg").value; }
@@ -504,7 +504,7 @@ export function stada(rot) {
   function teiknaNofn(nofn) {
     var sel = q("eg");
     var valid = sel.value;
-    if (!valid) { try { valid = localStorage.getItem(NAFN) || ""; } catch (e) {} }
+    if (!valid) valid = saekjaG(NAFN);
     sel.textContent = "";
     [""].concat(nofn.filter(function (n) { return n !== "Allir"; })).forEach(function (n) {
       var o = ny("option", "", n || "Veldu nafn");
@@ -514,19 +514,18 @@ export function stada(rot) {
     sel.value = nofn.indexOf(valid) !== -1 ? valid : "";
   }
   q("eg").addEventListener("change", function () {
-    try { localStorage.setItem(NAFN, this.value); } catch (e) {}
+    geyma(NAFN, this.value);
   });
 
   function saekja() {
     return post({ action: "bandStada", b: b })
       .then(function (r) {
-        if (r.rangurLykill) { stada("invalid"); return; }
+        if (r.rangurLykill) { geyma(LYKILL, ""); stada("invalid"); return; }
         if (!r.ok) { q("villa").textContent = r.villa || "Óþekkt villa."; stada("error"); return; }
-        try { localStorage.setItem(LYKILL, b); } catch (e) {}
         teikna(r);
         stada("ok");
       })
-      .catch(function () { stada("error"); });
+      .catch(function (err) { q("villa").textContent = err.message + " Prófaðu að endurhlaða síðuna."; stada("error"); });
   }
 
   q("uppfaera").addEventListener("click", function () {

@@ -3,9 +3,9 @@
 // Leyniorðið (ADMIN_KEY) er slegið inn á síðunni og geymt í vafranum, aldrei í kóðanum.
 //
 // Embed: <div data-nafir="stjorn"></div> og dist/nafir.js.
-import { API } from "./sameiginlegt.js";
+import { post, geyma, saekjaG, afrita } from "./sameiginlegt.js";
 
-const MARKUP = "<div class=\"vp\" id=\"vp-admin\">\n  <form class=\"vp-card\" id=\"vp-gate\" hidden>\n    <label>Leyniorð\n      <input type=\"password\" id=\"vp-key\" autocomplete=\"current-password\" required>\n    </label>\n    <button type=\"submit\">Opna</button>\n  </form>\n\n  <div id=\"vp-app\" hidden>\n    <!-- Póstar: markhópurinn og pitch-póstarnir, úr Póstar-flipanum í Sheet-inu -->\n    <div class=\"vp-card\">\n      <div class=\"vp-row vp-between\">\n        <strong id=\"vp-postar-samtals\">Sæki pósta...</strong>\n        <button type=\"button\" id=\"vp-post-nyr\">Nýr viðtakandi</button>\n      </div>\n      <div class=\"vp-scroll\">\n        <table id=\"vp-postar\">\n          <thead>\n            <tr>\n              <th>Miðill</th><th>Staða</th><th>Hver</th><th>Leið</th><th>Sent</th>\n              <th>Opnað</th><th>Hlustað</th>\n            </tr>\n          </thead>\n          <tbody></tbody>\n        </table>\n      </div>\n      <small>Smelltu á línu til að opna póstinn.</small>\n    </div>\n\n    <form class=\"vp-card\" id=\"vp-post\" hidden>\n      <div class=\"vp-row vp-between\">\n        <strong id=\"vp-post-titill\"></strong>\n        <button type=\"button\" id=\"vp-p-loka\">Loka</button>\n      </div>\n      <div class=\"vp-row\">\n        <label>Miðill\n          <input type=\"text\" id=\"vp-p-midill\" required>\n        </label>\n        <label>Tengiliður\n          <input type=\"text\" id=\"vp-p-tengilidur\">\n        </label>\n        <label>Netfang eða slóð\n          <input type=\"text\" id=\"vp-p-netfang\">\n        </label>\n        <label>Flokkur\n          <select id=\"vp-p-flokkur\"></select>\n        </label>\n      </div>\n      <div class=\"vp-row\">\n        <label>Leið\n          <select id=\"vp-p-leid\">\n            <option>Póstur</option>\n            <option>Facebook</option>\n            <option>Eyðublað</option>\n            <option>Annað</option>\n          </select>\n        </label>\n        <label>Senda frá\n          <select id=\"vp-p-fra\">\n            <option value=\"\">–</option>\n            <option>vogorrecords@vogorrecords.com</option>\n            <option>shakon@shakon.com</option>\n            <option>Eigið netfang</option>\n          </select>\n        </label>\n        <label>Hver sendir\n          <select id=\"vp-p-hver\"></select>\n        </label>\n        <label>Mál\n          <select id=\"vp-p-mal\">\n            <option value=\"en\">English</option>\n            <option value=\"is\">Íslenska</option>\n          </select>\n        </label>\n        <label>Staða\n          <select id=\"vp-p-stada\"></select>\n        </label>\n      </div>\n      <label>Efni\n        <input type=\"text\" id=\"vp-p-efni\">\n      </label>\n      <label>Meginmál\n        <textarea id=\"vp-p-meginmal\" rows=\"18\"></textarea>\n      </label>\n      <small>[BLOKK] og [PRESSUHLEKKUR] víkja fyrir hlekkjum viðtakandans um leið og hann fær kóða. Það sem stendur hér er það sem fer út.</small>\n      <label>Nótur\n        <textarea id=\"vp-p-notur\" rows=\"2\"></textarea>\n      </label>\n      <div class=\"vp-row\">\n        <button type=\"submit\" id=\"vp-p-vista\">Vista</button>\n        <button type=\"button\" id=\"vp-p-gefa\">Gefa kóða</button>\n        <button type=\"button\" id=\"vp-p-opna\">Opna í póstforriti</button>\n        <button type=\"button\" id=\"vp-p-eml\">Sækja sem drög (.eml)</button>\n        <button type=\"button\" id=\"vp-p-afrita-efni\">Afrita efni</button>\n        <button type=\"button\" id=\"vp-p-afrita-meginmal\">Afrita meginmál</button>\n        <button type=\"button\" id=\"vp-p-sent\">Merkja sent</button>\n        <a id=\"vp-p-forskodun\" target=\"_blank\" rel=\"noopener\">Forskoða síðuna</a>\n      </div>\n      <span class=\"vp-status\" id=\"vp-p-status\" role=\"status\"></span>\n    </form>\n\n    <!-- Eldri leiðin: kóði án pósts. Póstar fá kóða í ritlinum hér fyrir ofan -->\n    <details class=\"vp-card\">\n      <summary>Gefa kóða án pósts</summary>\n      <form id=\"vp-gefa\">\n        <div class=\"vp-row\">\n          <label>Viðtakandi\n            <input type=\"text\" id=\"vp-nafn\" placeholder=\"A Closer Listen\" required>\n          </label>\n          <label>Netfang (valfrjálst)\n            <input type=\"email\" id=\"vp-netfang\" placeholder=\"info@acloserlisten.com\">\n          </label>\n          <label>Mál\n            <select id=\"vp-mal\">\n              <option value=\"en\">English</option>\n              <option value=\"is\">Íslenska</option>\n            </select>\n          </label>\n        </div>\n        <button type=\"submit\" id=\"vp-gefa-btn\">Gefa kóða</button>\n        <span class=\"vp-status\" id=\"vp-status\" role=\"status\"></span>\n      </form>\n    </details>\n\n    <div class=\"vp-card\" id=\"vp-nidurstada\" hidden>\n      <strong id=\"vp-titill\"></strong>\n      <textarea id=\"vp-blokk\" rows=\"9\" readonly></textarea>\n      <div class=\"vp-row\">\n        <button type=\"button\" id=\"vp-afrita-blokk\">Afrita blokk</button>\n        <button type=\"button\" id=\"vp-afrita-hlekk\">Afrita pressuhlekk</button>\n        <a id=\"vp-forskodun\" target=\"_blank\" rel=\"noopener\">Forskoða síðuna</a>\n      </div>\n    </div>\n\n    <div class=\"vp-card\">\n      <div class=\"vp-row vp-between\">\n        <strong id=\"vp-samtals\">Sæki stöðu...</strong>\n        <button type=\"button\" id=\"vp-uppfaera\">Uppfæra</button>\n      </div>\n      <div class=\"vp-scroll\">\n        <table id=\"vp-tafla\">\n          <thead>\n            <tr>\n              <th>Viðtakandi</th><th>Kóði</th><th>Úthlutað</th><th>Opnað síðast</th>\n              <th>Opnanir</th><th>Hlusta</th><th>Sækja</th>\n            </tr>\n          </thead>\n          <tbody></tbody>\n        </table>\n      </div>\n      <small>Smelltu á línu til að sjá blokkina aftur. „Sækja“ er smellur á niðurhalshnappinn á pressusíðunni.</small>\n    </div>\n\n    <details class=\"vp-card\">\n      <summary>Flytja inn kóða frá Bandcamp</summary>\n      <p>Límdu innihald export-skrárinnar (CSV) hér. Kóðar sem eru þegar til eru ekki tvíteknir.</p>\n      <textarea id=\"vp-innflutningur\" rows=\"6\"></textarea>\n      <button type=\"button\" id=\"vp-flytja-btn\">Flytja inn</button>\n    </details>\n  </div>\n</div>";
+import MARKUP from "./stjorn.html";
 
 export function stjorn(rot) {
   rot.innerHTML = MARKUP;
@@ -29,26 +29,14 @@ export function stjorn(rot) {
   var stillingar = {};
   var valin = null;
 
-  function lesaLykil() {
-    try { return localStorage.getItem(LYKILL) || ""; } catch (e) { return ""; }
-  }
-  function vistaLykil(v) {
-    try { v ? localStorage.setItem(LYKILL, v) : localStorage.removeItem(LYKILL); } catch (e) {}
-  }
-  var key = lesaLykil();
+  var key = saekjaG(LYKILL);
 
   function kalla(action, data) {
-    var body = Object.assign({ action: action, key: key }, data || {});
-    return fetch(API, {
-      method: "POST",
-      headers: { "Content-Type": "text/plain" },
-      body: JSON.stringify(body)
-    })
-      .then(function (r) { return r.json(); })
+    return post(Object.assign({ action: action, key: key }, data || {}))
       .then(function (r) {
         if (r.rangtLeyniord) {
           key = "";
-          vistaLykil("");
+          geyma(LYKILL, "");
           syna(false);
         }
         if (!r.ok) throw new Error(r.villa || "Óþekkt villa");
@@ -84,14 +72,6 @@ export function stjorn(rot) {
     // &preview=1 svo eigin skoðun teljist ekki sem opnun hjá viðtakanda
     if (h.pressa) el("vp-forskodun").href = h.pressa + "&preview=1";
     el("vp-nidurstada").hidden = false;
-  }
-
-  function afrita(texti, hnappur) {
-    navigator.clipboard.writeText(texti).then(function () {
-      var adur = hnappur.textContent;
-      hnappur.textContent = "Afritað";
-      setTimeout(function () { hnappur.textContent = adur; }, 1500);
-    });
   }
 
   function reitur(tr, texti) {
@@ -455,7 +435,7 @@ export function stjorn(rot) {
   el("vp-gate").addEventListener("submit", function (e) {
     e.preventDefault();
     key = el("vp-key").value.trim();
-    vistaLykil(key);
+    geyma(LYKILL, key);
     el("vp-key").value = "";
     syna(true);
     saekjaAllt();

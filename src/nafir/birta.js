@@ -1,8 +1,8 @@
 // Birtingarsíðan á /nafir/birta. Embed: <div data-nafir="birta"></div> og dist/nafir.js.
 // Skrifar í biðröðina (flipann Birtingar); Nafir Meta birtir. Sjá LESTU.md, Birtingar.
-import { MANUDIR, ny, hrar, geyma, saekjaG, post, VEL, skraTegund as tegund } from "./sameiginlegt.js";
+import { MANUDIR, ny, hrar, geyma, saekjaG, post, VEL, lesaLykil, skraTegund as tegund } from "./sameiginlegt.js";
 
-const MARKUP = "<div class=\"vbt\">\n  <div class=\"vbt-head\">\n    <div class=\"vst-dymo vst-dymo--red\">|NAFIR|BIRTA|</div>\n    <div class=\"vst-count\"><span class=\"vst-counter\" data-bt=\"naesta\">--</span><span data-bt=\"naesta-texti\">ekkert í biðröð</span></div>\n  </div>\n\n  <form class=\"vbt-gate\" data-bt=\"gate\" hidden>\n    <p>Lykilorð (eða opnaðu hlekkinn sem Óli sendi þér):</p>\n    <input type=\"password\" data-bt=\"lykill\" autocomplete=\"current-password\">\n    <button class=\"vbt-btn\" type=\"submit\">Opna</button>\n    <p class=\"vbt-msg\" data-bt=\"gate-villa\"></p>\n  </form>\n\n  <p class=\"vst-status\" data-bt=\"hledur\"><span class=\"vst-led vst-led--wait\"></span>Sæki</p>\n\n  <div class=\"vbt-app\" data-bt=\"app\" hidden>\n    <section>\n      <div class=\"vst-dymo\">|BIDROD|</div>\n      <ul class=\"vbt-rod\" data-bt=\"rod\"></ul>\n      <p class=\"vbt-small\">Tvö skref: „Senda inn“ lætur Facebook og Instagram yfirfara myndina og textann (ekkert er birt), og „Staðfesta og tímasetja“ opnast þegar yfirferðin hefur staðist. Færslan fer út í síðasta lagi 5 mínútum eftir tímann og það má hætta við hér þangað til.</p>\n    </section>\n\n    <section>\n      <div class=\"vst-dymo\">|FAERSLUR|</div>\n      <p class=\"vbt-small vbt-hint\">Textunum er breytt á <a data-bt=\"yfirlit\" href=\"/nafir/stada\" target=\"_blank\" rel=\"noopener\">yfirliti bandsins</a>. Hér velurðu hvaða texti fer á hvorn miðil, og textann má laga fyrir þessa birtingu án þess að breyta færslunni.</p>\n      <div class=\"vbt-listi\" data-bt=\"faerslur\"></div>\n    </section>\n\n    <p class=\"vbt-small\">Sótt <span data-bt=\"sott\"></span>. <button class=\"vbt-link\" type=\"button\" data-bt=\"uppfaera\">Uppfæra</button> · <button class=\"vbt-link\" type=\"button\" data-bt=\"utskra\">Skrá út</button></p>\n  </div>\n</div>";
+import MARKUP from "./birta.html";
 
 export function birta(rot) {
   rot.innerHTML = MARKUP;
@@ -32,16 +32,8 @@ export function birta(rot) {
   }
 
   function q(n) { return rot.querySelector('[data-bt="' + n + '"]'); }
-  var key = saekjaG(LYKILL);
-  // Persónulegi hlekkurinn úr flipanum Aðgangur: ?l=<lykill>. Lykillinn er geymdur
-  // í vafranum og tekinn úr slóðinni, svo hann sjáist ekki ef slóðinni er deilt
-  var ur = new URLSearchParams(location.search);
-  if (ur.get("l")) {
-    key = ur.get("l").trim();
-    geyma(LYKILL, key);
-    ur.delete("l");
-    try { history.replaceState(null, "", location.pathname + (ur.toString() ? "?" + ur : "") + location.hash); } catch (e) {}
-  }
+  // Persónulegi hlekkurinn úr flipanum Aðgangur: ?l=<lykill>
+  var key = lesaLykil("l", LYKILL).lykill;
 
   function kalla(action, data) {
     var body = Object.assign({ action: action, key: key }, data || {});
@@ -51,7 +43,7 @@ export function birta(rot) {
         if (r.rangtLeyniord) { key = ""; geyma(LYKILL, ""); syna("gate"); }
         return r;
       })
-      .catch(function (e) { return { ok: false, villa: e.message === "Failed to fetch" ? "Ekkert samband." : e.message }; });
+      .catch(function (e) { return { ok: false, villa: e.message }; });
   }
   function syna(hvad) {
     q("gate").hidden = hvad !== "gate";
@@ -451,7 +443,8 @@ export function birta(rot) {
   // á 20 sekúndna fresti meðan einhver færsla er í yfirferð
   var hringir = 0;
   setInterval(function () {
-    if (!key || q("app").hidden) return;
+    // Ekki sækja í falinn flipa; það étur kvóta Apps Script fyrir ekkert
+    if (!key || q("app").hidden || document.hidden) return;
     hringir++;
     var ibid = gogn.birtingar && gogn.birtingar.some(function (b) { return b.prufa && (b.stada === "Prufa" || b.stada === "Bíður Instagram"); });
     if (ibid || hringir % 3 === 0) saekja(true);

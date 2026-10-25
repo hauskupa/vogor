@@ -1,0 +1,88 @@
+<div class="vst">
+  <div class="vst-head">
+    <div class="vst-dymo vst-dymo--red">|NAFIR|YFIRLIT|</div>
+    <div class="vst-counts">
+      <div class="vst-count"><span class="vst-counter" data-st="dagar-preorder">--</span><span data-st="texti-preorder">dagar í pre-order</span></div>
+      <div class="vst-count"><span class="vst-counter" data-st="dagar-utgafa">--</span><span data-st="texti-utgafa">dagar í útgáfu</span></div>
+    </div>
+  </div>
+
+  <p class="vst-status" data-st-state="loading"><span class="vst-led vst-led--wait"></span>Sæki stöðuna</p>
+
+  <div data-st-state="invalid" hidden>
+    <p class="vst-status"><span class="vst-led vst-led--late"></span>Hlekk vantar</p>
+    <p>Þessi síða opnast með hlekknum sem Óli sendi á bandið. Biddu hann um hlekkinn ef þú finnur hann ekki.</p>
+  </div>
+
+  <div data-st-state="error" hidden>
+    <p class="vst-status"><span class="vst-led vst-led--late"></span>Náði ekki í stöðuna</p>
+    <p data-st="villa">Prófaðu að endurhlaða síðuna.</p>
+  </div>
+
+  <div class="vst-body" data-st-state="ok" hidden>
+    <section class="vst-screen">
+      <div class="vst-screen-row">
+        <span class="vst-screen-label">Verk lokið</span>
+        <span class="vst-screen-value" data-st="hlutfall"></span>
+      </div>
+      <div class="vst-meter" data-st="maelir" role="img"></div>
+    </section>
+
+    <section>
+      <div class="vst-dymo">|NÆST|Á|DAGSKRÁ|</div>
+      <p class="vst-small vst-hint">Breyttu stöðu verks eða hver á það með fellilistunum. Breytingin vistast strax.</p>
+      <p class="vst-small vst-msg" data-st="skilabod" role="status"></p>
+      <ul class="vst-list" data-st="naest"></ul>
+    </section>
+
+    <section data-st="meta-kafli" hidden>
+      <div class="vst-dymo">|FACEBOOK|INSTAGRAM|</div>
+      <div class="vst-counts vst-hint" data-st="fylgjendur"></div>
+      <div class="vst-scroll">
+        <table class="vst-table">
+          <thead><tr><th>Birt</th><th>Miðill</th><th>Tegund</th><th>Texti</th><th>Ná</th><th>Áhorf</th><th>Viðbrögð</th></tr></thead>
+          <tbody data-st="meta"></tbody>
+        </table>
+      </div>
+      <p class="vst-small">Sótt af síðunni og Instagram á 6 tíma fresti, síðast <span data-st="meta-sott"></span>. Ná er hve margir sáu færsluna, viðbrögð eru líkar, ummæli, deilingar og vistanir. Stories lifa í sólarhring og sjást hér ef þær náðust.</p>
+    </section>
+
+    <section data-st="efni-kafli" hidden>
+      <div class="vst-dymo">|EFNI|</div>
+      <p class="vst-small vst-hint">Textar, hlekkir og myndir til að deila. Smelltu á hnapp til að afrita. Færslur á samfélagsmiðla má laga hér og merkja þegar þær eru farnar út. Bio og lagatextar eru lagaðir hjá Óla.</p>
+      <label class="vst-small vst-eg">Hver ert þú? <select data-st="eg"></select></label>
+      <div class="vst-groups" data-st="efni"></div>
+    </section>
+
+    <section>
+      <div class="vst-dymo">|ÖLL|VERKEFNI|</div>
+      <div class="vst-groups" data-st="hopar"></div>
+    </section>
+
+    <section>
+      <div class="vst-dymo">|PRESSA|</div>
+      <div class="vst-scroll">
+        <table class="vst-table">
+          <thead><tr><th>Miðill</th><th>Staða</th><th>Hver</th><th>Sent</th><th>Opnaði síðuna</th><th>Hlustaði</th><th>Sótti</th></tr></thead>
+          <tbody data-st="pressa"></tbody>
+        </table>
+      </div>
+      <p class="vst-small">Markhópurinn: miðlar sem við ætlum að senda á og þeir sem hafa þegar fengið póst. Opnun, hlustun og niðurhal sjást hjá þeim sem fengu persónulegan hlekk á pressusíðuna.</p>
+    </section>
+
+    <section class="vst-foot">
+      <ul class="vst-legend">
+        <li><span class="vst-led vst-led--done"></span>Lokið</li>
+        <li><span class="vst-led vst-led--work"></span>Í vinnslu</li>
+        <li><span class="vst-led vst-led--hold"></span>Bíður</li>
+        <li><span class="vst-led"></span>Óbyrjað</li>
+        <li><span class="vst-led vst-led--late"></span>Komið fram yfir frest</li>
+      </ul>
+      <div class="vst-keys">
+        <a class="vst-key" data-st="stream" target="_blank" rel="noopener">Hlusta á plötuna</a>
+        <button class="vst-key" type="button" data-st="uppfaera">Uppfæra</button>
+      </div>
+      <p class="vst-small">Sótt <span data-st="uppfaert"></span>. Frestum, heitum og nýjum verkum er breytt í Sheet-inu hjá Óla.</p>
+    </section>
+  </div>
+</div>
