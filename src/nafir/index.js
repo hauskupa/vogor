@@ -5,7 +5,8 @@
 //   <div data-nafir="stada"></div>
 //   <script src="https://cdn.jsdelivr.net/gh/hauskupa/vogor@<sha>/dist/nafir-hledsla.js"></script>
 //
-// Síður: stada (/nafir/stada), birta (/nafir/birta), stjorn (stjórnsíðan),
+// Síður: stada (/nafir/stada), birta (/nafir/birta og /per/birta), stjorn
+// (stjórnsíðan), yfirlestur (/per/auglysingar, src/per/yfirlestur.js),
 // pressa (/nafir/press, FEST Á COMMIT: @<sha> í stað @main, því miðlar eru
 // með hlekkina). CSS-ið fylgir með og er sprautað inn hér.
 import css from "./nafir.css";
@@ -14,8 +15,9 @@ import { stada } from "./stada.js";
 import { birta } from "./birta.js";
 import { stjorn } from "./stjorn.js";
 import { pressa } from "./pressa.js";
+import { yfirlestur } from "../per/yfirlestur.js";
 
-const SIDUR = { stada: stada, birta: birta, stjorn: stjorn, pressa: pressa };
+const SIDUR = { stada: stada, birta: birta, stjorn: stjorn, pressa: pressa, yfirlestur: yfirlestur };
 // Síður í Nafir-lúkkinu (beige tækið). Stjórnsíðan heldur útliti Webflow-síðunnar
 const BEIGE = { stada: true, birta: true, pressa: true };
 

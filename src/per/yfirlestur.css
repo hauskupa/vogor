@@ -1,0 +1,66 @@
+/* Yfirlestrarsíðan á /per/auglysingar (yfirlestur.js). Spjaldið sjálft er í spjald.css. */
+.yl {
+  --graent: #9ab89c; --doppur: #4f8d60; --rautt: #a8183a; --gult: #e9b64c;
+  --pappir: #f2ead8; --blek: #1d1a17; --dauft: #6b645a; --lina: #cfc4ab;
+  font-family: 'Roboto Condensed', sans-serif; font-size: 18px; line-height: 1.45; color: var(--blek);
+  background-color: var(--graent);
+  background-image: radial-gradient(circle, var(--doppur) 1.2px, transparent 1.7px);
+  background-size: 9px 9px;
+  min-height: 100vh; padding: 32px 16px 80px; box-sizing: border-box;
+}
+.yl *, .yl *::before, .yl *::after { box-sizing: border-box; }
+.yl p, .yl h1, .yl h2 { margin: 0; }
+.yl-innri { max-width: 1100px; margin: 0 auto; }
+.yl-haus { background: var(--pappir); padding: 28px 28px 24px; margin-bottom: 28px; box-shadow: 8px 10px 0 rgba(40,60,45,.35); }
+.yl-haus h1 { font: 700 40px/1.05 'Oswald', sans-serif; text-transform: uppercase; letter-spacing: .04em; color: var(--rautt); }
+.yl-haus .yl-undir { font: 500 20px/1.3 'Oswald', sans-serif; letter-spacing: .03em; margin-top: 6px; }
+.yl-haus p.yl-inngangur { margin-top: 16px; max-width: 70ch; }
+.yl-hver { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-top: 18px; }
+.yl-hver span { font-weight: 700; }
+.yl button { font: inherit; cursor: pointer; }
+.yl-hnappur {
+  border: 2px solid var(--blek); background: transparent; color: var(--blek);
+  padding: 6px 16px; font-family: 'Oswald', sans-serif !important; font-weight: 500; letter-spacing: .04em;
+}
+.yl-hnappur[aria-pressed="true"], .yl-hnappur--adal { background: var(--rautt); border-color: var(--rautt); color: var(--pappir); }
+.yl-hnappur:disabled { opacity: .4; cursor: default; }
+.yl-hnappur:focus-visible, .yl input:focus-visible, .yl textarea:focus-visible, .yl select:focus-visible { outline: 3px solid var(--gult); outline-offset: 2px; }
+.yl-stada { background: var(--pappir); padding: 18px 22px; }
+.yl-villa { color: var(--rautt); font-weight: 700; }
+
+.yl-augl { background: var(--pappir); margin-bottom: 28px; box-shadow: 8px 10px 0 rgba(40,60,45,.35); }
+.yl-augl-haus {
+  display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 14px;
+  padding: 14px 22px; border-bottom: 2px solid var(--blek);
+}
+.yl-augl-haus h2 { font: 700 24px/1.2 'Oswald', sans-serif; text-transform: uppercase; letter-spacing: .04em; }
+.yl-dags { color: var(--dauft); font-weight: 700; }
+.yl-merki { margin-left: auto; font: 500 15px/1 'Oswald', sans-serif; letter-spacing: .05em; text-transform: uppercase; padding: 5px 10px; background: #ddd3bd; }
+.yl-merki[data-stada="Samþykkt"] { background: #3f7d4f; color: #fff; }
+.yl-merki[data-stada="Póstað"] { background: var(--blek); color: var(--pappir); }
+.yl-merki[data-stada="Sleppa"] { background: transparent; text-decoration: line-through; }
+.yl-augl-efni { display: grid; grid-template-columns: minmax(0, 440px) minmax(0, 1fr); gap: 28px; padding: 22px; }
+.yl-forskodun { position: relative; width: 100%; overflow: hidden; }
+.yl-forskodun .spj { position: absolute; top: 0; left: 0; transform-origin: top left; }
+/* Flokkurinn Póstur: póstur án spjalds, bara textinn eins og hann fer út */
+.yl-posttexti { white-space: pre-wrap; overflow-wrap: anywhere; background: #fff; color: #1c1e21; border-radius: 8px; padding: 16px 18px; font: 16px/1.5 -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; box-shadow: 0 1px 4px rgba(0,0,0,.25); }
+.yl-posttexti small { display: block; margin-bottom: 8px; font-size: 13px; color: #65676b; }
+.yl-form { display: grid; gap: 14px; align-content: start; }
+.yl-form label { display: grid; gap: 4px; font-weight: 700; font-size: 16px; }
+.yl-form label small { font-weight: 400; color: var(--dauft); }
+.yl-tvennt { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.yl input, .yl textarea, .yl select {
+  font: 18px/1.4 'Roboto Condensed', sans-serif; color: var(--blek); width: 100%;
+  background: #fffaf0; border: 2px solid var(--lina); border-radius: 0; padding: 8px 10px; margin: 0;
+}
+.yl textarea { resize: vertical; }
+.yl-adgerdir { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+.yl-adgerdir p { color: var(--dauft); font-size: 16px; }
+.yl-adgerdir p.yl-obreytt { color: var(--rautt); font-weight: 700; }
+
+@media (max-width: 760px) {
+  .yl { padding: 16px 16px 60px; }
+  .yl-haus h1 { font-size: 30px; }
+  .yl-augl-efni { grid-template-columns: minmax(0, 1fr); padding: 16px; }
+  .yl-tvennt { grid-template-columns: minmax(0, 1fr); }
+}

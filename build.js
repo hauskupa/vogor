@@ -39,6 +39,9 @@ const VERK = [
   // Nafir-síðurnar. Sjá src/nafir/index.js
   { ...GRUNNUR, entryPoints: ["src/nafir/index.js"], format: "iife", outfile: "dist/nafir.js" },
 
+  // Spjaldið hjá Per fyrir PNG-teikningu í per-jolatonleikar/spjold/smaauglysingar.py
+  { ...GRUNNUR, entryPoints: ["src/per/teikna.js"], format: "iife", outfile: "dist/per-spjald.js", sourcemap: false },
+
   // Hleðslan sem embed-in á Nafir-síðunum vísa á (fest á commit). Hún sækir
   // dist/nafir.js á nýjasta commit, því jsDelivr @main getur verið langt á eftir
   {
