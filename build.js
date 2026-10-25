@@ -3,8 +3,8 @@ import { mkdirSync, readdirSync, copyFileSync, readFileSync, writeFileSync } fro
 
 mkdirSync("dist", { recursive: true });
 
-// Time-stamp bara fyrir comment/debug
-const v = Date.now().toString().slice(-6);
+// Enginn tímastimpill í skránum: sami kóði gefur sömu skrá, og commit-ið
+// segir hvaða útgáfa er á vefnum (npm run webflow)
 
 // Build JS
 await build({
@@ -17,9 +17,6 @@ await build({
   outfile: "dist/main.js",
   // permixer.js sprautar CSS-inu sínu inn sjálft
   loader: { ".css": "text" },
-  banner: {
-    js: `// Build version: ${v} (${new Date().toISOString()})`,
-  },
 });
 
 // Nafir-síðurnar (yfirlit bandsins, birtingar): sér skrá svo main.js stækki
@@ -33,9 +30,6 @@ await build({
   target: ["es2019"],
   outfile: "dist/nafir.js",
   loader: { ".css": "text" },
-  banner: {
-    js: `// Nafir build ${v} (${new Date().toISOString()})`,
-  },
 });
 
 // Hleðslan sem embed-in á Nafir-síðunum vísa á (fest á commit). Hún sækir
@@ -64,7 +58,7 @@ const workerBundle = await build({
 });
 writeFileSync(
   "dist/mp3worker.js",
-  `// Build version: ${v} (${new Date().toISOString()})\n${lame}\n${workerBundle.outputFiles[0].text}`
+  `${lame}\n${workerBundle.outputFiles[0].text}`
 );
 
 // CSS + LRC yfir í dist

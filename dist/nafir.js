@@ -1,4 +1,3 @@
-// Nafir build 108667 (2026-10-25T14:05:08.858Z)
 (()=>{var Zt=`/* Nafir-s\xED\xF0urnar: yfirlit bandsins (.vst) og birtingars\xED\xF0an (.vbt).
    Sprauta\xF0 inn af src/nafir/index.js. Grunnurinn (beige t\xE6ki\xF0, Dymo-mi\xF0ar,
    lj\xF3s, teljarar) heitir vst-* og er sameiginlegur. */
