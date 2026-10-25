@@ -12,7 +12,8 @@ import { execSync } from "child_process";
 const VEFUR = "https://www.vogorrecords.com/";
 const CDN = "https://cdn.jsdelivr.net/gh/hauskupa/vogor@";
 const CSS = ["styles.css", "albumMixer.css", "vogorPlayer.css"];
-const SKRAR = ["dist/main.js", ...CSS.map((f) => "dist/" + f)];
+// Allt í dist/ nema Nafir-skrárnar, sem fara í loftið sjálfar
+const SKRAR = ["dist", ":!dist/nafir*", ":!dist/*.map", ":!dist/sidur/*.map"];
 
 const git = (c) => execSync("git " + c, { encoding: "utf8" }).trim();
 
@@ -39,7 +40,7 @@ try {
 }
 
 if (lifandi) {
-  const breytt = git(`diff --name-only ${lifandi} HEAD -- ${SKRAR.join(" ")}`);
+  const breytt = git(`diff --name-only ${lifandi} HEAD -- ${SKRAR.map((s) => `"${s}"`).join(" ")}`);
   if (!breytt && !aMain) {
     console.log(`Vefurinn er á ${lifandi} og ekkert hefur breyst síðan. Ekkert að gera.`);
     process.exit(0);

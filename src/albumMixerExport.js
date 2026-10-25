@@ -11,15 +11,12 @@ import { createChannelChain, applyChannelState, faderGain } from "./albumMixerEn
 const SAMPLE_RATE = 44100;
 const BYTES_PER_SECOND_PER_STEM = SAMPLE_RATE * 2 * 4; // stereo Float32
 
-// Slóðin á main.js er tekin þegar bundleinn keyrir, svo worker-skráin finnist
-// við hliðina á honum á jsDelivr.
-const SCRIPT_SRC = typeof document !== "undefined" ? document.currentScript?.src || "" : "";
-
+// Þessi kóði keyrir úr dist/sidur/, svo worker-skráin er einni möppu ofar,
+// á sama commit.
 function resolveWorkerUrl(container) {
   const override = container?.getAttribute("data-mp3-worker");
   if (override) return override;
-  if (SCRIPT_SRC) return SCRIPT_SRC.replace(/\/[^/]*$/, "/mp3worker.js");
-  return "https://cdn.jsdelivr.net/gh/hauskupa/vogor@main/dist/mp3worker.js";
+  return new URL("../mp3worker.js", import.meta.url).href;
 }
 
 // Worker-skráin er á öðru léni en síðan, svo `new Worker(url)` er bannað.

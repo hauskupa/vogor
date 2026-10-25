@@ -1,51 +1,36 @@
-import { setupMixer } from "./mixer.js";
-import { setupAwake } from "./awake.js";
-import { setupPlayer } from "./player.js";
-import { setupAlbumMixer } from "./albumMixer.js";
-import { setupMultitrackPlayer } from "./multitrackplayer.js";
-import { setupAsleepArtwork } from "./asleep.js";
-import { setupVogorPlayer } from "./vogorPlayer.js";
-import { setupPermixer } from "./permixer.js";
+// Hleðsla vefsins (dist/main.js, sett inn site-wide í Webflow).
+//
+// main.js er bara hleðslan: hún finnur hvaða virkni síðan notar og sækir
+// hana úr dist/sidur/ á sama commit, svo gestir sæki aðeins kóða sem síðan
+// þarf. Ein skrá á hverja virkni (src/sidur/*.js); kóði sem fleiri en ein
+// deila (t.d. stemEngine.js) fer í chunk-skrá sem þær sækja saman.
 
-document.addEventListener("DOMContentLoaded", () => {
-  // Mixer
-  if (document.querySelector("[data-mixer]")) {
-    console.log("Found mixer element, initializing...");
-    setupMixer();
-  }
+const SKRA = document.currentScript ? document.currentScript.src : "";
+const GRUNNUR = SKRA
+  ? SKRA.replace(/[^/]*$/, "sidur/")
+  : "https://cdn.jsdelivr.net/gh/hauskupa/vogor@main/dist/sidur/";
 
-  // Æfingasíðan (permixer með köflum)
-  if (document.querySelector("[data-pm-song]")) {
-    setupPermixer();
-  }
+// [velja sem finnst á síðunni, skrá í dist/sidur/]
+const VIRKNI = [
+  // Gamli mixerinn: [data-mixer] er líka á 4track-síðunum, en rásir á hann
+  // ([data-track-url]) eru bara á /mixer og /permixer
+  ["[data-track-url]", "mixer"],
+  ["[data-pm-song]", "permixer"],
+  ["[data-awake]", "awake"],
+  ["[data-player]", "player"],
+  ["[data-album-mixer]", "albumMixer"],
+  ["[data-vogor-player]", "vogorPlayer"],
+  ["[data-multitrack-player]", "multitrack"],
+];
 
-  // Awake
-  if (document.querySelector("[data-awake]")) {
-    console.log("Found awake element, initializing...");
-    setupAwake();
-  }
+function raesa() {
+  VIRKNI.forEach(([velja, nafn]) => {
+    if (!document.querySelector(velja)) return;
+    import(GRUNNUR + nafn + ".js")
+      .then((m) => m.default())
+      .catch((err) => console.error(`vogor: ${nafn} hlóðst ekki`, err));
+  });
+}
 
-  // Global player
-  if (document.querySelector("[data-player]")) {
-    console.log("Found [data-player], initializing player...");
-    setupPlayer();
-  }
-
-  // Album mixer
-  if (document.querySelector("[data-album-mixer]")) {
-    setupAlbumMixer();
-  }
-
-  // Vogor spilarinn (Dropbox)
-  if (document.querySelector("[data-vogor-player]")) {
-    console.log("Found [data-vogor-player], initializing Vogor player...");
-    setupVogorPlayer();
-  }
-
-  // Multitrack + Asleep artwork
-  if (document.querySelector("[data-multitrack-player]")) {
-    console.log("Found [data-multitrack-player], initializing multitrack...");
-    const mt = setupMultitrackPlayer(document);  // engine
-    setupAsleepArtwork(mt);                      // song-switching & visuals
-  }
-});
+if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", raesa);
+else raesa();

@@ -212,7 +212,7 @@ inngangur lamejs er brotinn (`MPEGMode is not defined`) svo forsmíðaða
 skráin er notuð. Hún er sótt og keyrð af blob-slóð því `new Worker()` má ekki
 benda á annað lén.
 
-Slóðin finnst sjálfkrafa við hliðina á `main.js`. Þarf að yfirtaka hana:
+Slóðin finnst sjálfkrafa (`dist/mp3worker.js` á sama commit og síðan). Þarf að yfirtaka hana:
 `data-mp3-worker="https://…/mp3worker.js"` á container.
 
 ### Tími og minni
