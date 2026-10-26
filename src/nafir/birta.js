@@ -23,9 +23,18 @@ export function birta(rot) {
   // Stillingar verkefnisins; vélin sendir sínar með birtingar-svarinu
   var MIDLAR = ["Facebook", "Instagram", "Instagram Story", "Facebook Story"];
   var SIDA_NAFN = "Stafrænn Hákon", IG_NAFN = "stafraennhakon", TUNGUMAL = ["is", "en"];
+  // Collab á Instagram: hak við hvern í bandinu; `inn` er hakað sjálfgefið. Meta leyfir mest 3
+  var COLLAB = [
+    { nafn: "Maggi", ig: "maggi_freyr", inn: true },
+    { nafn: "Árni Þór", ig: "johliujv", inn: true },
+    { nafn: "Róbert", ig: "robertrunolfs" },
+    { nafn: "Lárus", ig: "larussigurdsson_brimhof" },
+    { nafn: "Óli", ig: "olafurjosephsson" }
+  ];
   function stilla(c) {
     if (!c) return;
     MIDLAR = c.midlar || MIDLAR;
+    COLLAB = c.collab || COLLAB;
     SIDA_NAFN = c.sidaNafn || SIDA_NAFN;
     IG_NAFN = c.igNafn || IG_NAFN;
     TUNGUMAL = c.tungumal || TUNGUMAL;
@@ -229,14 +238,45 @@ export function birta(rot) {
     txt.addEventListener("input", function () { dr.texti = txt.value; uppfaera(); });
 
     // Collab: meðhöfundar á Instagram feed og Reels (þeir fá boð og samþykkja í appinu)
-    var collabL = ny("label", "", "Collab á Instagram ");
-    collabL.appendChild(ny("span", "vbt-teljari", "mest 3, aðskilin með kommu"));
+    // Hökin skrifa í reitinn, svo annað nafn má líka slá inn í hann
+    var collabL = ny("div", "vbt-hopur", "Collab á Instagram ");
+    collabL.appendChild(ny("span", "vbt-teljari", "mest 3"));
+    var collabHak = ny("div", "vbt-midlar");
+    var collabBox = {};
+    COLLAB.forEach(function (p) {
+      var l = ny("label");
+      var c = ny("input");
+      c.type = "checkbox";
+      collabBox[p.ig] = c;
+      l.title = "@" + p.ig;
+      l.appendChild(c);
+      l.appendChild(document.createTextNode(p.nafn));
+      collabHak.appendChild(l);
+      c.addEventListener("change", function () {
+        var n = collabNofn().filter(function (x) { return x !== p.ig; });
+        if (c.checked) n.push(p.ig);
+        collab.value = n.join(", ");
+        dr.collab = collab.value;
+        uppfaera();
+      });
+    });
+    collabL.appendChild(collabHak);
     var collab = ny("input");
-    collab.value = dr.collab || "";
-    collab.placeholder = "t.d. magnus, arnithor";
+    collab.value = dr.collab != null ? dr.collab
+      : COLLAB.filter(function (p) { return p.inn; }).map(function (p) { return p.ig; }).join(", ");
+    collab.placeholder = "eða slá inn nöfn, aðskilin með kommu";
+    collab.setAttribute("aria-label", "Collab á Instagram");
     collabL.appendChild(collab);
     s.appendChild(collabL);
     collab.addEventListener("input", function () { dr.collab = collab.value; uppfaera(); });
+    // Hökin fylgja reitnum; þegar 3 eru valin er ekki hægt að haka við fleiri
+    function collabHakUppfaera() {
+      var n = collabNofn();
+      Object.keys(collabBox).forEach(function (ig) {
+        collabBox[ig].checked = n.indexOf(ig) !== -1;
+        collabBox[ig].disabled = !collabBox[ig].checked && n.length >= 3;
+      });
+    }
 
     var myndL = ny("label", "", "Mynd eða myndband");
     var mynd = ny("input");
@@ -349,6 +389,7 @@ export function birta(rot) {
       if (ig && t.t === "mynd" && !/^jpe?g$/.test(t.e)) v.push("Instagram tekur bara JPG-myndir.");
       if (ig && /instagram\.com|ffm\.to|https?:\/\//.test(txt.value)) v.push("Hlekkir virka ekki í texta á Instagram; skrifaðu „hlekkur í bio“.");
       collabL.hidden = !ig;
+      collabHakUppfaera();
       if (ig && collabNofn().length > 3) v.push("Instagram leyfir mest 3 í collab.");
       var story = hakad("Instagram Story") || hakad("Facebook Story");
       if (story && !mynd.value) v.push("Story þarf mynd eða myndband.");

@@ -180,7 +180,7 @@
   .vbt-kort-haus b { font-size: 1.0625rem; }
   .vbt-merki { font-family: "Courier Prime", Courier, monospace; font-size: .875rem; }
   .vbt-stjorn { display: grid; gap: .7rem; align-content: start; }
-  .vbt-stjorn label { display: grid; gap: .2rem; font-size: .6875rem; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; }
+  .vbt-stjorn label, .vbt-stjorn .vbt-hopur { display: grid; gap: .2rem; font-size: .6875rem; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; }
   .vbt-stjorn input, .vbt-stjorn select, .vbt-stjorn textarea { font: inherit; font-size: .9375rem; text-transform: none; letter-spacing: 0; font-weight: 400; color: inherit; background: #ffffff8c; border: 1px solid #2e2e2e40; border-radius: .25rem; padding: .4rem .55rem; width: 100%; box-sizing: border-box; }
   .vbt-stjorn textarea { min-height: 10rem; resize: vertical; line-height: 1.5; }
   .vbt-tvo { display: grid; grid-template-columns: 1fr 1fr; gap: .6rem; }
