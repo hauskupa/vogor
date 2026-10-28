@@ -103,7 +103,7 @@ export function setjaFavicon() {
 // Leiðarstikan efst á síðum verkefnisins, svo hægt sé að hoppa á milli án þess
 // að muna slóðirnar. Lyklarnir eru geymdir í vafranum, svo hlekkirnir þurfa þá ekki.
 const LEIDIR = {
-  nafir: [["Yfirlit", "/nafir/stada"], ["Birta", "/nafir/birta"], ["Mixer", "/nafir/4track"]],
+  nafir: [["Yfirlit", "/nafir/stada"], ["Birta", "/nafir/birta"], ["Plötusíða", "/albums/nafir"]],
   per: [["Auglýsingar", "/per/auglysingar"], ["Birta", "/per/birta"], ["Æfing", "/per/jolamixer"]],
 };
 
