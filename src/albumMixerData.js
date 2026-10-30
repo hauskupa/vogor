@@ -122,6 +122,38 @@ function readDefaultSlotText(elements, suffix) {
   return values;
 }
 
+// Rásanöfn plötunnar úr einum CMS-reit, bundnum á data-mixer-channels:
+//   "N Guitar, A Bass, F Vox, I Drums, R Magic*"
+// Hver færsla er ein rás í röð. Stakur stafur fremst er stóri stafurinn efst
+// á strimlinum, restin er heitið neðst, og * aftast gerir rásina að AUX.
+// Komma, ný lína, | eða ; skilja að. Tóm færsla heldur sínu slot-i.
+export function parseMixerChannels(text) {
+  const entries = String(text || "").split(/[,;|\n]/);
+  const labels = new Map();
+  const shorts = new Map();
+  const roles = new Map();
+
+  entries.slice(0, MAX_CHANNELS).forEach((entry, index) => {
+    const raw = entry.trim();
+    if (!raw) return;
+    const slot = index + 1;
+    const isAux = /\*\s*$/.test(raw);
+    const clean = raw.replace(/\*+\s*$/, "").trim();
+    const match = clean.match(/^(\S)\s+(.+)$/u);
+
+    if (match) {
+      shorts.set(slot, match[1]);
+      labels.set(slot, match[2].trim());
+    } else if (clean) {
+      labels.set(slot, clean);
+    }
+    // Hlutverkið er alltaf gefið svo data-main-channels á sniðmátinu ráði ekki
+    roles.set(slot, isAux ? "aux" : "main");
+  });
+
+  return roles.size ? { labels, shorts, roles } : null;
+}
+
 function readSong(songEl, index, mainChannels, defaults) {
   const title = attr(songEl, "data-song-title") || songEl.textContent?.trim() || "";
   if (!title) return null;
@@ -180,7 +212,12 @@ export function readSongsFromDom(container) {
   const mainChannels =
     Number.isFinite(parsedMain) && parsedMain > 0 ? parsedMain : DEFAULT_MAIN_CHANNELS;
 
-  const defaults = {
+  // CMS-reitur plötunnar vinnur föst data-stem-N-* attribute á sniðmátinu,
+  // svo sama sniðmát dugi öllum plötum. Tómur reitur: föstu gildin gilda.
+  const channels = parseMixerChannels(
+    attr(container, "data-mixer-channels") || attr(list, "data-mixer-channels")
+  );
+  const defaults = channels || {
     labels: readDefaultSlotText(sources, "label"),
     shorts: readDefaultSlotText(sources, "short"),
     roles: readDefaultSlotText(sources, "role"),

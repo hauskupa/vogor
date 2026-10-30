@@ -69,6 +69,23 @@ Fullbúið dæmi til að afrita: `vogor-releases/nafir/web/mixer/albummixer-nafi
 | --- | --- | --- |
 | `data-album-title` | tómt | plötuheitið á kassettumiðanum |
 | `data-main-channels` | `4` | hvar aðalrásirnar enda og AUX byrjar |
+| `data-mixer-channels` | tómt | rásanöfn plötunnar úr einum CMS-reit, sjá að neðan |
+
+### Rásanöfn úr CMS (plötusniðmátið)
+
+Á `/albums/`-sniðmátinu deila allar plötur sama mixer, svo nöfnin koma úr einum
+textareit á plötunni, bundnum á `data-mixer-channels` á `[data-album-mixer]`:
+
+```
+N Guitar, A Bass, F Vox, I Drums, R Magic*
+```
+
+- Ein færsla á rás, í röð (rás 1, 2, 3 …). Komma, ný lína, `|` eða `;` skilja að.
+- Stakur stafur fremst er stóri stafurinn efst; restin er heitið neðst.
+  Án staks stafs stendur heitið á báðum stöðum.
+- `*` aftast gerir rásina að AUX. Án `*` er hún aðalrás, óháð `data-main-channels`.
+- Fylltur reitur vinnur föstu `data-stem-N-*` gildin hér fyrir neðan; tómur
+  reitur lætur þau gilda. Stakt lag getur samt yfirtekið sína rás.
 
 ### Attribute á `[data-song]`
 
