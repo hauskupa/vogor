@@ -516,6 +516,20 @@ export function stada(rot) {
     });
     sel.value = nofn.indexOf(valid) !== -1 ? valid : "";
   }
+  // Flýtihlekkirnir: Webflow setur <base> á rótina, svo "#kafli" færi á forsíðuna.
+  // Hlekkirnir fá fulla slóð síðunnar (með lyklinum) og smellur skrollar beint
+  Array.prototype.forEach.call(rot.querySelectorAll(".vst-hopp a"), function (a) {
+    var kafli = a.getAttribute("href").slice(1);
+    a.href = location.pathname + location.search + "#" + kafli;
+    a.addEventListener("click", function (e) {
+      var s = document.getElementById(kafli);
+      if (!s) return;
+      e.preventDefault();
+      s.scrollIntoView({ behavior: "smooth", block: "start" });
+      if (history.replaceState) history.replaceState(null, "", a.href);
+    });
+  });
+
   q("eg").addEventListener("change", function () {
     geyma(NAFN, this.value);
     teiknaMin();
