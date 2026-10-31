@@ -184,6 +184,8 @@
   .vbt-stjorn input, .vbt-stjorn select, .vbt-stjorn textarea { font: inherit; font-size: .9375rem; text-transform: none; letter-spacing: 0; font-weight: 400; color: inherit; background: #ffffff8c; border: 1px solid #2e2e2e40; border-radius: .25rem; padding: .4rem .55rem; width: 100%; box-sizing: border-box; }
   .vbt-stjorn textarea { min-height: 10rem; resize: vertical; line-height: 1.5; }
   .vbt-tvo { display: grid; grid-template-columns: 1fr 1fr; gap: .6rem; }
+  .vbt-klukka { display: flex; align-items: center; gap: .3rem; }
+  .vbt-klukka select { flex: 1; }
   .vbt-midlar { display: flex; gap: 1.25rem; flex-wrap: wrap; font-size: .9375rem; }
   .vbt-midlar label { display: flex; flex-direction: row; align-items: center; gap: .4rem; font-size: .9375rem; text-transform: none; letter-spacing: 0; font-weight: 600; }
   .vbt-midlar input { width: auto; }

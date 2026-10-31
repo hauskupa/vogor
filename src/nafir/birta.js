@@ -328,10 +328,26 @@ export function birta(rot) {
     dagur.type = "date"; dagur.value = dr.dagur || x.birta;
     dagur.addEventListener("change", function () { dr.dagur = dagur.value; uppfaera(); });
     dL.appendChild(dagur);
-    var tL = ny("label", "", "Klukkan"), klukka = ny("input");
-    klukka.type = "time"; klukka.value = dr.klukka || "12:00";
-    klukka.addEventListener("change", function () { dr.klukka = klukka.value; uppfaera(); });
-    tL.appendChild(klukka);
+    // Klukkan í 24 tímum: <input type="time"> fer eftir tungumáli vafrans (AM/PM á ensku)
+    var tL = ny("label", "", "Klukkan"), kl = ny("span", "vbt-klukka");
+    var upph = String(dr.klukka || "12:00").split(":");
+    var klst = ny("select"), min = ny("select");
+    function tveir(n) { return (n < 10 ? "0" : "") + n; }
+    function kosta(sel, gildi, valid) {
+      gildi.forEach(function (g) { var o = ny("option", "", g); o.value = g; sel.appendChild(o); });
+      sel.value = valid;
+    }
+    var minutur = [];
+    for (var m = 0; m < 60; m += 5) minutur.push(tveir(m));
+    if (minutur.indexOf(upph[1]) === -1) minutur.push(upph[1]);   // eldri tími utan 5 mín.
+    kosta(klst, Array.apply(null, Array(24)).map(function (_, h) { return tveir(h); }), upph[0]);
+    kosta(min, minutur.sort(), upph[1]);
+    var klukka = { get value() { return klst.value + ":" + min.value; } };
+    [klst, min].forEach(function (sel) {
+      sel.addEventListener("change", function () { dr.klukka = klukka.value; uppfaera(); });
+    });
+    kl.appendChild(klst); kl.appendChild(ny("span", "", ":")); kl.appendChild(min);
+    tL.appendChild(kl);
     tvo.appendChild(dL); tvo.appendChild(tL);
     s.appendChild(tvo);
 
