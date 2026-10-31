@@ -113,7 +113,7 @@ export function leidir(verkefni) {
   var nav = ny("nav", "vogor-leidir");
   nav.setAttribute("aria-label", "Síður verkefnisins");
   listi.forEach(function (l) {
-    var a = ny("a", "", "|" + l[0].toUpperCase().replace(/ /g, "|") + "|");
+    var a = ny("a", "", l[0]);
     a.href = l[1];
     if (l[1] === nuna) a.setAttribute("aria-current", "page");
     nav.appendChild(a);

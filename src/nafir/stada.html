@@ -1,6 +1,6 @@
 <div class="vst">
   <div class="vst-head">
-    <div class="vst-dymo vst-dymo--red">|NAFIR|YFIRLIT|</div>
+    <h1 class="vst-midi vst-midi--red">Nafir yfirlit</h1>
     <div class="vst-counts">
       <div class="vst-count"><span class="vst-counter" data-st="dagar-preorder">--</span><span data-st="texti-preorder">dagar í pre-order</span></div>
       <div class="vst-count"><span class="vst-counter" data-st="dagar-utgafa">--</span><span data-st="texti-utgafa">dagar í útgáfu</span></div>
@@ -20,6 +20,20 @@
   </div>
 
   <div class="vst-body" data-st-state="ok" hidden>
+    <section class="vst-eg-bar" data-st="eg-bar">
+      <label class="vst-eg"><span>Hver ert þú?</span> <select data-st="eg"></select></label>
+      <p class="vst-small" data-st="eg-texti">Veldu nafnið þitt áður en þú breytir einhverju. Það er munað í þessum vafra.</p>
+    </section>
+
+    <nav class="vst-hopp" aria-label="Kaflar síðunnar">
+      <a href="#nafir-dagskra">Á dagskrá</a>
+      <a href="#nafir-min">Þín verk</a>
+      <a href="#nafir-efni">Efni</a>
+      <a href="#nafir-tolur">Tölur</a>
+      <a href="#nafir-pressa">Pressa</a>
+      <a href="#nafir-oll">Öll verk</a>
+    </nav>
+
     <section class="vst-screen">
       <div class="vst-screen-row">
         <span class="vst-screen-label">Verk lokið</span>
@@ -28,15 +42,26 @@
       <div class="vst-meter" data-st="maelir" role="img"></div>
     </section>
 
-    <section>
-      <div class="vst-dymo">|NÆST|Á|DAGSKRÁ|</div>
+    <section id="nafir-dagskra">
+      <h2 class="vst-midi">Næst á dagskrá</h2>
       <p class="vst-small vst-hint">Breyttu stöðu verks eða hver á það með fellilistunum. Breytingin vistast strax.</p>
       <p class="vst-small vst-msg" data-st="skilabod" role="status"></p>
       <ul class="vst-list" data-st="naest"></ul>
     </section>
 
-    <section data-st="meta-kafli" hidden>
-      <div class="vst-dymo">|FACEBOOK|INSTAGRAM|</div>
+    <section id="nafir-min">
+      <h2 class="vst-midi">Þín verk</h2>
+      <ul class="vst-list" data-st="min"></ul>
+    </section>
+
+    <section id="nafir-efni" data-st="efni-kafli" hidden>
+      <h2 class="vst-midi">Efni til að deila</h2>
+      <p class="vst-small vst-hint">Textar, hlekkir og myndir til að deila. Smelltu á hnapp til að afrita. Færslur á samfélagsmiðla má laga hér og merkja þegar þær eru farnar út. Bio og lagatextar eru lagaðir hjá Óla.</p>
+      <div class="vst-groups" data-st="efni"></div>
+    </section>
+
+    <section id="nafir-tolur" data-st="meta-kafli" hidden>
+      <h2 class="vst-midi">Tölur: Facebook og Instagram</h2>
       <div class="vst-counts vst-hint" data-st="fylgjendur"></div>
       <div class="vst-scroll">
         <table class="vst-table">
@@ -47,20 +72,8 @@
       <p class="vst-small">Sótt af síðunni og Instagram á 6 tíma fresti, síðast <span data-st="meta-sott"></span>. Ná er hve margir sáu færsluna, viðbrögð eru líkar, ummæli, deilingar og vistanir. Stories lifa í sólarhring og sjást hér ef þær náðust.</p>
     </section>
 
-    <section data-st="efni-kafli" hidden>
-      <div class="vst-dymo">|EFNI|</div>
-      <p class="vst-small vst-hint">Textar, hlekkir og myndir til að deila. Smelltu á hnapp til að afrita. Færslur á samfélagsmiðla má laga hér og merkja þegar þær eru farnar út. Bio og lagatextar eru lagaðir hjá Óla.</p>
-      <label class="vst-small vst-eg">Hver ert þú? <select data-st="eg"></select></label>
-      <div class="vst-groups" data-st="efni"></div>
-    </section>
-
-    <section>
-      <div class="vst-dymo">|ÖLL|VERKEFNI|</div>
-      <div class="vst-groups" data-st="hopar"></div>
-    </section>
-
-    <section>
-      <div class="vst-dymo">|PRESSA|</div>
+    <section id="nafir-pressa">
+      <h2 class="vst-midi">Pressa</h2>
       <div class="vst-scroll">
         <table class="vst-table">
           <thead><tr><th>Miðill</th><th>Staða</th><th>Hver</th><th>Sent</th><th>Opnaði síðuna</th><th>Hlustaði</th><th>Sótti</th></tr></thead>
@@ -68,6 +81,11 @@
         </table>
       </div>
       <p class="vst-small">Markhópurinn: miðlar sem við ætlum að senda á og þeir sem hafa þegar fengið póst. Opnun, hlustun og niðurhal sjást hjá þeim sem fengu persónulegan hlekk á pressusíðuna.</p>
+    </section>
+
+    <section id="nafir-oll">
+      <h2 class="vst-midi">Öll verkefni</h2>
+      <div class="vst-groups" data-st="hopar"></div>
     </section>
 
     <section class="vst-foot">

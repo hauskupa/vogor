@@ -185,6 +185,7 @@ export function stada(rot) {
     }
 
     teiknaNofn(r.band || []);
+    teiknaMin();
     teiknaMeta(r.meta);
     teiknaEfni(r.efni || []);
 
@@ -276,7 +277,7 @@ export function stada(rot) {
       EFNI_STODUR.forEach(function (s) { var o = ny("option", "", s); o.value = s; sel.appendChild(o); });
       sel.value = x.stada || EFNI_STODUR[0];
       sel.addEventListener("change", function () {
-        if (!eg()) { sel.value = x.stada; villa(kort, "Veldu hver þú ert efst í Efni."); return; }
+        if (!eg()) { sel.value = x.stada; villa(kort, "Veldu nafnið þitt efst á síðunni."); return; }
         sel.disabled = true;
         kalla({ action: "bandEfniVista", id: x.id, hver: eg(), reitir: { stada: sel.value } }).then(function (r) {
           if (r.ok) setjaBut(r.but, kort);
@@ -377,7 +378,7 @@ export function stada(rot) {
     form.addEventListener("submit", function (ev) {
       ev.preventDefault();
       msg.textContent = "";
-      if (!eg()) { msg.textContent = "Veldu hver þú ert efst í Efni."; return; }
+      if (!eg()) { msg.textContent = "Veldu nafnið þitt efst á síðunni."; return; }
       var reitir = {};
       ["heiti", "birta", "stada", "is", "en", "slod", "notur"].forEach(function (n) {
         if (form.elements[n]) reitir[n] = form.elements[n].value;
@@ -420,6 +421,8 @@ export function stada(rot) {
       if (!eftir[f]) { eftir[f] = []; rod.push(f); }
       eftir[f].push(x);
     });
+    // Færslurnar eru það sem bandið vinnur mest með; þær fara efst
+    if (rod.indexOf(FAERSLUR) > 0) { rod.splice(rod.indexOf(FAERSLUR), 1); rod.unshift(FAERSLUR); }
     rod.forEach(function (f) {
       var det = ny("details", "vst-group");
       det.open = !!opid[f];
@@ -515,7 +518,26 @@ export function stada(rot) {
   }
   q("eg").addEventListener("change", function () {
     geyma(NAFN, this.value);
+    teiknaMin();
   });
+
+  // Þín verk: opin verk merkt þeim sem valdi nafnið (eða Allir), frestur fyrst.
+  // Kveðjan og borðinn efst fylgja nafninu
+  function teiknaMin() {
+    var nafn = eg();
+    q("eg-bar").classList.toggle("vst-eg-bar--tomt", !nafn);
+    q("eg-texti").textContent = nafn
+      ? "Hæ " + nafn + ". Verkin sem eru merkt þér eru undir „Þín verk“, og breytingar í Efni eru skráðar á þig."
+      : "Veldu nafnið þitt áður en þú breytir einhverju. Það er munað í þessum vafra.";
+    var min = q("min");
+    min.textContent = "";
+    if (!nafn) { min.appendChild(ny("li", "vst-tomt", "Veldu nafnið þitt efst til að sjá verkin þín.")); return; }
+    var listi = (gogn.verkefni || [])
+      .filter(function (v) { return v.stada !== "Lokið" && (v.hver === nafn || v.hver === "Allir"); })
+      .sort(function (a, c) { return (dags(a.frestur) || 8.64e15) - (dags(c.frestur) || 8.64e15); });
+    listi.forEach(function (v) { min.appendChild(lina(v)); });
+    if (!listi.length) min.appendChild(ny("li", "vst-tomt", "Ekkert opið verk er merkt þér."));
+  }
 
   function saekja() {
     return post({ action: "bandStada", b: b })

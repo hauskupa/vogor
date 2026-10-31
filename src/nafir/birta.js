@@ -38,8 +38,8 @@ export function birta(rot) {
     SIDA_NAFN = c.sidaNafn || SIDA_NAFN;
     IG_NAFN = c.igNafn || IG_NAFN;
     TUNGUMAL = c.tungumal || TUNGUMAL;
-    var d = rot.querySelector(".vbt-head .vst-dymo");
-    if (d && c.titill) d.textContent = "|" + c.titill + "|BIRTA|";
+    var d = rot.querySelector(".vbt-head .vst-midi");
+    if (d && c.titill) d.textContent = c.titill + " birta";
     var y = q("yfirlit");
     if (y && c.yfirlit) { y.href = c.yfirlit; y.textContent = "yfirlestrarsíðunni"; }
   }
