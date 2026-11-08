@@ -7,6 +7,7 @@
 //
 // Síður: stada (/nafir/stada), birta (/nafir/birta og /per/birta), stjorn
 // (stjórnsíðan), yfirlestur (/per/auglysingar, src/per/yfirlestur.js),
+// hlekkir (/nafir/links, bio-hlekkurinn á Instagram, opin),
 // pressa (/nafir/press, FEST Á COMMIT: @<sha> í stað @main, því miðlar eru
 // með hlekkina). CSS-ið fylgir með og er sprautað inn hér.
 import css from "./nafir.css";
@@ -15,13 +16,14 @@ import { stada } from "./stada.js";
 import { birta } from "./birta.js";
 import { stjorn } from "./stjorn.js";
 import { pressa } from "./pressa.js";
+import { hlekkir } from "./hlekkir.js";
 import { yfirlestur } from "../per/yfirlestur.js";
 
-const SIDUR = { stada: stada, birta: birta, stjorn: stjorn, pressa: pressa, yfirlestur: yfirlestur };
+const SIDUR = { stada: stada, birta: birta, stjorn: stjorn, pressa: pressa, hlekkir: hlekkir, yfirlestur: yfirlestur };
 // Síður með leiðarstikunni efst; pressusíðan er fyrir miðla og fær hana ekki
 const MED_LEIDUM = { stada: true, birta: true, stjorn: true, yfirlestur: true };
 // Síður í Nafir-lúkkinu (beige tækið). Stjórnsíðan heldur útliti Webflow-síðunnar
-const BEIGE = { stada: true, birta: true, pressa: true };
+const BEIGE = { stada: true, birta: true, pressa: true, hlekkir: true };
 
 function raesa() {
   const rot = document.querySelectorAll("[data-nafir]");

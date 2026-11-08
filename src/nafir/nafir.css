@@ -324,6 +324,35 @@
     .vpp-dymo--red { font-size: 1.5rem; }
   }
 
+  /* ---------- Hlekkjasíðan (.vhl, /nafir/links): bio-hlekkurinn á Instagram ---------- */
+  /* Mjór dálkur fyrir síma; notar Dymo, teljara og skjá pressusíðunnar */
+  .vhl { color: var(--black-800, #2e2e2e); font-family: "Open Sans", sans-serif; font-size: 1rem; line-height: 1.5; max-width: 28rem; margin: 0 auto; padding: 1.5rem 1rem 4rem; display: grid; gap: 1.25rem; }
+  .vhl p, .vhl h1 { margin: 0; }
+  .vhl-head { display: flex; justify-content: space-between; align-items: center; gap: 1rem; }
+  .vhl-head .vpp-dymo { margin-bottom: 0; }
+  .vhl-top { display: grid; grid-template-columns: 8.5rem minmax(0, 1fr); gap: 1rem; align-items: center; }
+  .vhl-screen { display: block; background-color: #494747; background-image: linear-gradient(#ffffff14, #ffffff05 10%, #0000000a); border-radius: .5rem; padding: .4rem; box-shadow: inset 0 1px #ffffff1f, 0 1px 2px #0003; }
+  .vhl-screen img { display: block; width: 100%; height: auto; border-radius: 2px; }
+  .vhl-titlar { display: grid; gap: .25rem; }
+  .vhl-titlar .vpp-artist { font-size: .75rem; }
+  .vhl-title { font-size: 2.75rem; line-height: 1; font-weight: 800; letter-spacing: -.02em; }
+  .vhl-date { font-family: "Courier Prime", Courier, monospace; font-size: .875rem; line-height: 1.35; }
+
+  .vhl-nytt-rauf { min-height: 5.25rem; }
+  .vhl a.vhl-nytt { display: grid; gap: .15rem; padding: .85rem 1rem; background: var(--vogor-red, #75161c); color: #fff; border-radius: .25rem; box-shadow: 2px 2px 11px #5f5f5fed; text-decoration: none; transition: transform .08s, box-shadow .08s; }
+  .vhl a.vhl-nytt:hover { background: #5e1116; }
+  .vhl a.vhl-nytt:active { transform: translateY(1px); box-shadow: 1px 1px 5px #5f5f5fed; }
+  .vhl-nytt-merki { font-family: Dymo, Arial, sans-serif; font-size: 1.125rem; line-height: 1.2; user-select: none; }
+  .vhl-nytt-titill { font-weight: 700; font-size: 1.0625rem; line-height: 1.35; }
+  .vhl-nytt-slod { font-family: "Courier Prime", Courier, monospace; font-size: .8125rem; opacity: .8; overflow-wrap: anywhere; }
+
+  .vhl-listi { display: grid; gap: .75rem; }
+  .vhl a.vhl-hlekkur { display: flex; align-items: center; justify-content: center; min-height: 3.25rem; padding: .5rem 1rem; background-color: #494848; color: #fff; border-radius: .25rem; box-shadow: 2px 2px 11px #5f5f5fed; text-decoration: none; text-align: center; text-transform: uppercase; font-size: .8125rem; font-weight: 700; letter-spacing: .15em; transition: transform .08s, box-shadow .08s; }
+  .vhl a.vhl-hlekkur:hover { background-color: #3d3c3c; }
+  .vhl a.vhl-hlekkur:active { transform: translateY(1px); box-shadow: 1px 1px 5px #5f5f5fed; }
+  .vhl a:focus-visible { outline: 2px solid var(--vogor-red, #75161c); outline-offset: 2px; }
+  @media (prefers-reduced-motion: reduce) { .vhl a { transition: none; } }
+
   /* ---------- Stjórnsíðan (.vp): útlit Webflow-síðunnar, enginn beige grunnur ---------- */
   .vp { max-width: 60rem; margin: 0 auto; display: grid; gap: 1rem; font: inherit; }
   .vp #vp-app { display: grid; gap: 1rem; }
