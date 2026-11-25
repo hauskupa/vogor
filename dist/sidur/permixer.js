@@ -1,4 +1,4 @@
-import{a as ot}from"./chunk-IQVD34ZK.js";import"./chunk-FW4363Y4.js";function W(r){try{return localStorage.getItem(r)||""}catch{return""}}function H(r,s){try{s?localStorage.setItem(r,s):localStorage.removeItem(r)}catch{}}function pt(r,s){let m=new URL(location.href),l=(m.searchParams.get(r)||"").trim();if(!l)return{lykill:W(s),nyr:!1};H(s,l),m.searchParams.delete(r);try{history.replaceState(history.state,"",m.href)}catch{}return{lykill:l,nyr:!0}}var St="Ekkert samband.";function lt(r,s){return fetch(r,{method:"POST",headers:{"Content-Type":"text/plain"},body:JSON.stringify(s)}).then(m=>m.json().catch(()=>{throw new Error("Bakendinn svara\xF0i ekki eins og hann \xE1 a\xF0 gera.")}),()=>{throw new Error(St)})}var Et="https://script.google.com/macros/s/AKfycbzQ-oaSyVQpcWQO2UkB0BkZToo-RlIdZR2Ap3iYBsb7BnAH4wkpNlWotDb_b9rdFHnG/exec",dt="per-yfirlestur-lykill",mt="per-yfirlestur-hver";function ct(){let{lykill:r,nyr:s}=pt("k",dt);return{key:r,fresh:s}}var T={get:()=>W(mt),set:r=>H(mt,r)};async function K(r,s){let m=await lt(Et,{...s,k:r});if(m.rangurLykill){H(dt,"");let l=new Error("Hlekkurinn gildir ekki.");throw l.badKey=!0,l}return m}function ut(r){let s=/^(\d{1,2}):(\d\d)$/.exec((r||"").trim());return s?Number(s[1])*60+Number(s[2]):null}var At=["jan","feb","mar","apr","ma\xED","j\xFAn","j\xFAl","\xE1g\xFA","sep","okt","n\xF3v","des"];function gt(r){let s=/^(\d{4})-(\d\d)-(\d\d) (\d\d:\d\d)/.exec(r||"");return s?`${Number(s[3])}. ${At[Number(s[2])-1]} kl. ${s[4]}`:""}var ft=`/* \xC6fingas\xED\xF0an (permixer.js). Sprauta\xF0 inn \xFAr JS, allt undir .pm */
+import{a as Lt}from"./chunk-IQVD34ZK.js";import"./chunk-FW4363Y4.js";function st(s){try{return localStorage.getItem(s)||""}catch{return""}}function U(s,o){try{o?localStorage.setItem(s,o):localStorage.removeItem(s)}catch{}}function zt(s,o){let m=new URL(location.href),l=(m.searchParams.get(s)||"").trim();if(!l)return{lykill:st(o),nyr:!1};U(o,l),m.searchParams.delete(s);try{history.replaceState(history.state,"",m.href)}catch{}return{lykill:l,nyr:!0}}var It="Ekkert samband.";function At(s,o){return fetch(s,{method:"POST",headers:{"Content-Type":"text/plain"},body:JSON.stringify(o)}).then(m=>m.json().catch(()=>{throw new Error("Bakendinn svara\xF0i ekki eins og hann \xE1 a\xF0 gera.")}),()=>{throw new Error(It)})}var Kt="https://script.google.com/macros/s/AKfycbzQ-oaSyVQpcWQO2UkB0BkZToo-RlIdZR2Ap3iYBsb7BnAH4wkpNlWotDb_b9rdFHnG/exec",Tt="per-yfirlestur-lykill",Ct="per-yfirlestur-hver";function Mt(){let{lykill:s,nyr:o}=zt("k",Tt);return{key:s,fresh:o}}var N={get:()=>st(Ct),set:s=>U(Ct,s)};async function V(s,o){let m=await At(Kt,{...o,k:s});if(m.rangurLykill){U(Tt,"");let l=new Error("Hlekkurinn gildir ekki.");throw l.badKey=!0,l}return m}function jt(s){let o=/^(\d{1,2}):(\d\d)$/.exec((s||"").trim());return o?Number(o[1])*60+Number(o[2]):null}var Gt=["jan","feb","mar","apr","ma\xED","j\xFAn","j\xFAl","\xE1g\xFA","sep","okt","n\xF3v","des"];function it(s){let o=/^(\d{4})-(\d\d)-(\d\d) (\d\d:\d\d)/.exec(s||"");return o?`${Number(o[3])}. ${Gt[Number(o[2])-1]} kl. ${o[4]}`:""}var Nt=`/* \xC6fingas\xED\xF0an (permixer.js). Sprauta\xF0 inn \xFAr JS, allt undir .pm */
 
 .pm {
   --pm-bg: #111;
@@ -280,8 +280,22 @@ import{a as ot}from"./chunk-IQVD34ZK.js";import"./chunk-FW4363Y4.js";function W(
   color: var(--pm-fg);
 }
 
-.pm-step button[data-pm-step="1"] {
+.pm-step-right {
+  display: flex;
+  align-items: center;
+  gap: 20px;
   margin-left: auto;
+}
+
+.pm-stage-open {
+  padding: 3px 10px !important;
+  border: 1px solid var(--pm-line) !important;
+  border-radius: 4px;
+  color: var(--pm-fg) !important;
+}
+
+.pm-stage-open:hover {
+  border-color: var(--pm-accent) !important;
 }
 
 /* Kynning og n\xF3tur */
@@ -714,12 +728,231 @@ button.pm-section-head:hover .pm-label,
     overflow: visible;
   }
 }
-`;var ht=["C","C#","D","D#","E","F","F#","G","G#","A","A#","B"],bt={Db:"C#",Eb:"D#",Gb:"F#",Ab:"G#",Bb:"A#"},Tt=[["Taktur",/drum|kick|snare|perc|trommu|slagverk|bass/],["Kassag\xEDtarar",/acoustic|akust|kassa/],["Rafg\xEDtarar",/guit|gítar|gitar|gtr/],["Hlj\xF3mbor\xF0",/piano|píanó|keys|organ|orgel|synth|rhodes|hljómb/],["S\xF6ngur",/vocal|vox|voice|söng|rödd|kór|choir|backing/],["Bl\xE1stur",/trombone|trumpet|sax|horn|básún|trompet|brass|blást/],["Anna\xF0",/.*/]],Ct=["Taktur","Rafg\xEDtarar","Kassag\xEDtarar","Hlj\xF3mbor\xF0","S\xF6ngur","Bl\xE1stur","Anna\xF0"],zt=`<svg viewBox="0 0 10 16" aria-hidden="true">${[3,8,13].map(r=>`<circle cx="2.5" cy="${r}" r="1.5"/><circle cx="7.5" cy="${r}" r="1.5"/>`).join("")}</svg>`,jt=[["both","B\xE6\xF0i"],["chords","Hlj\xF3mar"],["lyrics","Texti"]];function $(r){return(r||"").replace(/[​-‏﻿]/g,"").trim()}var Mt={\u00F0:"d",\u00FE:"th",\u00E6:"ae",\u00F6:"o"};function J(r){return $(r).toLowerCase().replace(/[ðþæö]/g,s=>Mt[s]).normalize("NFKD").replace(/[̀-ͯ]/g,"").replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"")}function Nt(r){let s=[],m=/([^\s:,;][^:,;\n]*?)\s*:\s*(https?:\/\/[^\s,;]+)/g,l;for(;l=m.exec(r.getAttribute("data-pm-stems")||"");)s.push([$(l[1]),l[2]]);Array.from(r.attributes).forEach(h=>{let o=$(h.value);h.name.startsWith("data-stem-")&&/^https?:\/\//.test(o)&&s.push([h.name.slice(10),o])});let x=new Set;return s.map(([h,o],L)=>{let y=J(h)||`stem-${L+1}`;for(;x.has(y);)y+="-2";return x.add(y),{id:y,name:h,url:o}})}function Bt(r){let s=r.split(":").map(Number);return!s.length||s.some(m=>!Number.isFinite(m))?null:s.reduce((m,l)=>m*60+l,0)}function Ot(r){return $(r).split(/[\s,;]+/).filter(Boolean).map(Bt)}function qt(r){return Array.from(r.querySelectorAll("[data-chords]")).map(s=>{let m=s.parentElement,l=$(s.getAttribute("data-chords")||s.textContent),x=m.querySelector(".w-richtext"),h=!!$(x?.textContent);if(!l&&!h)return null;let o=$(m.querySelector(".kafli-repeat")?.lastElementChild?.textContent);return{label:$(m.querySelector("h1, h2, h3, h4")?.textContent),chords:l,repeat:/^\d+$/.test(o)?Number(o):null,lyrics:h?x:null,start:null}}).filter(Boolean)}function Pt(){return Array.from(document.querySelectorAll("[data-pm-song]")).map((r,s)=>{let m=r.closest(".w-dyn-item")||r.parentElement,l=$(r.getAttribute("data-pm-title"))||$(m.querySelector("h1, h2")?.textContent)||`Lag ${s+1}`,x=J(r.getAttribute("data-pm-song"))||J(l)||`lag-${s+1}`,h=qt(m),o=Ot(r.getAttribute("data-pm-times"));return h.forEach((L,y)=>{L.start=o[y]??null}),{id:x,title:l,stems:Nt(r),sections:h}})}function f(r){return String(r).replace(/[&<>"']/g,s=>`&#${s.charCodeAt(0)};`)}function M(r){if(!Number.isFinite(r))return"0:00";let s=Math.max(0,Math.floor(r));return`${Math.floor(s/60)}:${String(s%60).padStart(2,"0")}`}function Rt(r){let s=r.replace(/([a-zA-Zþæöðáéíóúý])(\d+)$/,"$1 $2");return s.charAt(0).toUpperCase()+s.slice(1)}function Ht(r){let s=r.name.toLowerCase();return Tt.find(([,m])=>m.test(s))[0]}function xt(r,s){return r.split("/").map(m=>{let l=m.match(/^([A-G])([#b]?)(.*)$/);if(!l)return m;let x=bt[l[1]+l[2]]||l[1]+l[2],h=ht.indexOf(x);return h<0?m:ht[((h+s)%12+12)%12]+l[3]}).join("/")}function Kt(r,s){return s?r.split(/(\s+|-+)/).map(m=>/^(\s+|-+)?$/.test(m)?m:xt(m,s)).join(""):r}function Dt(r){for(let s of r.sections){let m=s.chords.match(/[A-G][#b]?/);if(m)return bt[m[0]]||m[0]}return null}function Ft(){let r=Pt();if(!r.length)return;if(!document.querySelector("style[data-pm-style]")){let t=document.createElement("style");t.setAttribute("data-pm-style",""),t.textContent=ft,document.head.appendChild(t)}let s=document.querySelector("[data-pm-song]").closest(".w-dyn-list"),m=document.querySelector("[data-pm-app]");m||(m=document.createElement("div"),(s||document.body).before(m)),s&&(s.hidden=!0),m.classList.add("pm");let l=ot();r.forEach(t=>{l.define({id:t.id,tracks:t.stems.map(({id:n,url:e})=>({id:n,url:e}))})});let x=new Map,h="both",o=r.find(t=>`#${t.id}`===location.hash)||r[0],L=!1,y=-1,C=new Map(r.map(t=>[t.id,t])),u=null,g=null,S=null,z=new Map;m.innerHTML=`
+
+/* Svi\xF0shamur (iPad \xE1 stat\xEDfi): bara hlj\xF3mar og texti, yfir allri s\xED\xF0unni.
+   Er beint undir <body>, ekki inni \xED .pm, svo Webflow-umgj\xF6r\xF0in trufli ekki. */
+html.pm-stage-on,
+html.pm-stage-on body {
+  overflow: hidden !important;
+  /* L\xE1r\xE9tt strok \xE1 ekki a\xF0 ver\xF0a \u201Etil baka\u201C \xED vafranum */
+  overscroll-behavior: none;
+}
+
+.pm-stage {
+  --pm-fg: #f5f5f5;
+  --pm-muted: #8c8c8c;
+  --pm-line: #262626;
+  --pm-accent: #f2a33a;
+  --pm-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+  position: fixed;
+  inset: 0;
+  z-index: 2147483000;
+  display: flex;
+  flex-direction: column;
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+  background: #000;
+  color: var(--pm-fg);
+  line-height: 1.3;
+  touch-action: pan-y;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.pm-stage[hidden],
+.pm-stage [hidden] {
+  display: none !important;
+}
+
+.pm-stage *,
+.pm-stage *::before,
+.pm-stage *::after {
+  box-sizing: border-box;
+}
+
+.pm-stage button {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+}
+
+.pm-stage-head {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 10px 16px 10px 24px;
+  border-bottom: 1px solid var(--pm-line);
+  font-size: 15px;
+  color: var(--pm-muted);
+  white-space: nowrap;
+}
+
+.pm-stage-pos {
+  font-family: var(--pm-mono);
+  font-size: 13px;
+}
+
+.pm-stage-title {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--pm-fg);
+}
+
+.pm-stage-key {
+  font-family: var(--pm-mono);
+  font-weight: 600;
+  color: var(--pm-accent);
+}
+
+.pm-stage-next {
+  margin-left: auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pm-stage-close {
+  flex: none;
+  width: 40px;
+  height: 40px;
+  border: 1px solid var(--pm-line) !important;
+  border-radius: 50%;
+  font-size: 22px !important;
+  line-height: 1;
+  color: var(--pm-muted) !important;
+}
+
+.pm-stage-main {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+}
+
+/* Letri\xF0 (font-size) og d\xE1lkafj\xF6ldinn koma \xFAr JS svo lagi\xF0 passi \xE1 skj\xE1inn */
+/* touch-action \xFEarf l\xEDka h\xE9r: skrunsv\xE6\xF0i hunsar \xFEa\xF0 sem foreldri\xF0 segir, og
+   \xFE\xE1 tekur vafrinn l\xE1r\xE9tta stroki\xF0 \xED sta\xF0 JS */
+.pm-stage-body,
+.pm-stage-edge {
+  touch-action: pan-y;
+}
+
+.pm-stage-body {
+  flex: 1;
+  min-width: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+  padding: 0.6em 5vw 0.4em;
+  column-fill: auto;
+  column-gap: 2.5em;
+  column-rule: 1px solid var(--pm-line);
+}
+
+.pm-stage .pm-section {
+  padding: 0 0 0.75em;
+  border: 0;
+  break-inside: avoid;
+}
+
+.pm-stage .pm-section-head {
+  display: block;
+}
+
+.pm-stage .pm-label {
+  font-size: max(11px, 0.5em);
+  letter-spacing: 0.1em;
+  color: var(--pm-muted);
+}
+
+.pm-stage .pm-section.is-current .pm-label {
+  color: var(--pm-muted);
+}
+
+.pm-stage .pm-chords {
+  margin-top: 0.1em;
+  font-size: 0.85em;
+  font-weight: 600;
+  color: var(--pm-accent);
+}
+
+.pm-stage .pm-lyrics {
+  margin-top: 0.15em;
+  font-size: 1em;
+  line-height: 1.3;
+}
+
+.pm-stage .pm-lyrics > * {
+  margin: 0 0 0.45em;
+}
+
+.pm-stage .pm-lyrics > :last-child {
+  margin-bottom: 0;
+}
+
+.pm-stage .pm-lyrics h5,
+.pm-stage .pm-lyrics strong {
+  font-size: 0.6em;
+}
+
+.pm-stage-empty {
+  margin: 0;
+  color: var(--pm-muted);
+}
+
+/* Br\xFAnirnar: smellur fer \xE1 fyrra/n\xE6sta lag */
+.pm-stage-edge {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 10%;
+  min-width: 56px;
+}
+
+.pm-stage-edge[data-pm-st-step="-1"] {
+  left: 0;
+}
+
+.pm-stage-edge[data-pm-st-step="1"] {
+  right: 0;
+}
+
+.pm-stage-edge span {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 56px;
+  line-height: 1;
+  color: var(--pm-fg);
+  opacity: 0.12;
+}
+
+.pm-stage-edge[data-pm-st-step="-1"] span {
+  left: 10px;
+}
+
+.pm-stage-edge[data-pm-st-step="1"] span {
+  right: 10px;
+}
+
+.pm-stage-edge:active span {
+  opacity: 0.4;
+}
+`;var qt=["C","C#","D","D#","E","F","F#","G","G#","A","A#","B"],Ot={Db:"C#",Eb:"D#",Gb:"F#",Ab:"G#",Bb:"A#"},Vt=[["Taktur",/drum|kick|snare|perc|trommu|slagverk|bass/],["Kassag\xEDtarar",/acoustic|akust|kassa/],["Rafg\xEDtarar",/guit|gítar|gitar|gtr/],["Hlj\xF3mbor\xF0",/piano|píanó|keys|organ|orgel|synth|rhodes|hljómb/],["S\xF6ngur",/vocal|vox|voice|söng|rödd|kór|choir|backing/],["Bl\xE1stur",/trombone|trumpet|sax|horn|básún|trompet|brass|blást/],["Anna\xF0",/.*/]],Wt=["Taktur","Rafg\xEDtarar","Kassag\xEDtarar","Hlj\xF3mbor\xF0","S\xF6ngur","Bl\xE1stur","Anna\xF0"],Yt=`<svg viewBox="0 0 10 16" aria-hidden="true">${[3,8,13].map(s=>`<circle cx="2.5" cy="${s}" r="1.5"/><circle cx="7.5" cy="${s}" r="1.5"/>`).join("")}</svg>`,Ht="pm-lagalisti",Jt=[["both","B\xE6\xF0i"],["chords","Hlj\xF3mar"],["lyrics","Texti"]];function z(s){return(s||"").replace(/[​-‏﻿]/g,"").trim()}var _t={\u00F0:"d",\u00FE:"th",\u00E6:"ae",\u00F6:"o"};function ot(s){return z(s).toLowerCase().replace(/[ðþæö]/g,o=>_t[o]).normalize("NFKD").replace(/[̀-ͯ]/g,"").replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"")}function Qt(s){let o=[],m=/([^\s:,;][^:,;\n]*?)\s*:\s*(https?:\/\/[^\s,;]+)/g,l;for(;l=m.exec(s.getAttribute("data-pm-stems")||"");)o.push([z(l[1]),l[2]]);Array.from(s.attributes).forEach(h=>{let i=z(h.value);h.name.startsWith("data-stem-")&&/^https?:\/\//.test(i)&&o.push([h.name.slice(10),i])});let y=new Set;return o.map(([h,i],M)=>{let w=ot(h)||`stem-${M+1}`;for(;y.has(w);)w+="-2";return y.add(w),{id:w,name:h,url:i}})}function Zt(s){let o=s.split(":").map(Number);return!o.length||o.some(m=>!Number.isFinite(m))?null:o.reduce((m,l)=>m*60+l,0)}function Xt(s){return z(s).split(/[\s,;]+/).filter(Boolean).map(Zt)}function te(s){return Array.from(s.querySelectorAll("[data-chords]")).map(o=>{let m=o.parentElement,l=z(o.getAttribute("data-chords")||o.textContent),y=m.querySelector(".w-richtext"),h=!!z(y?.textContent);if(!l&&!h)return null;let i=z(m.querySelector(".kafli-repeat")?.lastElementChild?.textContent);return{label:z(m.querySelector("h1, h2, h3, h4")?.textContent),chords:l,repeat:/^\d+$/.test(i)?Number(i):null,lyrics:h?y:null,start:null}}).filter(Boolean)}function ee(){return Array.from(document.querySelectorAll("[data-pm-song]")).map((s,o)=>{let m=s.closest(".w-dyn-item")||s.parentElement,l=z(s.getAttribute("data-pm-title"))||z(m.querySelector("h1, h2")?.textContent)||`Lag ${o+1}`,y=ot(s.getAttribute("data-pm-song"))||ot(l)||`lag-${o+1}`,h=te(m),i=Xt(s.getAttribute("data-pm-times"));return h.forEach((M,w)=>{M.start=i[w]??null}),{id:y,title:l,stems:Qt(s),sections:h}})}function f(s){return String(s).replace(/[&<>"']/g,o=>`&#${o.charCodeAt(0)};`)}function B(s){if(!Number.isFinite(s))return"0:00";let o=Math.max(0,Math.floor(s));return`${Math.floor(o/60)}:${String(o%60).padStart(2,"0")}`}function ae(s){let o=s.replace(/([a-zA-Zþæöðáéíóúý])(\d+)$/,"$1 $2");return o.charAt(0).toUpperCase()+o.slice(1)}function ne(s){let o=s.name.toLowerCase();return Vt.find(([,m])=>m.test(o))[0]}function Bt(s,o){return s.split("/").map(m=>{let l=m.match(/^([A-G])([#b]?)(.*)$/);if(!l)return m;let y=Ot[l[1]+l[2]]||l[1]+l[2],h=qt.indexOf(y);return h<0?m:qt[((h+o)%12+12)%12]+l[3]}).join("/")}function re(s,o){return o?s.split(/(\s+|-+)/).map(m=>/^(\s+|-+)?$/.test(m)?m:Bt(m,o)).join(""):s}function se(s){for(let o of s.sections){let m=o.chords.match(/[A-G][#b]?/);if(m)return Ot[m[0]]||m[0]}return null}function ie(){let s=ee();if(!s.length)return;if(!document.querySelector("style[data-pm-style]")){let t=document.createElement("style");t.setAttribute("data-pm-style",""),t.textContent=Nt,document.head.appendChild(t)}let o=document.querySelector("[data-pm-song]").closest(".w-dyn-list"),m=document.querySelector("[data-pm-app]");m||(m=document.createElement("div"),(o||document.body).before(m)),o&&(o.hidden=!0),m.classList.add("pm");let l=Lt();s.forEach(t=>{l.define({id:t.id,tracks:t.stems.map(({id:a,url:e})=>({id:a,url:e}))})});let y=new Map,h="both",i=s.find(t=>`#${t.id}`===location.hash)||s[0],M=!1,w=-1,q=new Map(s.map(t=>[t.id,t])),u=null,g=null,A=null,C=!1,H=new Map;m.innerHTML=`
     <nav class="pm-songs" aria-label="Lagalisti" data-pm-el="nav"></nav>
     <main class="pm-main">
-      <div class="pm-step" data-pm-el="step" hidden>
+      <div class="pm-step" data-pm-el="step">
         <button type="button" data-pm-step="-1"></button>
-        <button type="button" data-pm-step="1"></button>
+        <span class="pm-step-right">
+          <button type="button" data-pm-step="1"></button>
+          <button type="button" class="pm-stage-open" data-pm-el="stage-open">Svi\xF0shamur</button>
+        </span>
       </div>
       <h1 class="pm-title" data-pm-el="title"></h1>
       <div class="pm-transport">
@@ -748,7 +981,7 @@ button.pm-section-head:hover .pm-label,
       </form>
       <div class="pm-structure" data-pm-el="structure"></div>
       <div class="pm-toolbar" data-pm-el="toolbar">
-        <div class="pm-views" role="group" aria-label="S\xFDn">${jt.map(([t,n])=>`<button type="button" data-pm-view="${t}">${n}</button>`).join("")}</div>
+        <div class="pm-views" role="group" aria-label="S\xFDn">${Jt.map(([t,a])=>`<button type="button" data-pm-view="${t}">${a}</button>`).join("")}</div>
         <div class="pm-transpose">
           <button type="button" data-pm-transpose="-1" aria-label="L\xE6kka um h\xE1lft\xF3n">\u2212</button>
           <span data-pm-el="key"></span>
@@ -763,39 +996,51 @@ button.pm-section-head:hover .pm-label,
         <button type="button" class="pm-link" data-pm-el="reset">Endurstilla</button>
       </div>
       <div data-pm-el="strips"></div>
-    </aside>`;let b=t=>m.querySelector(`[data-pm-el="${t}"]`),p={nav:b("nav"),step:b("step"),per:b("per"),introBox:b("intro-box"),introHint:b("intro-hint"),save:b("save"),status:b("status"),toolbar:b("toolbar"),title:b("title"),play:b("play"),time:b("time"),seek:b("seek"),note:b("note"),structure:b("structure"),key:b("key"),sections:b("sections"),count:b("count"),reset:b("reset"),strips:b("strips")};function A(t=o){return l.getSong(t.id)?.duration||0}function vt(t,n){let e=t.sections.slice(n+1).find(a=>a.start!==null);return e?e.start:A(t)}function E(t){return u?.rows.get(t)?.lag||C.get(t)?.title||t}function Y(){if(!u)return{listed:r.map(n=>n.id),other:[]};let t=g||u.order;return{listed:t,other:r.map(n=>n.id).filter(n=>!t.includes(n))}}function k(){let{listed:t,other:n}=Y(),e=!!g,a=(d,j)=>{let w=t.indexOf(d),v=e?w===-1?`<span class="pm-order"><button type="button" data-pm-add="${f(d)}" aria-label="Setja ${f(E(d))} \xE1 listann">+</button></span>`:`<span class="pm-order">
-              <button type="button" data-pm-move="${f(d)}" data-pm-by="-1" ${w===0?"disabled":""} aria-label="F\xE6ra ${f(E(d))} upp">\u2191</button>
-              <button type="button" data-pm-move="${f(d)}" data-pm-by="1" ${w===t.length-1?"disabled":""} aria-label="F\xE6ra ${f(E(d))} ni\xF0ur">\u2193</button>
-              <button type="button" data-pm-remove="${f(d)}" aria-label="Taka ${f(E(d))} af listanum">\xD7</button>
-            </span>`:"";return`<li>${e?`<span class="pm-grip" data-pm-grip="${f(d)}" title="Draga til" aria-hidden="true">${zt}</span>`:""}<button type="button" data-pm-pick="${f(d)}" aria-current="${d===o.id}">
-          <span class="pm-num">${j===null?"\u2013":String(j+1).padStart(2,"0")}</span>
-          <span>${f(E(d))}</span></button>${v}</li>`},i="";if(u){let d=t.map(v=>ut(u.rows.get(v)?.lengd)),j=d.filter(v=>v===null).length,w=d.reduce((v,B)=>v+(B||0),0);i=`<div class="pm-songs-head">
-          <span class="pm-total">${t.length} l\xF6g \xB7 ${M(w)}${j?` <small>(${j} \xE1n lengdar)</small>`:""}</span>
+    </aside>`;let b=t=>m.querySelector(`[data-pm-el="${t}"]`),p={nav:b("nav"),step:b("step"),per:b("per"),introBox:b("intro-box"),introHint:b("intro-hint"),save:b("save"),status:b("status"),toolbar:b("toolbar"),title:b("title"),play:b("play"),time:b("time"),seek:b("seek"),note:b("note"),structure:b("structure"),key:b("key"),sections:b("sections"),count:b("count"),reset:b("reset"),strips:b("strips")};function T(t=i){return l.getSong(t.id)?.duration||0}function Pt(t,a){let e=t.sections.slice(a+1).find(n=>n.start!==null);return e?e.start:T(t)}function $(t){return u?.rows.get(t)?.lag||q.get(t)?.title||t}function W(){if(!u)return{listed:s.map(a=>a.id),other:[]};let t=g||u.order;return{listed:t,other:s.map(a=>a.id).filter(a=>!t.includes(a))}}function L(){let{listed:t,other:a}=W(),e=!!g,n=(d,x)=>{let v=t.indexOf(d),k=e?v===-1?`<span class="pm-order"><button type="button" data-pm-add="${f(d)}" aria-label="Setja ${f($(d))} \xE1 listann">+</button></span>`:`<span class="pm-order">
+              <button type="button" data-pm-move="${f(d)}" data-pm-by="-1" ${v===0?"disabled":""} aria-label="F\xE6ra ${f($(d))} upp">\u2191</button>
+              <button type="button" data-pm-move="${f(d)}" data-pm-by="1" ${v===t.length-1?"disabled":""} aria-label="F\xE6ra ${f($(d))} ni\xF0ur">\u2193</button>
+              <button type="button" data-pm-remove="${f(d)}" aria-label="Taka ${f($(d))} af listanum">\xD7</button>
+            </span>`:"";return`<li>${e?`<span class="pm-grip" data-pm-grip="${f(d)}" title="Draga til" aria-hidden="true">${Yt}</span>`:""}<button type="button" data-pm-pick="${f(d)}" aria-current="${d===i.id}">
+          <span class="pm-num">${x===null?"\u2013":String(x+1).padStart(2,"0")}</span>
+          <span>${f($(d))}</span></button>${k}</li>`},r="";if(u){let d=t.map(k=>jt(u.rows.get(k)?.lengd)),x=d.filter(k=>k===null).length,v=d.reduce((k,R)=>k+(R||0),0);r=`<div class="pm-songs-head">
+          <span class="pm-total">${t.length} l\xF6g \xB7 ${B(v)}${x?` <small>(${x} \xE1n lengdar)</small>`:""}</span>
           <label class="pm-who">\xC9g er <select data-pm-who>
             <option value="">veldu</option>
-            ${u.names.map(v=>`<option ${v===T.get()?"selected":""}>${f(v)}</option>`).join("")}
+            ${u.names.map(k=>`<option ${k===N.get()?"selected":""}>${f(k)}</option>`).join("")}
           </select></label>
           ${e?"":'<button type="button" class="pm-link" data-pm-order="edit">Breyta r\xF6\xF0</button>'}
         </div>`}let c=e?`<div class="pm-order-foot">
           <button type="button" class="pm-save" data-pm-order="save">Vista r\xF6\xF0</button>
           <button type="button" class="pm-link" data-pm-order="cancel">H\xE6tta vi\xF0</button>
           <p class="pm-status" data-pm-el="order-status" aria-live="polite"></p>
-        </div>`:"";S=null,p.nav.classList.remove("is-dragging"),p.nav.classList.toggle("is-editing",e),p.nav.innerHTML=`${i}
-      <ol>${t.filter(d=>C.has(d)).map(d=>a(d,t.indexOf(d))).join("")}</ol>
-      ${n.length?`<p class="pm-songs-sub">Utan lagalista</p><ul>${n.map(d=>a(d,null)).join("")}</ul>`:""}
-      ${c}`}function _(){let{listed:t}=Y(),n=t.indexOf(o.id);return n===-1?[null,null]:[t[n-1]||null,t[n+1]||null]}function D(){let[t,n]=_();p.step.hidden=!u||!t&&!n;let[e,a]=p.step.querySelectorAll("button");e.hidden=!t,a.hidden=!n,e.dataset.pmTarget=t||"",a.dataset.pmTarget=n||"",e.textContent=t?`\u2190 ${E(t)}`:"",a.textContent=n?`N\xE6st: ${E(n)} \u2192`:""}let F=["kynning","notur","lengd"],O=t=>p.per.querySelector(`[data-pm-field="${t}"]`);function q(t=o.id){return u?.rows.get(t)||null}function Q(){let t=q();return t?F.filter(n=>O(n).value!==(t[n]||"")):[]}function I(t){let n=q();if(p.per.hidden=!n,!n)return;let e=z.get(o.id)||n;F.forEach(a=>{O(a).value=e[a]||""}),p.introHint.textContent=n.kynning.trim()?"":"(engin enn)",N(t)}function N(t){let n=q(),e=Q();e.length?z.set(o.id,Object.fromEntries(F.map(a=>[a,O(a).value]))):z.delete(o.id),p.save.disabled=!e.length,p.status.classList.toggle("is-warning",!!t||e.length>0),p.status.textContent=t||(e.length?"\xD3vista\xF0ar breytingar":n.breytt&&n.breyttAf?`S\xED\xF0ast vista\xF0 ${gt(n.breytt)} af ${n.breyttAf}`:"")}function G(){let t=o;k(),D(),I(),p.title.textContent=E(t.id),p.play.disabled=!t.stems.length,p.note.hidden=!!t.stems.length,p.note.textContent=t.missing?"Ekki komi\xF0 \xED mixerinn: bara kynning og n\xF3tur.":"Engin stem fyrir \xFEetta lag \u2014 bara hlj\xF3mar og texti.",p.toolbar.hidden=!t.sections.length,y=-1,Z(),V(),X(),tt(),P(l.getTime(t.id))}function Z(){let t=o,e=!!A(t)&&t.sections.some(a=>a.start!==null);p.structure.hidden=!t.sections.length,p.structure.innerHTML=t.sections.map((a,i)=>{let c=e&&a.start!==null?Math.max(1,vt(t,i)-a.start):1,d=e&&a.start!==null?"button":"div";return`<${d} ${d==="button"?'type="button"':""} class="pm-seg" data-pm-seg="${i}"
-          style="flex-grow:${c}"><span>${f(a.label||`Kafli ${i+1}`)}</span></${d}>`}).join("")}function V(){let t=o,n=x.get(t.id)||0;p.sections.dataset.view=h,p.sections.innerHTML="",t.sections.forEach((e,a)=>{let i=document.createElement("section");i.className="pm-section",i.dataset.pmSection=a;let c=e.start!==null&&t.stems.length;if(i.innerHTML=`
-        <${c?'button type="button"':"div"} class="pm-section-head" ${c?`data-pm-jump="${a}"`:""}>
-          <span class="pm-label">${f(e.label||`Kafli ${a+1}`)}${e.repeat?` \xD7${e.repeat}`:""}</span>
-          ${e.start!==null?`<span class="pm-start">${M(e.start)}</span>`:""}
-        </${c?"button":"div"}>
-        ${e.chords?`<div class="pm-chords">${f(Kt(e.chords,n))}</div>`:""}`,e.lyrics){let d=document.createElement("div");d.className="pm-lyrics",d.append(...Array.from(e.lyrics.cloneNode(!0).childNodes)),i.appendChild(d)}p.sections.appendChild(i)}),m.querySelectorAll("[data-pm-view]").forEach(e=>{e.setAttribute("aria-pressed",e.dataset.pmView===h?"true":"false")})}function X(){let t=x.get(o.id)||0,n=Dt(o),e=t>0?`+${t}`:t<0?`${t}`:"";p.key.textContent=n?`${xt(n,t)}${e?` (${e})`:""}`:e||"T\xF3nn"}function tt(){let t=o,n=l.getSong(t.id);if(!t.stems.length){p.strips.innerHTML="",p.count.textContent="Engar r\xE1sir",p.reset.hidden=!0;return}p.reset.hidden=!1;let e=new Map;t.stems.forEach((a,i)=>{let c=Ht(a);e.has(c)||e.set(c,[]),e.get(c).push({stem:a,track:n.tracks[i]})}),p.strips.innerHTML=Ct.filter(a=>e.has(a)).map(a=>`<div class="pm-group"><div class="pm-group-name">${a}</div>${e.get(a).map(({stem:i,track:c})=>`<div class="pm-strip" data-pm-strip="${f(i.id)}">
-              <span class="pm-strip-name">${f(Rt(i.name))}</span>
-              <button type="button" class="pm-ms" data-pm-mute aria-pressed="${c.muted}" aria-label="\xDEagga ${f(i.name)}">M</button>
-              <button type="button" class="pm-ms" data-pm-solo aria-pressed="${c.soloed}" aria-label="S\xF3l\xF3 ${f(i.name)}">S</button>
-              <input type="range" class="pm-vol" data-pm-vol min="0" max="1" step="0.01" value="${c.volume}" aria-label="Styrkur ${f(i.name)}">
-              <input type="range" class="pm-pan" data-pm-pan min="-1" max="1" step="0.01" value="${c.pan}" aria-label="Pan ${f(i.name)}">
-            </div>`).join("")}</div>`).join(""),et()}function et(){let t=l.getSong(o.id);if(!t)return;let n=t.tracks.some(a=>a.soloed),e=0;t.tracks.forEach(a=>{let i=p.strips.querySelector(`[data-pm-strip="${CSS.escape(a.id)}"]`),c=a.muted||n&&!a.soloed;c||(e+=1),i&&(i.classList.toggle("is-silent",c),i.querySelector("[data-pm-mute]").setAttribute("aria-pressed",a.muted),i.querySelector("[data-pm-solo]").setAttribute("aria-pressed",a.soloed))}),p.count.textContent=`${e} af ${t.tracks.length} r\xE1sum`}function P(t){let n=A();p.time.textContent=`${M(t)} / ${M(n)}`,L||(p.seek.value=n?Math.round(t/n*1e3):0),p.structure.style.setProperty("--pm-progress",n?`${t/n*100}%`:"0%");let e=-1;o.sections.forEach((a,i)=>{a.start!==null&&t>=a.start&&(e=i)}),e!==y&&(y=e,m.querySelectorAll("[data-pm-seg], [data-pm-section]").forEach(a=>{let i=Number(a.dataset.pmSeg??a.dataset.pmSection);a.classList.toggle("is-current",i===e)}))}function U(t){let n=r.find(i=>i.id===t);if(!n||n===o)return;let e=l.isPlaying(o.id);o=n;let a=new URL(location.href);a.hash=n.id,history.replaceState(history.state,"",a.href),n.stems.length?e?l.play(n.id):l.select(n.id):l.pause(),G()}function nt(){o.stems.length&&(l.isPlaying(o.id)?l.pause(o.id):l.play(o.id))}function at(t){let n=o.sections[t]?.start;n!=null&&(l.isPlaying(o.id)?l.seek(n,o.id):(l.seek(n,o.id),l.play(o.id)))}function yt(t){let n=_()[t<0?0:1];n&&U(n)}function rt(t){let n=new Map(t.map(e=>[e.id,e]));t.forEach(e=>{if(C.has(e.id))return;let a={id:e.id,title:e.lag,stems:[],sections:[],missing:!0};r.push(a),C.set(e.id,a)}),u={...u,rows:n,order:t.filter(e=>e.rod!==null).map(e=>e.id)}}async function kt(){let{key:t,fresh:n}=ct();if(t)try{let e=await K(t,{action:"lagalisti"});if(!e.ok)throw new Error(e.villa);u={key:t,names:e.nofn},rt(e.log),!location.hash&&u.order.length&&!l.isPlaying(o.id)&&(o=C.get(u.order[0])),G()}catch(e){(n||e.badKey)&&(p.note.hidden=!1,p.note.textContent=e.badKey?"Hlekkurinn gildir ekki, svo t\xF3nleikar\xF6\xF0in s\xE9st ekki. Biddu \xD3la um n\xFDjan.":"N\xE1\xF0i ekki \xED t\xF3nleikar\xF6\xF0ina. Reyndu a\xF0 endurhla\xF0a s\xED\xF0una.")}}async function wt(){let t=q(),n=Q();if(!t||!n.length)return;if(!T.get()){N("Veldu fyrst hver \xFE\xFA ert, efst \xED lagalistanum.");return}let e=o.id,a=Object.fromEntries(n.map(i=>[i,O(i).value]));p.save.disabled=!0,p.status.textContent="Vista \u2026";try{let i=await K(u.key,{action:"lagVista",id:e,hver:T.get(),breytt:t.breytt,reitir:a});if(i.arekstur){u.rows.set(e,i.lag),o.id===e&&N(i.villa);return}if(!i.ok)throw new Error(i.villa);u.rows.set(e,i.lag),z.delete(e),o.id===e&&I(),k()}catch(i){o.id===e&&N(`T\xF3kst ekki a\xF0 vista. ${i.message}`)}}function R(t){let n=m.querySelector('[data-pm-el="order-status"]');n&&(n.textContent=t)}async function $t(){if(!T.get()){R("Veldu fyrst hver \xFE\xFA ert.");return}let t=u.order,n=g;if(n.join(`
+        </div>`:"";A=null,p.nav.classList.remove("is-dragging"),p.nav.classList.toggle("is-editing",e),p.nav.innerHTML=`${r}
+      <ol>${t.filter(d=>q.has(d)).map(d=>n(d,t.indexOf(d))).join("")}</ol>
+      ${a.length?`<p class="pm-songs-sub">Utan lagalista</p><ul>${a.map(d=>n(d,null)).join("")}</ul>`:""}
+      ${c}`}function Y(){let{listed:t}=W(),a=t.indexOf(i.id);return a===-1?[null,null]:[t[a-1]||null,t[a+1]||null]}function J(){let[t,a]=Y(),[e,n]=p.step.querySelectorAll("[data-pm-step]");e.hidden=!u||!t,n.hidden=!u||!a,e.dataset.pmTarget=t||"",n.dataset.pmTarget=a||"",e.textContent=t?`\u2190 ${$(t)}`:"",n.textContent=a?`N\xE6st: ${$(a)} \u2192`:""}let _=["kynning","notur","lengd"],D=t=>p.per.querySelector(`[data-pm-field="${t}"]`);function F(t=i.id){return u?.rows.get(t)||null}function pt(){let t=F();return t?_.filter(a=>D(a).value!==(t[a]||"")):[]}function Q(t){let a=F();if(p.per.hidden=!a,!a)return;let e=H.get(i.id)||a;_.forEach(n=>{D(n).value=e[n]||""}),p.introHint.textContent=a.kynning.trim()?"":"(engin enn)",P(t)}function P(t){let a=F(),e=pt();e.length?H.set(i.id,Object.fromEntries(_.map(n=>[n,D(n).value]))):H.delete(i.id),p.save.disabled=!e.length,p.status.classList.toggle("is-warning",!!t||e.length>0),p.status.textContent=t||(e.length?"\xD3vista\xF0ar breytingar":a.breytt&&a.breyttAf?`S\xED\xF0ast vista\xF0 ${it(a.breytt)} af ${a.breyttAf}`:"")}function Z(){let t=i;L(),J(),Q(),p.title.textContent=$(t.id),p.play.disabled=!t.stems.length,p.note.hidden=!!t.stems.length,p.note.textContent=t.missing?"Ekki komi\xF0 \xED mixerinn: bara kynning og n\xF3tur.":"Engin stem fyrir \xFEetta lag \u2014 bara hlj\xF3mar og texti.",p.toolbar.hidden=!t.sections.length,w=-1,lt(),X(),ct(),ut(),I(l.getTime(t.id)),C&&yt()}function lt(){let t=i,e=!!T(t)&&t.sections.some(n=>n.start!==null);p.structure.hidden=!t.sections.length,p.structure.innerHTML=t.sections.map((n,r)=>{let c=e&&n.start!==null?Math.max(1,Pt(t,r)-n.start):1,d=e&&n.start!==null?"button":"div";return`<${d} ${d==="button"?'type="button"':""} class="pm-seg" data-pm-seg="${r}"
+          style="flex-grow:${c}"><span>${f(n.label||`Kafli ${r+1}`)}</span></${d}>`}).join("")}function X(){mt(p.sections,i,!0),m.querySelectorAll("[data-pm-view]").forEach(t=>{t.setAttribute("aria-pressed",t.dataset.pmView===h?"true":"false")})}function mt(t,a,e){let n=y.get(a.id)||0;t.dataset.view=h,t.innerHTML="",a.sections.forEach((r,c)=>{let d=document.createElement("section");d.className="pm-section",d.dataset.pmSection=c;let x=e&&r.start!==null&&a.stems.length;if(d.innerHTML=`
+        <${x?'button type="button"':"div"} class="pm-section-head" ${x?`data-pm-jump="${c}"`:""}>
+          <span class="pm-label">${f(r.label||`Kafli ${c+1}`)}${r.repeat?` \xD7${r.repeat}`:""}</span>
+          ${r.start!==null?`<span class="pm-start">${B(r.start)}</span>`:""}
+        </${x?"button":"div"}>
+        ${r.chords?`<div class="pm-chords">${f(re(r.chords,n))}</div>`:""}`,r.lyrics){let v=document.createElement("div");v.className="pm-lyrics",v.append(...Array.from(r.lyrics.cloneNode(!0).childNodes)),d.appendChild(v)}t.appendChild(d)})}function dt(t){let a=y.get(i.id)||0,e=se(i),n=a>0?`+${a}`:a<0?`${a}`:"";return e?`${Bt(e,a)}${n?` (${n})`:""}`:n||t}function ct(){p.key.textContent=dt("T\xF3nn")}function ut(){let t=i,a=l.getSong(t.id);if(!t.stems.length){p.strips.innerHTML="",p.count.textContent="Engar r\xE1sir",p.reset.hidden=!0;return}p.reset.hidden=!1;let e=new Map;t.stems.forEach((n,r)=>{let c=ne(n);e.has(c)||e.set(c,[]),e.get(c).push({stem:n,track:a.tracks[r]})}),p.strips.innerHTML=Wt.filter(n=>e.has(n)).map(n=>`<div class="pm-group"><div class="pm-group-name">${n}</div>${e.get(n).map(({stem:r,track:c})=>`<div class="pm-strip" data-pm-strip="${f(r.id)}">
+              <span class="pm-strip-name">${f(ae(r.name))}</span>
+              <button type="button" class="pm-ms" data-pm-mute aria-pressed="${c.muted}" aria-label="\xDEagga ${f(r.name)}">M</button>
+              <button type="button" class="pm-ms" data-pm-solo aria-pressed="${c.soloed}" aria-label="S\xF3l\xF3 ${f(r.name)}">S</button>
+              <input type="range" class="pm-vol" data-pm-vol min="0" max="1" step="0.01" value="${c.volume}" aria-label="Styrkur ${f(r.name)}">
+              <input type="range" class="pm-pan" data-pm-pan min="-1" max="1" step="0.01" value="${c.pan}" aria-label="Pan ${f(r.name)}">
+            </div>`).join("")}</div>`).join(""),gt()}function gt(){let t=l.getSong(i.id);if(!t)return;let a=t.tracks.some(n=>n.soloed),e=0;t.tracks.forEach(n=>{let r=p.strips.querySelector(`[data-pm-strip="${CSS.escape(n.id)}"]`),c=n.muted||a&&!n.soloed;c||(e+=1),r&&(r.classList.toggle("is-silent",c),r.querySelector("[data-pm-mute]").setAttribute("aria-pressed",n.muted),r.querySelector("[data-pm-solo]").setAttribute("aria-pressed",n.soloed))}),p.count.textContent=`${e} af ${t.tracks.length} r\xE1sum`}function I(t){let a=T();p.time.textContent=`${B(t)} / ${B(a)}`,M||(p.seek.value=a?Math.round(t/a*1e3):0),p.structure.style.setProperty("--pm-progress",a?`${t/a*100}%`:"0%");let e=-1;i.sections.forEach((n,r)=>{n.start!==null&&t>=n.start&&(e=r)}),e!==w&&(w=e,m.querySelectorAll("[data-pm-seg], [data-pm-section]").forEach(n=>{let r=Number(n.dataset.pmSeg??n.dataset.pmSection);n.classList.toggle("is-current",r===e)}))}function tt(t){let a=s.find(r=>r.id===t);if(!a||a===i)return;let e=l.isPlaying(i.id);i=a;let n=new URL(location.href);n.hash=a.id,history.replaceState(history.state,"",n.href),a.stems.length?e?l.play(a.id):l.select(a.id):l.pause(),Z()}function ft(){i.stems.length&&(l.isPlaying(i.id)?l.pause(i.id):l.play(i.id))}function ht(t){let a=i.sections[t]?.start;a!=null&&(l.isPlaying(i.id)?l.seek(a,i.id):(l.seek(a,i.id),l.play(i.id)))}function K(t){let a=Y()[t<0?0:1];a&&tt(a)}function bt(t){let a=new Map(t.map(e=>[e.id,e]));t.forEach(e=>{if(q.has(e.id))return;let n={id:e.id,title:e.lag,stems:[],sections:[],missing:!0};s.push(n),q.set(e.id,n)}),u={...u,rows:a,order:t.filter(e=>e.rod!==null).map(e=>e.id)}}async function Rt(){let{key:t,fresh:a}=Mt();if(!t)return;let e=n=>{u={key:t,names:n.nofn},bt(n.log),!location.hash&&u.order.length&&!l.isPlaying(i.id)&&(i=q.get(u.order[0])),Z()};try{let n=await V(t,{action:"lagalisti"});if(!n.ok)throw new Error(n.villa);e(n);try{localStorage.setItem(Ht,JSON.stringify({nofn:n.nofn,log:n.log,kl:Date.now()}))}catch{}}catch(n){let r=null;try{r=!n.badKey&&JSON.parse(localStorage.getItem(Ht)||"null")}catch{}if(r?.log){e(r),p.note.hidden=!1;let c=new Date(r.kl),d=v=>String(v).padStart(2,"0"),x=`${c.getFullYear()}-${d(c.getMonth()+1)}-${d(c.getDate())} ${d(c.getHours())}:${d(c.getMinutes())}`;p.note.textContent=`N\xE1\xF0i ekki \xED n\xFDjustu t\xF3nleikar\xF6\xF0ina; s\xFDni r\xF6\xF0ina eins og h\xFAn var ${it(x)}.`;return}(a||n.badKey)&&(p.note.hidden=!1,p.note.textContent=n.badKey?"Hlekkurinn gildir ekki, svo t\xF3nleikar\xF6\xF0in s\xE9st ekki. Biddu \xD3la um n\xFDjan.":"N\xE1\xF0i ekki \xED t\xF3nleikar\xF6\xF0ina. Reyndu a\xF0 endurhla\xF0a s\xED\xF0una.")}}async function Dt(){let t=F(),a=pt();if(!t||!a.length)return;if(!N.get()){P("Veldu fyrst hver \xFE\xFA ert, efst \xED lagalistanum.");return}let e=i.id,n=Object.fromEntries(a.map(r=>[r,D(r).value]));p.save.disabled=!0,p.status.textContent="Vista \u2026";try{let r=await V(u.key,{action:"lagVista",id:e,hver:N.get(),breytt:t.breytt,reitir:n});if(r.arekstur){u.rows.set(e,r.lag),i.id===e&&P(r.villa);return}if(!r.ok)throw new Error(r.villa);u.rows.set(e,r.lag),H.delete(e),i.id===e&&Q(),L()}catch(r){i.id===e&&P(`T\xF3kst ekki a\xF0 vista. ${r.message}`)}}function G(t){let a=m.querySelector('[data-pm-el="order-status"]');a&&(a.textContent=t)}async function Ft(){if(!N.get()){G("Veldu fyrst hver \xFE\xFA ert.");return}let t=u.order,a=g;if(a.join(`
 `)===t.join(`
-`)){g=null,k();return}R("Vista \u2026");try{let e=await K(u.key,{action:"rodVista",hver:T.get(),adur:t,rod:n.map(a=>({id:a,lag:E(a)}))});if(!e.ok&&!e.arekstur)throw new Error(e.villa);rt(e.log),g=e.arekstur?[...u.order]:null,k(),D(),z.has(o.id)||I(),e.arekstur&&R(e.villa)}catch(e){R(`T\xF3kst ekki a\xF0 vista. ${e.message}`)}}m.addEventListener("click",t=>{let n=t.target.closest("button");if(!n||!m.contains(n))return;let e=n.dataset;if(e.pmPick)U(e.pmPick);else if(e.pmTarget)U(e.pmTarget);else if(e.pmOrder==="edit")g=[...u.order],k();else if(e.pmOrder==="cancel")g=null,k(),D();else if(e.pmOrder==="save")$t();else if(e.pmMove){let a=g.indexOf(e.pmMove),i=a+Number(e.pmBy);a!==-1&&i>=0&&i<g.length&&([g[a],g[i]]=[g[i],g[a]],k(),m.querySelector(`[data-pm-move="${CSS.escape(e.pmMove)}"][data-pm-by="${e.pmBy}"]:not(:disabled)`)?.focus())}else if(e.pmRemove)g=g.filter(a=>a!==e.pmRemove),k();else if(e.pmAdd)g=[...g,e.pmAdd],k();else if(e.pmEl==="play")nt();else if(e.pmSeg!==void 0)at(Number(e.pmSeg));else if(e.pmJump!==void 0)at(Number(e.pmJump));else if(e.pmView)h=e.pmView,V(),y=-1,P(l.getTime(o.id));else if(e.pmTranspose)x.set(o.id,(x.get(o.id)||0)+Number(e.pmTranspose)),V(),X(),y=-1,P(l.getTime(o.id));else if(e.pmEl==="reset")l.resetMix(o.id),tt();else if(e.pmMute!==void 0||e.pmSolo!==void 0){let a=n.closest("[data-pm-strip]").dataset.pmStrip,i=l.getSong(o.id).tracks.find(d=>d.id===a),c=e.pmMute!==void 0?"muted":"soloed";l.setTrack(o.id,a,{[c]:!i[c]}),et()}});function it(t){let{li:n,ph:e,offset:a}=S,i=p.nav,c=i.getBoundingClientRect();t<c.top+32?i.scrollTop-=12:t>c.bottom-32&&(i.scrollTop+=12),n.style.top=`${t-c.top+i.scrollTop-a}px`;let d=i.querySelector("ol"),w=[...i.querySelectorAll("ol > li, .pm-songs-sub, ul > li")].filter(v=>v!==n&&v!==e).find(v=>{let B=v.getBoundingClientRect();return t<B.top+B.height/2});w?w.matches(".pm-songs-sub")?d.append(e):w.previousElementSibling!==e&&w.before(e):(i.querySelector("ul")||d).append(e)}p.nav.addEventListener("pointerdown",t=>{let n=t.target.closest("[data-pm-grip]");if(!n||!g||S||t.button!==0)return;t.preventDefault();let e=n.closest("li"),a=e.getBoundingClientRect(),i=document.createElement("li");i.className="pm-drop",i.style.height=`${a.height}px`,e.after(i),S={li:e,ph:i,id:n.dataset.pmGrip,offset:t.clientY-a.top,pointer:t.pointerId},n.setPointerCapture(t.pointerId),e.classList.add("is-dragging"),p.nav.classList.add("is-dragging"),it(t.clientY)}),p.nav.addEventListener("pointermove",t=>{S&&t.pointerId===S.pointer&&it(t.clientY)});function st(t){if(!S||t.pointerId!==S.pointer)return;let{li:n,ph:e,id:a}=S;t.type==="pointerup"&&p.nav.contains(e)&&(g=[...p.nav.querySelectorAll("ol > li")].filter(c=>c!==n).map(c=>c===e?a:c.querySelector("[data-pm-grip]")?.dataset.pmGrip).filter(Boolean).concat(g.filter(c=>!C.has(c)))),k()}p.nav.addEventListener("pointerup",st),p.nav.addEventListener("pointercancel",st),p.per.addEventListener("submit",t=>{t.preventDefault(),wt()}),m.addEventListener("change",t=>{t.target.matches("[data-pm-who]")&&T.set(t.target.value)}),window.addEventListener("beforeunload",t=>{z.size&&(t.preventDefault(),t.returnValue="")}),m.addEventListener("input",t=>{if(t.target.closest("[data-pm-field]")){N();return}let n=t.target.closest("[data-pm-strip]");if(n){let e=t.target.matches("[data-pm-vol]")?"volume":"pan";l.setTrack(o.id,n.dataset.pmStrip,{[e]:parseFloat(t.target.value)})}else t.target===p.seek&&(L=!0,p.time.textContent=`${M(p.seek.value/1e3*A())} / ${M(A())}`)}),p.seek.addEventListener("change",()=>{L=!1;let t=A();t&&l.seek(p.seek.value/1e3*t,o.id)}),document.addEventListener("keydown",t=>{if(!(t.repeat||t.altKey||t.ctrlKey||t.metaKey)){if(t.code==="Space"){if(t.target.closest?.("textarea, select, [contenteditable], input:not([type=range])"))return;t.preventDefault(),nt()}else if((t.key==="ArrowLeft"||t.key==="ArrowRight")&&u&&!g){if(t.target.closest?.("textarea, select, input, [contenteditable]"))return;t.preventDefault(),yt(t.key==="ArrowLeft"?-1:1)}}}),l.on("state",({songId:t,state:n})=>{t===o.id&&(p.play.dataset.state=n,p.play.setAttribute("aria-label",n==="playing"?"Gera hl\xE9":"Spila"))}),l.on("time",({songId:t,time:n})=>{t===o.id&&(p.structure.dataset.duration!==String(A())&&(p.structure.dataset.duration=String(A()),Z(),y=-1),P(n))}),G(),kt(),console.log(`permixer: ${r.length} l\xF6g`)}export{Ft as default};
+`)){g=null,L();return}G("Vista \u2026");try{let e=await V(u.key,{action:"rodVista",hver:N.get(),adur:t,rod:a.map(n=>({id:n,lag:$(n)}))});if(!e.ok&&!e.arekstur)throw new Error(e.villa);bt(e.log),g=e.arekstur?[...u.order]:null,L(),J(),H.has(i.id)||Q(),e.arekstur&&G(e.villa)}catch(e){G(`T\xF3kst ekki a\xF0 vista. ${e.message}`)}}m.addEventListener("click",t=>{let a=t.target.closest("button");if(!a||!m.contains(a))return;let e=a.dataset;if(e.pmPick)tt(e.pmPick);else if(e.pmTarget)tt(e.pmTarget);else if(e.pmEl==="stage-open")kt(!0);else if(e.pmOrder==="edit")g=[...u.order],L();else if(e.pmOrder==="cancel")g=null,L(),J();else if(e.pmOrder==="save")Ft();else if(e.pmMove){let n=g.indexOf(e.pmMove),r=n+Number(e.pmBy);n!==-1&&r>=0&&r<g.length&&([g[n],g[r]]=[g[r],g[n]],L(),m.querySelector(`[data-pm-move="${CSS.escape(e.pmMove)}"][data-pm-by="${e.pmBy}"]:not(:disabled)`)?.focus())}else if(e.pmRemove)g=g.filter(n=>n!==e.pmRemove),L();else if(e.pmAdd)g=[...g,e.pmAdd],L();else if(e.pmEl==="play")ft();else if(e.pmSeg!==void 0)ht(Number(e.pmSeg));else if(e.pmJump!==void 0)ht(Number(e.pmJump));else if(e.pmView)h=e.pmView,X(),w=-1,I(l.getTime(i.id));else if(e.pmTranspose)y.set(i.id,(y.get(i.id)||0)+Number(e.pmTranspose)),X(),ct(),w=-1,I(l.getTime(i.id));else if(e.pmEl==="reset")l.resetMix(i.id),ut();else if(e.pmMute!==void 0||e.pmSolo!==void 0){let n=a.closest("[data-pm-strip]").dataset.pmStrip,r=l.getSong(i.id).tracks.find(d=>d.id===n),c=e.pmMute!==void 0?"muted":"soloed";l.setTrack(i.id,n,{[c]:!r[c]}),gt()}});function xt(t){let{li:a,ph:e,offset:n}=A,r=p.nav,c=r.getBoundingClientRect();t<c.top+32?r.scrollTop-=12:t>c.bottom-32&&(r.scrollTop+=12),a.style.top=`${t-c.top+r.scrollTop-n}px`;let d=r.querySelector("ol"),v=[...r.querySelectorAll("ol > li, .pm-songs-sub, ul > li")].filter(k=>k!==a&&k!==e).find(k=>{let R=k.getBoundingClientRect();return t<R.top+R.height/2});v?v.matches(".pm-songs-sub")?d.append(e):v.previousElementSibling!==e&&v.before(e):(r.querySelector("ul")||d).append(e)}p.nav.addEventListener("pointerdown",t=>{let a=t.target.closest("[data-pm-grip]");if(!a||!g||A||t.button!==0)return;t.preventDefault();let e=a.closest("li"),n=e.getBoundingClientRect(),r=document.createElement("li");r.className="pm-drop",r.style.height=`${n.height}px`,e.after(r),A={li:e,ph:r,id:a.dataset.pmGrip,offset:t.clientY-n.top,pointer:t.pointerId},a.setPointerCapture(t.pointerId),e.classList.add("is-dragging"),p.nav.classList.add("is-dragging"),xt(t.clientY)}),p.nav.addEventListener("pointermove",t=>{A&&t.pointerId===A.pointer&&xt(t.clientY)});function vt(t){if(!A||t.pointerId!==A.pointer)return;let{li:a,ph:e,id:n}=A;t.type==="pointerup"&&p.nav.contains(e)&&(g=[...p.nav.querySelectorAll("ol > li")].filter(c=>c!==a).map(c=>c===e?n:c.querySelector("[data-pm-grip]")?.dataset.pmGrip).filter(Boolean).concat(g.filter(c=>!q.has(c)))),L()}p.nav.addEventListener("pointerup",vt),p.nav.addEventListener("pointercancel",vt);let et="pm-svidshamur",S=document.createElement("div");S.className="pm-stage",S.hidden=!0,S.setAttribute("role","dialog"),S.setAttribute("aria-label","Svi\xF0shamur"),S.innerHTML=`
+    <div class="pm-stage-head">
+      <span class="pm-stage-pos" data-pm-st="pos"></span>
+      <span class="pm-stage-title" data-pm-st="title"></span>
+      <span class="pm-stage-key" data-pm-st="key"></span>
+      <span class="pm-stage-next" data-pm-st="next"></span>
+      <button type="button" class="pm-stage-close" data-pm-st="close" aria-label="Loka svi\xF0sham">\xD7</button>
+    </div>
+    <div class="pm-stage-main">
+      <div class="pm-stage-body pm-sections" data-pm-st="body"></div>
+      <button type="button" class="pm-stage-edge" data-pm-st="prev" data-pm-st-step="-1" aria-label="Fyrra lag"><span>\u2039</span></button>
+      <button type="button" class="pm-stage-edge" data-pm-st="next-edge" data-pm-st-step="1" aria-label="N\xE6sta lag"><span>\u203A</span></button>
+    </div>`,document.body.appendChild(S);let E=Object.fromEntries([...S.querySelectorAll("[data-pm-st]")].map(t=>[t.dataset.pmSt.replace(/-(\w)/g,(a,e)=>e.toUpperCase()),t]));function yt(){let{listed:t}=W(),a=t.indexOf(i.id),[e,n]=Y();E.pos.textContent=a===-1?"\u2013":`${String(a+1).padStart(2,"0")} / ${t.length}`,E.title.textContent=$(i.id),E.key.textContent=dt(""),E.next.textContent=n?`N\xE6st: ${$(n)}`:a===t.length-1?"S\xED\xF0asta lag":"",E.prev.hidden=!e,E.nextEdge.hidden=!n,mt(E.body,i,!1),i.sections.length?at():(E.body.innerHTML='<p class="pm-stage-empty">Engir hlj\xF3mar e\xF0a texti komnir fyrir \xFEetta lag.</p>',E.body.style.columnCount=1,E.body.style.fontSize="24px")}function at(){let t=E.body,a=()=>t.scrollHeight<=t.clientHeight+1&&t.scrollWidth<=t.clientWidth+1,e=t.clientWidth>t.clientHeight*1.1?[1,2,3]:[1,2],n={size:12,cols:1};e.forEach(r=>{t.style.columnCount=r;let c=12,d=64;for(;d-c>.5;){let x=(c+d)/2;t.style.fontSize=`${x}px`,a()?c=x:d=x}c>n.size*1.08&&(n={size:c,cols:r})}),t.style.columnCount=n.cols,t.style.fontSize=`${Math.floor(n.size)}px`,t.scrollTop=0,t.scrollLeft=0}let O=null;async function nt(){if(!(!C||O||!navigator.wakeLock||document.visibilityState!=="visible"))try{O=await navigator.wakeLock.request("screen"),O.addEventListener("release",()=>{O=null})}catch{}}document.addEventListener("visibilitychange",nt);function kt(t){C=!0;try{localStorage.setItem(et,"1")}catch{}if(S.hidden=!1,document.documentElement.classList.add("pm-stage-on"),t){let a=document.documentElement;try{(a.requestFullscreen||a.webkitRequestFullscreen)?.call(a)?.catch?.(()=>{})}catch{}}St(),nt(),yt(),document.fonts?.ready.then(()=>C&&at())}function wt(){C=!1;try{localStorage.removeItem(et)}catch{}S.hidden=!0,document.documentElement.classList.remove("pm-stage-on"),O?.release().catch(()=>{}),O=null;try{document.fullscreenElement?document.exitFullscreen().catch(()=>{}):document.webkitFullscreenElement&&document.webkitExitFullscreen()}catch{}history.state?.pmStage&&history.back()}function St(){if(history.state?.pmStage)return;let t=new URL(location.href);t.hash=i.id,history.pushState({...history.state,pmStage:!0},"",t.href)}window.addEventListener("popstate",()=>{if(C)St();else if(location.hash!==`#${i.id}`){let t=new URL(location.href);t.hash=i.id,history.replaceState(history.state,"",t.href)}});let rt=!1;window.addEventListener("resize",()=>{!C||rt||(rt=!0,requestAnimationFrame(()=>{rt=!1,C&&at()}))});let j=null,$t=0;S.addEventListener("pointerdown",t=>{j={x:t.clientX,y:t.clientY,id:t.pointerId},nt()}),S.addEventListener("pointerup",t=>{if(!j||t.pointerId!==j.id)return;let a=t.clientX-j.x,e=t.clientY-j.y;j=null,Math.abs(a)>60&&Math.abs(a)>2*Math.abs(e)&&($t=performance.now(),K(a<0?1:-1))}),S.addEventListener("pointercancel",()=>{j=null}),S.addEventListener("click",t=>{if(performance.now()-$t<500)return;let a=t.target.closest("button");a&&(a.dataset.pmSt==="close"?wt():a.dataset.pmStStep&&K(Number(a.dataset.pmStStep)))}),p.per.addEventListener("submit",t=>{t.preventDefault(),Dt()}),m.addEventListener("change",t=>{t.target.matches("[data-pm-who]")&&N.set(t.target.value)}),window.addEventListener("beforeunload",t=>{H.size&&(t.preventDefault(),t.returnValue="")}),m.addEventListener("input",t=>{if(t.target.closest("[data-pm-field]")){P();return}let a=t.target.closest("[data-pm-strip]");if(a){let e=t.target.matches("[data-pm-vol]")?"volume":"pan";l.setTrack(i.id,a.dataset.pmStrip,{[e]:parseFloat(t.target.value)})}else t.target===p.seek&&(M=!0,p.time.textContent=`${B(p.seek.value/1e3*T())} / ${B(T())}`)}),p.seek.addEventListener("change",()=>{M=!1;let t=T();t&&l.seek(p.seek.value/1e3*t,i.id)});let Et={ArrowLeft:-1,ArrowUp:-1,PageUp:-1,ArrowRight:1,ArrowDown:1,PageDown:1};document.addEventListener("keydown",t=>{if(!(t.repeat||t.altKey||t.ctrlKey||t.metaKey)){if(C){Et[t.key]?(t.preventDefault(),K(Et[t.key])):t.key==="Escape"?wt():t.code==="Space"&&t.preventDefault();return}if(t.code==="Space"){if(t.target.closest?.("textarea, select, [contenteditable], input:not([type=range])"))return;t.preventDefault(),ft()}else if((t.key==="ArrowLeft"||t.key==="ArrowRight")&&u&&!g){if(t.target.closest?.("textarea, select, input, [contenteditable]"))return;t.preventDefault(),K(t.key==="ArrowLeft"?-1:1)}}}),l.on("state",({songId:t,state:a})=>{t===i.id&&(p.play.dataset.state=a,p.play.setAttribute("aria-label",a==="playing"?"Gera hl\xE9":"Spila"))}),l.on("time",({songId:t,time:a})=>{t===i.id&&(p.structure.dataset.duration!==String(T())&&(p.structure.dataset.duration=String(T()),lt(),w=-1),I(a))}),Z();try{localStorage.getItem(et)&&kt(!1)}catch{}Rt(),console.log(`permixer: ${s.length} l\xF6g`)}export{ie as default};
 //# sourceMappingURL=permixer.js.map

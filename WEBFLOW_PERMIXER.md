@@ -100,6 +100,23 @@ listanum skiptir þá bara máli.
 - Transpose breytir hljómaheitunum, ekki hljóðinu
 - Mix (styrkur, pan, mute, solo) geymist á meðan síðan er opin, per lag
 
+## Sviðshamur (iPad á statífi á tónleikunum)
+
+Takkinn „Sviðshamur“ efst til hægri. Bara hljómar og texti yfir allan
+skjáinn; letrið er stillt svo allt lagið passi án skruns (1–3 dálkar eftir
+lengd og hvort tækið snýr langsum eða upp á rönd). Sýnin (Bæði/Hljómar/Texti)
+og transpose úr venjulega hamnum gilda líka þar.
+
+- Næsta/fyrra lag: ýta á hægri/vinstri brún, strjúka, örvatakkar eða
+  PageUp/PageDown (Bluetooth-fótstig). Esc eða × lokar.
+- Skjárinn slokknar ekki á meðan (Wake Lock). Til öryggis: stilla Auto-Lock á
+  iPadinum á „Never“ fyrir tónleikana.
+- Tækið man haminn: endurhlaðin síða opnast beint í honum.
+- „Til baka“-strok Safari lokar honum ekki (hann á eigin færslu í sögunni).
+- Síðasta tónleikaröð er geymd í tækinu. Náist Sheet-ið ekki á staðnum birtist
+  hún samt, með athugasemd. Síðan sjálf þarf samt net til að hlaðast, svo
+  best er að opna hana áður en komið er á staðinn og endurhlaða ekki.
+
 ## Deploy
 
 `main.js` er sett inn site-wide í Site settings → Custom code, læst á commit.

@@ -38,6 +38,8 @@ const GRIP = `<svg viewBox="0 0 10 16" aria-hidden="true">${[3, 8, 13]
   .map((y) => `<circle cx="2.5" cy="${y}" r="1.5"/><circle cx="7.5" cy="${y}" r="1.5"/>`)
   .join("")}</svg>`;
 
+const SETLIST_CACHE = "pm-lagalisti";
+
 const VIEWS = [
   ["both", "Bæði"],
   ["chords", "Hljómar"],
@@ -236,14 +238,18 @@ export function setupPermixer() {
   let setlist = null;
   let editOrder = null; // röðin á meðan verið er að breyta henni
   let drag = null; // lag sem er verið að draga í „Breyta röð“
+  let stageOpen = false;
   const drafts = new Map(); // id -> óvistaðir reitir (kynning, nótur, lengd)
 
   app.innerHTML = `
     <nav class="pm-songs" aria-label="Lagalisti" data-pm-el="nav"></nav>
     <main class="pm-main">
-      <div class="pm-step" data-pm-el="step" hidden>
+      <div class="pm-step" data-pm-el="step">
         <button type="button" data-pm-step="-1"></button>
-        <button type="button" data-pm-step="1"></button>
+        <span class="pm-step-right">
+          <button type="button" data-pm-step="1"></button>
+          <button type="button" class="pm-stage-open" data-pm-el="stage-open">Sviðshamur</button>
+        </span>
       </div>
       <h1 class="pm-title" data-pm-el="title"></h1>
       <div class="pm-transport">
@@ -402,10 +408,9 @@ export function setupPermixer() {
 
   function renderStep() {
     const [prev, next] = neighbours();
-    els.step.hidden = !setlist || (!prev && !next);
-    const [back, fwd] = els.step.querySelectorAll("button");
-    back.hidden = !prev;
-    fwd.hidden = !next;
+    const [back, fwd] = els.step.querySelectorAll("[data-pm-step]");
+    back.hidden = !setlist || !prev;
+    fwd.hidden = !setlist || !next;
     back.dataset.pmTarget = prev || "";
     fwd.dataset.pmTarget = next || "";
     back.textContent = prev ? `← ${titleOf(prev)}` : "";
@@ -473,6 +478,7 @@ export function setupPermixer() {
     renderKey();
     renderStrips();
     renderTime(engine.getTime(song.id));
+    if (stageOpen) renderStage();
   }
 
   function renderStructure() {
@@ -491,15 +497,23 @@ export function setupPermixer() {
   }
 
   function renderSections() {
-    const song = current;
+    fillSections(els.sections, current, true);
+    app.querySelectorAll("[data-pm-view]").forEach((b) => {
+      b.setAttribute("aria-pressed", b.dataset.pmView === view ? "true" : "false");
+    });
+  }
+
+  // Kaflar lagsins inn í container; á sviðinu (jumpable = false) hoppar
+  // smellur á kafla ekki í hljóðið
+  function fillSections(container, song, jumpable) {
     const steps = transpose.get(song.id) || 0;
-    els.sections.dataset.view = view;
-    els.sections.innerHTML = "";
+    container.dataset.view = view;
+    container.innerHTML = "";
     song.sections.forEach((s, i) => {
       const section = document.createElement("section");
       section.className = "pm-section";
       section.dataset.pmSection = i;
-      const jump = s.start !== null && song.stems.length;
+      const jump = jumpable && s.start !== null && song.stems.length;
       section.innerHTML = `
         <${jump ? 'button type="button"' : "div"} class="pm-section-head" ${jump ? `data-pm-jump="${i}"` : ""}>
           <span class="pm-label">${esc(s.label || `Kafli ${i + 1}`)}${s.repeat ? ` ×${s.repeat}` : ""}</span>
@@ -512,18 +526,19 @@ export function setupPermixer() {
         lyrics.append(...Array.from(s.lyrics.cloneNode(true).childNodes));
         section.appendChild(lyrics);
       }
-      els.sections.appendChild(section);
-    });
-    app.querySelectorAll("[data-pm-view]").forEach((b) => {
-      b.setAttribute("aria-pressed", b.dataset.pmView === view ? "true" : "false");
+      container.appendChild(section);
     });
   }
 
-  function renderKey() {
+  function keyLabel(fallback) {
     const steps = transpose.get(current.id) || 0;
     const root = firstRoot(current);
     const sign = steps > 0 ? `+${steps}` : steps < 0 ? `${steps}` : "";
-    els.key.textContent = root ? `${transposeChord(root, steps)}${sign ? ` (${sign})` : ""}` : sign || "Tónn";
+    return root ? `${transposeChord(root, steps)}${sign ? ` (${sign})` : ""}` : sign || fallback;
+  }
+
+  function renderKey() {
+    els.key.textContent = keyLabel("Tónn");
   }
 
   function renderStrips() {
@@ -660,9 +675,7 @@ export function setupPermixer() {
   async function loadSetlist() {
     const { key, fresh } = readKey();
     if (!key) return;
-    try {
-      const r = await call(key, { action: "lagalisti" });
-      if (!r.ok) throw new Error(r.villa);
+    const show = (r) => {
       setlist = { key, names: r.nofn };
       applySetlist(r.log);
       // Án #lags í slóðinni byrjar síðan á fyrsta lagi kvöldsins. Stemin
@@ -671,7 +684,29 @@ export function setupPermixer() {
         current = byId.get(setlist.order[0]);
       }
       renderSong();
+    };
+    try {
+      const r = await call(key, { action: "lagalisti" });
+      if (!r.ok) throw new Error(r.villa);
+      show(r);
+      // Síðasta röðin geymd í tækinu ef netið á tónleikastað bregst
+      try {
+        localStorage.setItem(SETLIST_CACHE, JSON.stringify({ nofn: r.nofn, log: r.log, kl: Date.now() }));
+      } catch {}
     } catch (err) {
+      let cached = null;
+      try {
+        cached = !err.badKey && JSON.parse(localStorage.getItem(SETLIST_CACHE) || "null");
+      } catch {}
+      if (cached?.log) {
+        show(cached);
+        els.note.hidden = false;
+        const d = new Date(cached.kl);
+        const p = (n) => String(n).padStart(2, "0");
+        const when = `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`;
+        els.note.textContent = `Náði ekki í nýjustu tónleikaröðina; sýni röðina eins og hún var ${shortStamp(when)}.`;
+        return;
+      }
       // Æfingasíðan virkar áfram án listans; segja bara frá ef lykillinn var nýr
       if (fresh || err.badKey) {
         els.note.hidden = false;
@@ -757,6 +792,7 @@ export function setupPermixer() {
 
     if (d.pmPick) pick(d.pmPick);
     else if (d.pmTarget) pick(d.pmTarget);
+    else if (d.pmEl === "stage-open") openStage(true);
     else if (d.pmOrder === "edit") {
       editOrder = [...setlist.order];
       renderNav();
@@ -866,6 +902,189 @@ export function setupPermixer() {
   els.nav.addEventListener("pointerup", endDrag);
   els.nav.addEventListener("pointercancel", endDrag);
 
+  // ---------------------------------------------------------
+  // Sviðshamur: bara hljómar og texti, fyrir iPad á statífi
+  // ---------------------------------------------------------
+  // Allt lagið á einn skjá (letrið stillt svo það passi, 1–3 dálkar).
+  // Næsta/fyrra lag: brúnir skjásins, strok, örvar, PageUp/PageDown (fótstig).
+  // Skjárinn slokknar ekki á meðan. Tækið man haminn milli heimsókna.
+  const STAGE_KEY = "pm-svidshamur";
+  const stage = document.createElement("div");
+  stage.className = "pm-stage";
+  stage.hidden = true;
+  stage.setAttribute("role", "dialog");
+  stage.setAttribute("aria-label", "Sviðshamur");
+  stage.innerHTML = `
+    <div class="pm-stage-head">
+      <span class="pm-stage-pos" data-pm-st="pos"></span>
+      <span class="pm-stage-title" data-pm-st="title"></span>
+      <span class="pm-stage-key" data-pm-st="key"></span>
+      <span class="pm-stage-next" data-pm-st="next"></span>
+      <button type="button" class="pm-stage-close" data-pm-st="close" aria-label="Loka sviðsham">×</button>
+    </div>
+    <div class="pm-stage-main">
+      <div class="pm-stage-body pm-sections" data-pm-st="body"></div>
+      <button type="button" class="pm-stage-edge" data-pm-st="prev" data-pm-st-step="-1" aria-label="Fyrra lag"><span>‹</span></button>
+      <button type="button" class="pm-stage-edge" data-pm-st="next-edge" data-pm-st-step="1" aria-label="Næsta lag"><span>›</span></button>
+    </div>`;
+  document.body.appendChild(stage);
+  const st = Object.fromEntries(
+    [...stage.querySelectorAll("[data-pm-st]")].map((el) => [el.dataset.pmSt.replace(/-(\w)/g, (_, c) => c.toUpperCase()), el])
+  );
+
+  function renderStage() {
+    const { listed } = navGroups();
+    const at = listed.indexOf(current.id);
+    const [prev, next] = neighbours();
+    st.pos.textContent = at === -1 ? "–" : `${String(at + 1).padStart(2, "0")} / ${listed.length}`;
+    st.title.textContent = titleOf(current.id);
+    st.key.textContent = keyLabel("");
+    st.next.textContent = next ? `Næst: ${titleOf(next)}` : at === listed.length - 1 ? "Síðasta lag" : "";
+    st.prev.hidden = !prev;
+    st.nextEdge.hidden = !next;
+    fillSections(st.body, current, false);
+    if (current.sections.length) {
+      fitStage();
+    } else {
+      st.body.innerHTML = `<p class="pm-stage-empty">Engir hljómar eða texti komnir fyrir þetta lag.</p>`;
+      st.body.style.columnCount = 1;
+      st.body.style.fontSize = "24px";
+    }
+  }
+
+  // Stærsta letur þar sem lagið passar; fleiri dálkar bara ef þeir gefa
+  // a.m.k. 8% stærra letur
+  function fitStage() {
+    const body = st.body;
+    const fits = () => body.scrollHeight <= body.clientHeight + 1 && body.scrollWidth <= body.clientWidth + 1;
+    const counts = body.clientWidth > body.clientHeight * 1.1 ? [1, 2, 3] : [1, 2];
+    let best = { size: 12, cols: 1 };
+    counts.forEach((cols) => {
+      body.style.columnCount = cols;
+      let lo = 12;
+      let hi = 64;
+      while (hi - lo > 0.5) {
+        const mid = (lo + hi) / 2;
+        body.style.fontSize = `${mid}px`;
+        if (fits()) lo = mid;
+        else hi = mid;
+      }
+      if (lo > best.size * 1.08) best = { size: lo, cols };
+    });
+    body.style.columnCount = best.cols;
+    body.style.fontSize = `${Math.floor(best.size)}px`;
+    body.scrollTop = 0;
+    body.scrollLeft = 0;
+  }
+
+  let wakeLock = null;
+  async function keepAwake() {
+    if (!stageOpen || wakeLock || !navigator.wakeLock || document.visibilityState !== "visible") return;
+    try {
+      wakeLock = await navigator.wakeLock.request("screen");
+      wakeLock.addEventListener("release", () => {
+        wakeLock = null;
+      });
+    } catch {
+      // Safari vill stundum snertingu fyrst; reynt aftur við næstu snertingu
+    }
+  }
+  document.addEventListener("visibilitychange", keepAwake);
+
+  function openStage(gesture) {
+    stageOpen = true;
+    try {
+      localStorage.setItem(STAGE_KEY, "1");
+    } catch {}
+    stage.hidden = false;
+    document.documentElement.classList.add("pm-stage-on");
+    if (gesture) {
+      const root = document.documentElement;
+      try {
+        const req = root.requestFullscreen || root.webkitRequestFullscreen;
+        req?.call(root)?.catch?.(() => {});
+      } catch {}
+    }
+    guardHistory();
+    keepAwake();
+    renderStage();
+    document.fonts?.ready.then(() => stageOpen && fitStage());
+  }
+
+  function closeStage() {
+    stageOpen = false;
+    try {
+      localStorage.removeItem(STAGE_KEY);
+    } catch {}
+    stage.hidden = true;
+    document.documentElement.classList.remove("pm-stage-on");
+    wakeLock?.release().catch(() => {});
+    wakeLock = null;
+    try {
+      if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
+      else if (document.webkitFullscreenElement) document.webkitExitFullscreen();
+    } catch {}
+    if (history.state?.pmStage) history.back();
+  }
+
+  // Strok frá brún skjásins er „til baka“ í Safari á iPad og yrði ekki
+  // stöðvað. Sviðshamurinn á sína eigin færslu í sögunni; fari hún, er hún
+  // sett aftur og síðan helst opin. Bara × og Esc loka.
+  function guardHistory() {
+    if (history.state?.pmStage) return;
+    const url = new URL(location.href);
+    url.hash = current.id;
+    history.pushState({ ...history.state, pmStage: true }, "", url.href);
+  }
+  window.addEventListener("popstate", () => {
+    if (stageOpen) {
+      guardHistory();
+    } else if (location.hash !== `#${current.id}`) {
+      // Eftir lokun: slóðin bendi áfram á lagið sem er opið
+      const url = new URL(location.href);
+      url.hash = current.id;
+      history.replaceState(history.state, "", url.href);
+    }
+  });
+
+  let fitQueued = false;
+  window.addEventListener("resize", () => {
+    if (!stageOpen || fitQueued) return;
+    fitQueued = true;
+    requestAnimationFrame(() => {
+      fitQueued = false;
+      if (stageOpen) fitStage();
+    });
+  });
+
+  // Strok til hliðar = næsta/fyrra lag; smellur á brún gerir það sama
+  let swipe = null;
+  let swipedAt = 0;
+  stage.addEventListener("pointerdown", (e) => {
+    swipe = { x: e.clientX, y: e.clientY, id: e.pointerId };
+    keepAwake();
+  });
+  stage.addEventListener("pointerup", (e) => {
+    if (!swipe || e.pointerId !== swipe.id) return;
+    const dx = e.clientX - swipe.x;
+    const dy = e.clientY - swipe.y;
+    swipe = null;
+    if (Math.abs(dx) > 60 && Math.abs(dx) > 2 * Math.abs(dy)) {
+      swipedAt = performance.now();
+      step(dx < 0 ? 1 : -1);
+    }
+  });
+  stage.addEventListener("pointercancel", () => {
+    swipe = null;
+  });
+  stage.addEventListener("click", (e) => {
+    if (performance.now() - swipedAt < 500) return;
+    const b = e.target.closest("button");
+    if (!b) return;
+    if (b.dataset.pmSt === "close") closeStage();
+    else if (b.dataset.pmStStep) step(Number(b.dataset.pmStStep));
+  });
+
   els.per.addEventListener("submit", (e) => {
     e.preventDefault();
     saveSong();
@@ -903,8 +1122,18 @@ export function setupPermixer() {
   });
 
   // Bil = play/pause, örvar = fyrra/næsta lag, nema verið sé að skrifa í reit
+  // Í sviðsham: örvar og PageUp/PageDown (það sem fótstig senda) fletta, Esc lokar
+  const STAGE_STEP = { ArrowLeft: -1, ArrowUp: -1, PageUp: -1, ArrowRight: 1, ArrowDown: 1, PageDown: 1 };
   document.addEventListener("keydown", (e) => {
     if (e.repeat || e.altKey || e.ctrlKey || e.metaKey) return;
+    if (stageOpen) {
+      if (STAGE_STEP[e.key]) {
+        e.preventDefault();
+        step(STAGE_STEP[e.key]);
+      } else if (e.key === "Escape") closeStage();
+      else if (e.code === "Space") e.preventDefault();
+      return;
+    }
     if (e.code === "Space") {
       if (e.target.closest?.("textarea, select, [contenteditable], input:not([type=range])")) return;
       e.preventDefault();
@@ -934,6 +1163,9 @@ export function setupPermixer() {
   });
 
   renderSong();
+  try {
+    if (localStorage.getItem(STAGE_KEY)) openStage(false);
+  } catch {}
   loadSetlist();
   console.log(`permixer: ${songs.length} lög`);
 }
