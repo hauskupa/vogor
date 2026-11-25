@@ -805,7 +805,31 @@ html.pm-stage-on body {
   color: var(--pm-fg);
 }
 
+.pm-stage-tr {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.pm-stage-tr button {
+  width: 40px;
+  height: 40px;
+  border: 1px solid var(--pm-line) !important;
+  border-radius: 6px;
+  font-size: 20px !important;
+  line-height: 1;
+  color: var(--pm-muted) !important;
+}
+
+.pm-stage-tr button:active {
+  border-color: var(--pm-accent) !important;
+  color: var(--pm-fg) !important;
+}
+
 .pm-stage-key {
+  min-width: 4.5em;
+  text-align: center;
   font-family: var(--pm-mono);
   font-weight: 600;
   color: var(--pm-accent);

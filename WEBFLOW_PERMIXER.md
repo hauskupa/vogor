@@ -97,7 +97,7 @@ listanum skiptir þá bara máli.
 
 - Bilslá: play/pause
 - Smellt á kafla (stikan eða fyrirsögn kaflans): hoppar þangað og spilar
-- Transpose breytir hljómaheitunum, ekki hljóðinu
+- Transpose breytir hljómaheitunum, ekki hljóðinu. Tækið man tóninn per lag.
 - Mix (styrkur, pan, mute, solo) geymist á meðan síðan er opin, per lag
 
 ## Sviðshamur (iPad á statífi á tónleikunum)
@@ -105,7 +105,10 @@ listanum skiptir þá bara máli.
 Takkinn „Sviðshamur“ efst til hægri. Bara hljómar og texti yfir allan
 skjáinn; letrið er stillt svo allt lagið passi án skruns (1–3 dálkar eftir
 lengd og hvort tækið snýr langsum eða upp á rönd). Sýnin (Bæði/Hljómar/Texti)
-og transpose úr venjulega hamnum gilda líka þar.
+úr venjulega hamnum gildir líka þar.
+
+- Transpose: − og + við tóntegundina efst. Sami tónn og í venjulega hamnum,
+  geymdur í tækinu per lag, svo hann heldur sér eftir endurhleðslu.
 
 - Næsta/fyrra lag: ýta á hægri/vinstri brún, strjúka, örvatakkar eða
   PageUp/PageDown (Bluetooth-fótstig). Esc eða × lokar.

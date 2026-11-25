@@ -39,6 +39,7 @@ const GRIP = `<svg viewBox="0 0 10 16" aria-hidden="true">${[3, 8, 13]
   .join("")}</svg>`;
 
 const SETLIST_CACHE = "pm-lagalisti";
+const TRANSPOSE_KEY = "pm-transpose";
 
 const VIEWS = [
   ["both", "Bæði"],
@@ -227,7 +228,14 @@ export function setupPermixer() {
     engine.define({ id: song.id, tracks: song.stems.map(({ id, url }) => ({ id, url })) });
   });
 
-  const transpose = new Map(); // songId -> hálftónar
+  // songId -> hálftónar. Geymt í tækinu svo tónn sem er valinn á æfingu
+  // haldi sér á tónleikunum, líka eftir endurhleðslu.
+  const transpose = new Map();
+  try {
+    Object.entries(JSON.parse(localStorage.getItem(TRANSPOSE_KEY) || "{}")).forEach(([id, n]) => {
+      if (Number.isInteger(n) && n) transpose.set(id, n);
+    });
+  } catch {}
   let view = "both";
   let current = songs.find((s) => `#${s.id}` === location.hash) || songs[0];
   let dragging = false;
@@ -653,6 +661,20 @@ export function setupPermixer() {
     }
   }
 
+  // Transpose um hálftóna, á bilinu −6 til +5 (12 hálftónar = sami tónn)
+  function shiftKey(by) {
+    const n = ((((transpose.get(current.id) || 0) + by + 6) % 12) + 12) % 12 - 6;
+    if (n) transpose.set(current.id, n);
+    else transpose.delete(current.id);
+    try {
+      localStorage.setItem(TRANSPOSE_KEY, JSON.stringify(Object.fromEntries(transpose)));
+    } catch {}
+    renderSections();
+    renderKey();
+    activeSection = -1;
+    renderTime(engine.getTime(current.id));
+  }
+
   function step(by) {
     const target = neighbours()[by < 0 ? 0 : 1];
     if (target) pick(target);
@@ -824,11 +846,7 @@ export function setupPermixer() {
       activeSection = -1;
       renderTime(engine.getTime(current.id));
     } else if (d.pmTranspose) {
-      transpose.set(current.id, (transpose.get(current.id) || 0) + Number(d.pmTranspose));
-      renderSections();
-      renderKey();
-      activeSection = -1;
-      renderTime(engine.getTime(current.id));
+      shiftKey(Number(d.pmTranspose));
     } else if (d.pmEl === "reset") {
       engine.resetMix(current.id);
       renderStrips();
@@ -918,7 +936,11 @@ export function setupPermixer() {
     <div class="pm-stage-head">
       <span class="pm-stage-pos" data-pm-st="pos"></span>
       <span class="pm-stage-title" data-pm-st="title"></span>
-      <span class="pm-stage-key" data-pm-st="key"></span>
+      <span class="pm-stage-tr" role="group" aria-label="Transpose">
+        <button type="button" data-pm-st-tr="-1" aria-label="Lækka um hálftón">−</button>
+        <span class="pm-stage-key" data-pm-st="key"></span>
+        <button type="button" data-pm-st-tr="1" aria-label="Hækka um hálftón">+</button>
+      </span>
       <span class="pm-stage-next" data-pm-st="next"></span>
       <button type="button" class="pm-stage-close" data-pm-st="close" aria-label="Loka sviðsham">×</button>
     </div>
@@ -938,7 +960,7 @@ export function setupPermixer() {
     const [prev, next] = neighbours();
     st.pos.textContent = at === -1 ? "–" : `${String(at + 1).padStart(2, "0")} / ${listed.length}`;
     st.title.textContent = titleOf(current.id);
-    st.key.textContent = keyLabel("");
+    st.key.textContent = keyLabel("±0");
     st.next.textContent = next ? `Næst: ${titleOf(next)}` : at === listed.length - 1 ? "Síðasta lag" : "";
     st.prev.hidden = !prev;
     st.nextEdge.hidden = !next;
@@ -1083,6 +1105,10 @@ export function setupPermixer() {
     if (!b) return;
     if (b.dataset.pmSt === "close") closeStage();
     else if (b.dataset.pmStStep) step(Number(b.dataset.pmStStep));
+    else if (b.dataset.pmStTr) {
+      shiftKey(Number(b.dataset.pmStTr));
+      renderStage();
+    }
   });
 
   els.per.addEventListener("submit", (e) => {
