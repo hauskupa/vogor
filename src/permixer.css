@@ -59,13 +59,23 @@
   display: none !important;
 }
 
-/* Lagalisti */
+/* Lagalisti. Allur dálkurinn er festur í einu lagi (ekki bara <ol>), annars
+   skrunar „Utan lagalista“ upp yfir listann. Hann skrunar sjálfur ef hann er
+   hærri en glugginn. */
+.pm-songs {
+  position: sticky;
+  top: 24px;
+  align-self: start;
+  max-height: calc(100vh - 48px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  min-width: 0;
+}
+
 .pm-songs ol {
   list-style: none;
   margin: 0;
   padding: 0;
-  position: sticky;
-  top: 24px;
 }
 
 .pm-songs button {
@@ -175,8 +185,57 @@
   line-height: 1;
 }
 
-.pm-songs.is-editing ol {
-  position: static;
+/* Dregið til í „Breyta röð“: haldfangið tekur við snertingu svo síðan
+   skruni ekki á meðan */
+.pm-grip {
+  flex: none;
+  align-self: stretch;
+  display: grid;
+  place-items: center;
+  width: 18px;
+  color: var(--pm-muted);
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.pm-grip svg {
+  width: 10px;
+  height: 16px;
+  fill: currentColor;
+}
+
+.pm-grip:hover {
+  color: var(--pm-fg);
+}
+
+.pm-songs.is-dragging {
+  user-select: none;
+  -webkit-user-select: none;
+  cursor: grabbing;
+}
+
+/* Úr flæðinu, staðsett miðað við .pm-songs (top úr JS) */
+.pm-songs li.is-dragging {
+  position: absolute;
+  left: 0;
+  right: 0;
+  z-index: 2;
+  background: #1f1f1f;
+  border-radius: 4px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.6);
+}
+
+.pm-songs li.is-dragging .pm-grip {
+  color: var(--pm-accent);
+  cursor: grabbing;
+}
+
+.pm-songs li.pm-drop {
+  border: 1px dashed var(--pm-accent);
+  border-radius: 4px;
+  opacity: 0.5;
 }
 
 .pm-order-foot {
@@ -649,7 +708,9 @@ button.pm-section-head:hover .pm-label,
     padding: 24px 16px 64px;
   }
 
-  .pm-songs ol {
-    position: static;
+  .pm-songs {
+    position: relative;
+    max-height: none;
+    overflow: visible;
   }
 }

@@ -84,8 +84,9 @@ svo hver sem hefur opnað annan hlekkinn fær hinn líka.
   með sömu slóð fær mixerinn sjálfkrafa.
 - Við hvert lag: kynning (sagan á undan laginu), nótur frá æfingum og lengd.
   Vistað undir nafninu sem er valið í „Ég er“.
-- „Breyta röð“: ↑ ↓ færa lag, × tekur það af listanum, + setur það á. „Vista
-  röð“ vistar fyrir alla.
+- „Breyta röð“: lög eru dregin til á punktunum vinstra megin (mús eða fingur),
+  líka niður í „Utan lagalista“ og þaðan upp á listann. ↑ ↓ færa lag, × tekur
+  það af listanum, + setur það á. „Vista röð“ vistar fyrir alla.
 - Örvatakkar ← → fara á fyrra og næsta lag í röðinni.
 - Allt skráist í Log-flipann í Sheet-inu, með gamla og nýja gildinu.
 

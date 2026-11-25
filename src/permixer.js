@@ -34,6 +34,10 @@ const GROUPS = [
 ];
 const GROUP_ORDER = ["Taktur", "Rafgítarar", "Kassagítarar", "Hljómborð", "Söngur", "Blástur", "Annað"];
 
+const GRIP = `<svg viewBox="0 0 10 16" aria-hidden="true">${[3, 8, 13]
+  .map((y) => `<circle cx="2.5" cy="${y}" r="1.5"/><circle cx="7.5" cy="${y}" r="1.5"/>`)
+  .join("")}</svg>`;
+
 const VIEWS = [
   ["both", "Bæði"],
   ["chords", "Hljómar"],
@@ -231,6 +235,7 @@ export function setupPermixer() {
   // Lagalistinn úr Sheet-inu: { key, order: [id], rows: Map(id -> lína), names }
   let setlist = null;
   let editOrder = null; // röðin á meðan verið er að breyta henni
+  let drag = null; // lag sem er verið að draga í „Breyta röð“
   const drafts = new Map(); // id -> óvistaðir reitir (kynning, nótur, lengd)
 
   app.innerHTML = `
@@ -348,7 +353,10 @@ export function setupPermixer() {
               <button type="button" data-pm-move="${esc(id)}" data-pm-by="1" ${at === listed.length - 1 ? "disabled" : ""} aria-label="Færa ${esc(titleOf(id))} niður">↓</button>
               <button type="button" data-pm-remove="${esc(id)}" aria-label="Taka ${esc(titleOf(id))} af listanum">×</button>
             </span>`;
-      return `<li><button type="button" data-pm-pick="${esc(id)}" aria-current="${id === current.id}">
+      const grip = editing
+        ? `<span class="pm-grip" data-pm-grip="${esc(id)}" title="Draga til" aria-hidden="true">${GRIP}</span>`
+        : "";
+      return `<li>${grip}<button type="button" data-pm-pick="${esc(id)}" aria-current="${id === current.id}">
           <span class="pm-num">${i === null ? "–" : String(i + 1).padStart(2, "0")}</span>
           <span>${esc(titleOf(id))}</span></button>${controls}</li>`;
     };
@@ -375,6 +383,8 @@ export function setupPermixer() {
         </div>`
       : "";
 
+    drag = null;
+    els.nav.classList.remove("is-dragging");
     els.nav.classList.toggle("is-editing", editing);
     els.nav.innerHTML = `${head}
       <ol>${listed.filter((id) => byId.has(id)).map((id) => item(id, listed.indexOf(id))).join("")}</ol>
@@ -794,6 +804,67 @@ export function setupPermixer() {
       renderMixState();
     }
   });
+
+  // -- Dregið til í „Breyta röð“ (mús og fingur) --
+  // Línan sem er dregin fer úr flæðinu og eltir bendilinn, en verður kyrr í
+  // DOM-inu (annars missir snertiskjár taktinn). Staðgengill sýnir hvar hún
+  // lendir. Niður í „Utan lagalista“ tekur lag af listanum, þaðan upp setur
+  // það á. Röðin er lesin úr <ol> þegar sleppt er.
+  function dragTo(y) {
+    const { li, ph, offset } = drag;
+    const nav = els.nav;
+    const box = nav.getBoundingClientRect();
+    if (y < box.top + 32) nav.scrollTop -= 12;
+    else if (y > box.bottom - 32) nav.scrollTop += 12;
+    li.style.top = `${y - box.top + nav.scrollTop - offset}px`;
+
+    const ol = nav.querySelector("ol");
+    const marks = [...nav.querySelectorAll("ol > li, .pm-songs-sub, ul > li")].filter((el) => el !== li && el !== ph);
+    const below = marks.find((el) => {
+      const r = el.getBoundingClientRect();
+      return y < r.top + r.height / 2;
+    });
+    if (!below) (nav.querySelector("ul") || ol).append(ph);
+    else if (below.matches(".pm-songs-sub")) ol.append(ph);
+    else if (below.previousElementSibling !== ph) below.before(ph);
+  }
+
+  els.nav.addEventListener("pointerdown", (e) => {
+    const grip = e.target.closest("[data-pm-grip]");
+    if (!grip || !editOrder || drag || e.button !== 0) return;
+    e.preventDefault();
+    const li = grip.closest("li");
+    const r = li.getBoundingClientRect();
+    const ph = document.createElement("li");
+    ph.className = "pm-drop";
+    ph.style.height = `${r.height}px`;
+    li.after(ph);
+    drag = { li, ph, id: grip.dataset.pmGrip, offset: e.clientY - r.top, pointer: e.pointerId };
+    grip.setPointerCapture(e.pointerId);
+    li.classList.add("is-dragging");
+    els.nav.classList.add("is-dragging");
+    dragTo(e.clientY);
+  });
+
+  els.nav.addEventListener("pointermove", (e) => {
+    if (drag && e.pointerId === drag.pointer) dragTo(e.clientY);
+  });
+
+  function endDrag(e) {
+    if (!drag || e.pointerId !== drag.pointer) return;
+    const { li, ph, id } = drag;
+    if (e.type === "pointerup" && els.nav.contains(ph)) {
+      const order = [...els.nav.querySelectorAll("ol > li")]
+        .filter((el) => el !== li)
+        .map((el) => (el === ph ? id : el.querySelector("[data-pm-grip]")?.dataset.pmGrip))
+        .filter(Boolean);
+      // Lög sem eru ekki teiknuð (vantar í CMS og Sheet) halda sér aftast
+      editOrder = order.concat(editOrder.filter((x) => !byId.has(x)));
+    }
+    renderNav();
+  }
+  els.nav.addEventListener("pointerup", endDrag);
+  els.nav.addEventListener("pointercancel", endDrag);
 
   els.per.addEventListener("submit", (e) => {
     e.preventDefault();
