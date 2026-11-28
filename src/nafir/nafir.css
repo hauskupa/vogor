@@ -184,6 +184,7 @@
   .vbt-rod .vbt-heiti { font-weight: 600; min-width: 0; }
   .vbt-rod .vbt-heiti small { display: block; font-weight: 400; font-size: .8125rem; overflow-wrap: anywhere; }
   .vbt-rod .vbt-buid { opacity: .65; }
+  .vbt-rod li.vbt-tomt { display: block; }
 
   .vbt-listi { display: grid; gap: 1.5rem; }
   .vbt-kort { border: 1px solid #2e2e2e40; border-radius: .5rem; padding: 1rem; background: #ffffff26; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 1.25rem; }
@@ -213,6 +214,8 @@
   .vbt .vbt-btn--stadfesta:hover { background: #18611c; }
 
   /* Forskoðun: einfaldar eftirmyndir af færslu á Instagram og Facebook */
+  .vbt-boostform { margin-top: 1rem; max-width: 36rem; padding: 1rem; border: 1px solid #2e2e2e40; border-radius: .5rem; background: #ffffff26; }
+  .vbt-boostform > b { font-size: 1.0625rem; }
   .vbt-forsk { display: grid; gap: .75rem; align-content: start; }
   .vbt-skipta { display: flex; gap: .4rem; }
   .vbt-skipta button { font: inherit; font-size: .6875rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; padding: .25rem .6rem; border: 1px solid #2e2e2e80; border-radius: 1rem; background: transparent; color: inherit; cursor: pointer; }

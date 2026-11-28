@@ -105,9 +105,194 @@ export function birta(rot) {
       }
       gogn = r;
       stilla(r.verkefni);
-      if (baraRod === true) teiknaRod(); else teikna();
+      if (baraRod === true) teiknaRod(); else { teikna(); saekjaBoost(); }
       syna("app");
     });
+  }
+
+  // ---------- Boost (Boost.js í Vogor vél) ----------
+  // Hlutinn sést bara þar sem vélin svarar boostListi, og bara ef notandinn má
+  // boosta eða eitthvað boost er til. Hann er ekki sóttur á 20 sek. fresti eins og
+  // biðröðin, því hvert boost kallar á Meta; bara við opnun, Uppfæra og eftir aðgerð.
+  var boostGogn = null;
+  var boostDr = {};
+  var META_STADA = { PAUSED: "stöðvað hjá Meta", IN_PROCESS: "í yfirferð hjá Meta", PENDING_REVIEW: "í yfirferð hjá Meta",
+    DISAPPROVED: "Meta hafnaði auglýsingunni", WITH_ISSUES: "vandamál hjá Meta", ARCHIVED: "í geymslu hjá Meta", DELETED: "eytt hjá Meta" };
+  var BOOST_LED = { "Í gangi": "ok", "Stöðvað": "bid", "Villa": "villa", "Óvíst": "villa" };
+  function kr(x) { return String(Math.round(x || 0)).replace(/\B(?=(\d{3})+(?!\d))/g, ".") + " kr."; }
+  function dagsTexti(s) { var d = utc(s + " 00:00"); return d ? d.getUTCDate() + ". " + MANUDIR[d.getUTCMonth()] : s; }
+
+  function saekjaBoost() {
+    if (!VERKEFNI) return Promise.resolve();
+    return kalla("boostListi").then(function (r) {
+      boostGogn = r && r.ok ? r : null;
+      teiknaBoost();
+    });
+  }
+
+  function teiknaBoost() {
+    var b = boostGogn, hluti = q("boost-hluti");
+    hluti.hidden = !b || (!b.leyft && !b.boost.length);
+    if (hluti.hidden) return;
+    q("boost-hamark").textContent = kr(b.hamark);
+    q("boost-ads").href = b.adsManager;
+    var heiti = {};
+    (gogn.faerslur || []).forEach(function (x) { heiti[x.id] = x.heiti; });
+    b.faerslur.forEach(function (x) { heiti[x.id] = x.heiti; });
+    var listi = q("boost-listi");
+    listi.textContent = "";
+    b.boost.filter(function (x) { return x.stada !== "Villa" || x === b.boost[0]; })
+      .forEach(function (x) { listi.appendChild(boostLina(x, heiti)); });
+    if (!listi.children.length) listi.appendChild(ny("li", "vbt-tomt", "Ekkert boost ennþá."));
+    teiknaBoostForm();
+  }
+
+  function boostLina(x, heiti) {
+    var lokid = x.stada === "Í gangi" && x.endar && utc(x.endar) < Date.now();
+    var stada = lokid ? "Lokið" : x.stada;
+    var li = ny("li", stada === "Í gangi" || stada === "Stöðvað" ? "" : "vbt-buid");
+    li.appendChild(ny("span", "vst-led vst-led--" + (BOOST_LED[stada] || "")));
+    li.appendChild(ny("span", "vbt-timi", stuttTimi(x.timi)));
+    li.appendChild(ny("span", "", x.midill));
+    var h = ny("span", "vbt-heiti", (heiti[x.efni] || x.efni) + " · " + x.hopurHeiti + " · " + kr(x.upphaed) + " / " + x.dagar + (x.dagar === 1 ? " dagur" : " dagar"));
+    var bitar = [];
+    if (stada === "Stöðvað") bitar.push(x.byrjar ? "Stöðvað" : "Tilbúið, ekki komið af stað");
+    else if (stada === "Í gangi") bitar.push("Í gangi til " + stuttTimi(x.endar) + (META_STADA[x.meta] ? " (" + META_STADA[x.meta] + ")" : ""));
+    else if (stada === "Lokið") bitar.push("Lokið " + stuttTimi(x.endar));
+    else bitar.push(stada + (x.athugasemd ? ": " + x.athugasemd : ""));
+    if (x.eytt != null && (x.eytt > 0 || stada !== "Stöðvað")) {
+      bitar.push("eytt " + kr(x.eytt) + (x.na ? ", náði til " + x.na : "") + (x.smellir ? ", " + x.smellir + " smellir á hlekkinn" : ""));
+    }
+    if (x.hver && x.hver !== gogn.eg) bitar.push(x.hver);
+    h.appendChild(ny("small", "", bitar.join(" · ")));
+    li.appendChild(h);
+    var takki = ny("span");
+    if (boostGogn.leyft && stada === "Stöðvað" && x.ad) {
+      takki = boostTakki("Setja af stað", "", x, "boostKveikja",
+        "Setja boostið af stað? Það eyðir allt að " + kr(x.upphaed) + " á " + x.dagar + (x.dagar === 1 ? " degi" : " dögum") + " (" + x.hopurHeiti + ") og hættir sjálft.");
+    } else if (boostGogn.leyft && stada === "Í gangi") {
+      takki = boostTakki("Stöðva", "vbt-btn--ljos", x, "boostStodva", "");
+    }
+    li.appendChild(takki);
+    return li;
+  }
+
+  function boostTakki(texti, cls, x, action, spurning) {
+    var t = ny("button", "vbt-btn " + cls, texti);
+    t.type = "button";
+    t.addEventListener("click", function () {
+      if (spurning && !confirm(spurning)) return;
+      t.disabled = true;
+      kalla(action, { herferd: x.herferd }).then(function (r) {
+        if (!r.ok) { t.disabled = false; alert(r.villa || "Tókst ekki."); return; }
+        saekjaBoost();
+      });
+    });
+    return t;
+  }
+
+  // Eyðublaðið: færsla, miðill, hópur, upphæð, dagar og (ef leiðin þarf) hlekkur
+  function teiknaBoostForm() {
+    var b = boostGogn, f = q("boost-form");
+    f.textContent = "";
+    f.hidden = !b.leyft;
+    if (!b.leyft) return;
+    f.appendChild(ny("b", "", "Nýtt boost"));
+    if (!b.faerslur.length) {
+      f.appendChild(ny("p", "vbt-small", "Engin færsla sem er komin út hefur fundist á Facebook eða Instagram ennþá. Tölurnar eru sóttar á 6 tíma fresti."));
+      return;
+    }
+    var sj = b.sjalfgefid || {};
+    var fL = ny("label", "", "Færsla"), fSel = ny("select");
+    b.faerslur.forEach(function (x) { var o = ny("option", "", x.heiti + " (" + dagsTexti(x.birta) + ")"); o.value = x.id; fSel.appendChild(o); });
+    fSel.value = b.faerslur.some(function (x) { return x.id === boostDr.efni; }) ? boostDr.efni : b.faerslur[0].id;
+    fL.appendChild(fSel);
+    f.appendChild(fL);
+
+    var tvo = ny("div", "vbt-tvo");
+    var mL = ny("label", "", "Miðill"), mSel = ny("select");
+    mL.appendChild(mSel);
+    var hL = ny("label", "", "Hópur"), hSel = ny("select");
+    b.hopar.forEach(function (h) { var o = ny("option", "", h.heiti); o.value = h.id; hSel.appendChild(o); });
+    hSel.value = boostDr.hopur || sj.hopur || (b.hopar[0] || {}).id;
+    hL.appendChild(hSel);
+    tvo.appendChild(mL); tvo.appendChild(hL);
+    f.appendChild(tvo);
+
+    var tvo2 = ny("div", "vbt-tvo");
+    var uL = ny("label", "", "Upphæð (kr.)"), upp = ny("input");
+    upp.type = "number"; upp.min = b.lagmark; upp.max = b.hamark; upp.step = 500;
+    upp.value = boostDr.upphaed || sj.upphaed || 3000;
+    uL.appendChild(upp);
+    var dL = ny("label", "", "Dagar"), dag = ny("input");
+    dag.type = "number"; dag.min = 1; dag.max = b.dagarMest; dag.step = 1;
+    dag.value = boostDr.dagar || sj.dagar || 5;
+    dL.appendChild(dag);
+    tvo2.appendChild(uL); tvo2.appendChild(dL);
+    f.appendChild(tvo2);
+
+    var lL = ny("label", "", "Hlekkurinn í hnappnum"), hlekk = ny("input");
+    hlekk.placeholder = "https://";
+    lL.appendChild(hlekk);
+    f.appendChild(lL);
+
+    var lysing = ny("p", "vbt-small");
+    f.appendChild(lysing);
+    var takkar = ny("div", "vbt-takkar");
+    var bua = ny("button", "vbt-btn", "Búa til boost");
+    bua.type = "submit";
+    takkar.appendChild(bua);
+    f.appendChild(takkar);
+    var msg = ny("p", "vbt-msg");
+    f.appendChild(msg);
+
+    // Hlekkurinn fylgir færslunni þar til hann er lagaður í reitnum. Miðillinn er sá
+    // sem var valinn síðast; færsla sem er bara á öðrum miðlinum breytir honum ekki
+    var sjalfHlekkur = true;
+    var valinnMidill = boostDr.midill || sj.midill;
+    function faersla() { return b.faerslur.filter(function (x) { return x.id === fSel.value; })[0]; }
+    function midlar() {
+      var x = faersla(), fyrra = valinnMidill;
+      mSel.textContent = "";
+      x.midlar.forEach(function (m) { var o = ny("option", "", m); o.value = m; mSel.appendChild(o); });
+      mSel.value = x.midlar.indexOf(fyrra) !== -1 ? fyrra : x.midlar[0];
+    }
+    function uppfaera() {
+      var x = faersla(), thurfa = !!b.thurfaHlekk[mSel.value];
+      lL.hidden = !thurfa;
+      if (thurfa && sjalfHlekkur) hlekk.value = x.hlekkur || "";
+      var u = Math.round(Number(upp.value)) || 0, d = Math.round(Number(dag.value)) || 0;
+      var h = b.hopar.filter(function (y) { return y.id === hSel.value; })[0];
+      var leid = mSel.value === "Instagram" ? "Instagram-færslan sjálf verður auglýsingin, með „Listen now“-hnappi á hlekkinn."
+        : b.facebook === "faersla" ? "Facebook-færslan sjálf er boostuð, eins og hún er."
+        : "Ný Facebook-auglýsing úr mynd og texta færslunnar, með „Listen now“-hnappi á hlekkinn.";
+      lysing.textContent = "Allt að " + kr(u) + " á " + d + (d === 1 ? " degi" : " dögum") + (d ? " (um " + kr(u / d) + " á dag)" : "") +
+        (h ? ", " + h.heiti : "") + ". " + leid + " Búið til stöðvað; þú setur það af stað í listanum.";
+      boostDr = { efni: fSel.value, midill: mSel.value, hopur: hSel.value, upphaed: upp.value, dagar: dag.value };
+    }
+    fSel.addEventListener("change", function () { sjalfHlekkur = true; midlar(); uppfaera(); });
+    mSel.addEventListener("change", function () { valinnMidill = mSel.value; });
+    [mSel, hSel, upp, dag].forEach(function (el) { el.addEventListener("input", uppfaera); el.addEventListener("change", uppfaera); });
+    hlekk.addEventListener("input", function () { sjalfHlekkur = false; });
+    midlar();
+    uppfaera();
+
+    f.onsubmit = function (ev) {
+      ev.preventDefault();
+      msg.textContent = "";
+      bua.disabled = true;
+      kalla("boostBua", {
+        efni: fSel.value, midill: mSel.value, hopur: hSel.value, upphaed: Number(upp.value), dagar: Number(dag.value),
+        hlekkur: b.thurfaHlekk[mSel.value] ? hlekk.value.trim() : ""
+      }).then(function (r) {
+        bua.disabled = false;
+        if (!r.ok) { msg.textContent = r.villa || "Tókst ekki."; return; }
+        saekjaBoost().then(function () {
+          var m = q("boost-form").querySelector(".vbt-msg");
+          if (m) { m.textContent = "Boostið er tilbúið og stöðvað. Settu það af stað í listanum hér fyrir ofan."; m.classList.add("vbt-msg--ok"); }
+        });
+      });
+    };
   }
 
   function teikna() {
@@ -150,7 +335,7 @@ export function birta(rot) {
       if (BIDA.indexOf(b.stada) !== -1) li.appendChild(haettaTakki(b)); else li.appendChild(ny("span"));
       rod.appendChild(li);
     });
-    if (!rod.children.length) rod.appendChild(ny("li", "", "Ekkert í biðröð ennþá."));
+    if (!rod.children.length) rod.appendChild(ny("li", "vbt-tomt", "Ekkert í biðröð ennþá."));
 
     var naest = bida.filter(function (b) { return !b.prufa; })[0];
     q("naesta").textContent = naest ? teljaraTexti(naest.timi) : "--";
